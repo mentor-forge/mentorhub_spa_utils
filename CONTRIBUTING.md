@@ -1,13 +1,13 @@
-# Contributing to {{ info.slug }}_spa_utils
+# Contributing to mentorhub_spa_utils
 
-Thank you for contributing to {{ info.slug }}_spa_utils! This guide will help you get started.
+Thank you for contributing to mentorhub_spa_utils! This guide will help you get started.
 
 ## Development Setup
 
 ### Prerequisites
 
 - **Node.js 24+** (see `package.json` `engines`)
-- {{ info.name }} [Developers Edition]({{ org.git_host }}/{{ org.git_org }}/{{ info.slug }}/blob/main/CONTRIBUTING.md)
+- Mentor Hub [Developers Edition](https://github.com/mentor-forge/mentorhub/blob/main/CONTRIBUTING.md)
 
 ### Getting Started
 
@@ -41,7 +41,7 @@ npm run cypress:run
 ## Project Structure
 
 ```
-{{ info.slug }}_spa_utils/
+mentorhub_spa_utils/
 ├── src/
 │   ├── composables/     # Reusable composables
 │   ├── components/      # Vue components
@@ -120,7 +120,7 @@ npm run major   # 0.1.0 → 1.0.0
 
 ## Code Standards
 
-- Follow the [SPA Standards]({{ org.git_host }}/{{ org.git_org }}/{{ info.slug }}/blob/main/DeveloperEdition/standards/spa_standards.md)
+- Follow the [SPA Standards](https://github.com/mentor-forge/mentorhub/blob/main/DeveloperEdition/standards/spa_standards.md)
 - Use TypeScript for type safety
 - Add automation IDs (`data-automation-id`) to all interactive elements
 - Follow existing code patterns and conventions
@@ -128,7 +128,7 @@ npm run major   # 0.1.0 → 1.0.0
 
 ## Demo App
 
-The demo app provides a full flow: **sign-in** (localStorage or URL hash via `bootstrapAuthFromUrl`) → **component demos** (navigation drawer) → **admin page** (config) when the user has the `admin` role. The dev server may proxy `/api` to an [api_utils]({{ org.git_host }}/{{ org.git_org }}/{{ info.slug }}_api_utils) demo for config; SPAs do not use APIs as a credential-issuing login surface.
+The demo app provides a full flow: **sign-in** (localStorage or URL hash via `bootstrapAuthFromUrl`) → **component demos** (navigation drawer) → **admin page** (config) when the user has the `admin` role. The dev server may proxy `/api` to an [api_utils](https://github.com/mentor-forge/mentorhub_api_utils) demo for config; SPAs do not use APIs as a credential-issuing login surface.
 
 - **Unauthenticated entry:** [demo/pages/PublicAuthHint.vue](./demo/pages/PublicAuthHint.vue) — hash / IdP instructions (uses [demo/bootstrap-auth.ts](./demo/bootstrap-auth.ts))
 - **Layout & nav:** [demo/App.vue](./demo/App.vue) — app bar, hamburger, drawer (demo / admin / logout)
