@@ -66,6 +66,7 @@
     "vuetify": "^3.11.0"
   },
   "devDependencies": {
+    "@bahmutov/cypress-esbuild-preprocessor": "^2.2.8",
     "@mdi/font": "^7.4.47",
     "@types/jsonwebtoken": "^9.0.10",
     "@vitejs/plugin-vue": "^6.0.3",
