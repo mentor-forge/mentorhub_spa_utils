@@ -1,5 +1,5 @@
 {
-  "name": "@{{org.git_org}}/{{info.slug}}_spa_utils",
+  "name": "@mentor-forge/mentorhub_spa_utils",
   "version": "0.1.0",
   "type": "module",
   "engines": {
@@ -88,6 +88,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/{{org.git_org}}/{{info.slug}}_spa_utils.git"
+    "url": "https://github.com/mentor-forge/mentorhub_spa_utils.git"
   }
 }
