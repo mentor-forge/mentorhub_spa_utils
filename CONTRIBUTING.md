@@ -100,9 +100,9 @@ When adding new utilities, components, or composables:
    - Use TypeScript types consistently
    - Add automation IDs to interactive elements
 
-## Versioning
+## Versioning and release
 
-Consuming SPAs pin this library via **git** (branch, tag, or commit). Bump **`package.json`** version when you cut a release tag so downstream changelog and support are clear.
+Consuming SPAs pin this library with an exact semver from CodeArtifact (for example `"@mentor-forge/mentorhub_spa_utils": "0.2.0"`). Bump **`package.json`** version on the release branch before opening the PR.
 
 ```bash
 npm run patch   # 0.1.0 → 0.1.1 (no git tag)
@@ -110,7 +110,14 @@ npm run minor   # 0.1.0 → 0.2.0
 npm run major   # 0.1.0 → 1.0.0
 ```
 
-**`npm run build-package`** installs dev dependencies and builds **`dist/`** (Launch / automation). **`publish-package`** and **`delete-package`** are **no-ops** (exit 0) so Stage0 Launch npm steps always find those scripts; there is no registry publish or package delete for this repo.
+**Release flow:**
+
+1. Merge the version bump to `main`.
+2. Run `npm run tag-release` on `main` — creates and pushes `v{version}`; GitHub Actions publishes to CodeArtifact.
+
+**Local publish** (SRE / debugging, skips CI): `aws sso login --profile mentorhub-shared` then `npm run publish-package`.
+
+**`npm run build-package`** installs dev dependencies and builds **`dist/`** (Launch / automation). **`delete-package`** remains a no-op so Stage0 Launch npm steps always find that script.
 
 ## Testing Requirements
 
