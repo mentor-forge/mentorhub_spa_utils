@@ -31,6 +31,11 @@ END=$(aws codeartifact get-repository-endpoint \
   --query repositoryEndpoint --output text)
 
 HOST="${END#https://}"
-echo "//${HOST}:_authToken=${TOKEN}" >> .npmrc
+
+{
+  grep '^#' .npmrc 2>/dev/null || true
+  echo "@mentor-forge:registry=${END}"
+  echo "//${HOST}:_authToken=${TOKEN}"
+} > .npmrc
 
 npm publish
