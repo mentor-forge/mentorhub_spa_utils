@@ -55,7 +55,8 @@
     "minor": "npm version minor --no-git-tag-version",
     "major": "npm version major --no-git-tag-version",
     "build-package": "npm install --include=dev && npm run build",
-    "publish-package": "node -e \"process.exit(0)\"",
+    "publish-package": "sh scripts/publish-package.sh",
+    "tag-release": "sh scripts/tag-release.sh",
     "delete-package": "node -e \"process.exit(0)\""
   },
   "dependencies": {
