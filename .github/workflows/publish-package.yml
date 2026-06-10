@@ -43,8 +43,16 @@ jobs:
 
       - name: Publish to CodeArtifact
         run: |
-          aws codeartifact login --tool npm \
+          TOKEN=$(aws codeartifact get-authorization-token \
             --domain ${{ vars.CODEARTIFACT_DOMAIN }} \
             --domain-owner ${{ vars.AWS_SHARED_SERVICES_ACCOUNT_ID }} \
-            --repository ${{ vars.CODEARTIFACT_NPM_REPO }}
+            --query authorizationToken --output text)
+          END=$(aws codeartifact get-repository-endpoint \
+            --domain ${{ vars.CODEARTIFACT_DOMAIN }} \
+            --domain-owner ${{ vars.AWS_SHARED_SERVICES_ACCOUNT_ID }} \
+            --repository ${{ vars.CODEARTIFACT_NPM_REPO }} \
+            --format npm \
+            --query repositoryEndpoint --output text)
+          HOST="${END#https://}"
+          echo "//${HOST}:_authToken=${TOKEN}" >> .npmrc
           npm publish
