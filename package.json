@@ -1,6 +1,6 @@
 {
   "name": "@mentor-forge/mentorhub_spa_utils",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "type": "module",
   "engines": {
     "node": ">=24.0.0"
@@ -67,6 +67,7 @@
     "vuetify": "^3.11.0"
   },
   "devDependencies": {
+    "@bahmutov/cypress-esbuild-preprocessor": "^2.2.8",
     "@mdi/font": "^7.4.47",
     "@types/jsonwebtoken": "^9.0.10",
     "@vitejs/plugin-vue": "^6.0.3",
