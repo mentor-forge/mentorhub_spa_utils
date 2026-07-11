@@ -1,3 +1,4 @@
+import createBundler from '@bahmutov/cypress-esbuild-preprocessor'
 import { defineConfig } from 'cypress'
 import { e2eDefaultJwtSecret } from './cypress/config/jwtDefaults'
 import { registerJwtSignTask } from './cypress/plugins/registerJwtSignTask'
@@ -14,6 +15,7 @@ export default defineConfig({
     },
     setupNodeEvents(on) {
       registerJwtSignTask(on)
+      on('file:preprocessor', createBundler())
     },
     // Assume services are already running - don't wait unnecessarily
     defaultCommandTimeout: 4000,
