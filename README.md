@@ -8,29 +8,47 @@ Reusable Vue 3 + Vuetify components, composables, and utilities for **`mentorhub
 
 ## Usage
 
-For complete working examples, see the [demo app](./demo/) which includes a **public auth entry** (hash / IdP hints), **navigation drawer** (hamburger), **component demo page**, and **admin (config) page**. The dev server can proxy `/api` to a local api_utils demo; auth uses `bootstrapAuthFromUrl` and localStorage (no backend “login API” in the product SPA flow).
+For complete working examples, see the [demo app](./demo/) which uses the standard journey-SPA auth flow (IdP redirect, shared `useAuth`, navigation drawer), **component demo page**, and **admin (config) page**. The dev server can proxy `/api` to a local api_utils demo.
 
-### Bootstrap from URL (welcome / IdP callback)
+### Authentication integration
 
-Product SPAs should call **`bootstrapAuthFromUrl()` once before the router mounts** (e.g. from `src/initAuth.ts` imported from `main.ts`). It reads `#access_token=...&expires_at=...&roles=...` into the same `localStorage` keys as your auth composable, and handles `?clear_stored_auth=1` to clear stored tokens (e.g. developer sign-in page or embedded flows). See umbrella [SPA standards](https://github.com/mentor-forge/mentorhub/blob/main/DeveloperEdition/standards/spa_standards.md) and `VITE_IDP_LOGIN_URI` for unauthenticated redirects.
+Journey SPAs should use spa_utils for the full auth flow — no local `loginRedirect.ts` or duplicated `useAuth` module.
 
-### IdP redirect (`idpRedirect`)
+**1. Bootstrap before the router mounts** (`src/initAuth.ts`, imported first from `main.ts`):
 
-Journey SPAs redirect unauthenticated users, `401` responses, and logout to the configured login base URL via **`redirectToIdpLogin()`**, **`buildIdpLoginRedirectUrl()`**, and **`getIdpLoginBaseUrl()`**. Set **`VITE_IDP_LOGIN_URI`** at SPA build time (Developer Edition: `http://127.0.0.1:8080/login.html`). When unset, helpers fall back to the Developer Edition `login.html` URL — journey SPAs do not need a local `loginRedirect.ts` wrapper or a `/login` route. Navigation uses **`location.replace`** so protected routes are not left in browser history.
+```typescript
+import { bootstrapAuthFromUrl } from '@mentor-forge/mentorhub_spa_utils'
+import { syncAuthFromStorage } from '@mentor-forge/mentorhub_spa_utils'
+
+bootstrapAuthFromUrl()
+syncAuthFromStorage()
+```
+
+`bootstrapAuthFromUrl()` reads `#access_token=...&expires_at=...&roles=...` into `localStorage` and handles `?clear_stored_auth=1`. Call **`syncAuthFromStorage()`** again after clearing tokens (e.g. on `401`).
+
+**2. Router guards and layout** — use shared **`useAuth()`** and **`hasStoredRole()`** from `@mentor-forge/mentorhub_spa_utils`. Redirect unauthenticated `requiresAuth` routes with **`redirectToIdpLogin(window.location.origin + to.fullPath)`** and `next(false)`.
+
+**3. Logout** — clear auth via `logout()`, then **`redirectToIdpLogin(\`${window.location.origin}/\`)`**.
+
+**4. Build-time config** — set **`VITE_IDP_LOGIN_URI`** for production (Developer Edition: `http://127.0.0.1:8080/login.html`). When unset, **`redirectToIdpLogin()`** falls back to that Developer Edition URL and uses **`location.replace`**.
+
+See [demo/router.ts](./demo/router.ts) and [demo/bootstrap-auth.ts](./demo/bootstrap-auth.ts) for a working reference.
+
+#### URL bootstrap (`urlAuthBootstrap`)
+
+**Source:** [src/utils/urlAuthBootstrap.ts](./src/utils/urlAuthBootstrap.ts)
+
+#### IdP redirect (`idpRedirect`)
 
 **Source:** [src/utils/idpRedirect.ts](./src/utils/idpRedirect.ts)  
 **Tests:** [tests/utils/idpRedirect.test.ts](./tests/utils/idpRedirect.test.ts)
 
-### Composables
-
-#### useAuth
-
-JWT auth state from localStorage (`access_token`, `token_expires_at`, `user_roles`). Call **`bootstrapAuthFromUrl()`** then **`syncAuthFromStorage()`** once before the router mounts (e.g. `src/initAuth.ts` imported from `main.ts`). Re-call **`syncAuthFromStorage()`** after clearing tokens (e.g. on `401`). Use **`hasStoredRole()`** in router guards; pair with **`redirectToIdpLogin()`** for unauthenticated redirects and logout.
+#### useAuth composable
 
 **Source:** [src/composables/useAuth.ts](./src/composables/useAuth.ts)  
 **Tests:** [tests/composables/useAuth.test.ts](./tests/composables/useAuth.test.ts)
 
-#### useErrorHandler
+### Composables
 
 Handle errors from queries/mutations with reactive error state. Returns `showError`, `errorMessage`, and `clearError` refs.
 
@@ -187,7 +205,7 @@ Common validation rules for form fields. Includes `required`, `namePattern` (no 
 
 ## Demo App
 
-For complete working examples, see the [demo app](./demo/) which includes a **public auth entry** (hash / IdP hints), **navigation drawer** (hamburger), **component demo page**, and **admin (config) page**. The dev server can proxy `/api` to a local api_utils demo; auth uses `bootstrapAuthFromUrl` and localStorage (no backend “login API” in the product SPA flow).
+For complete working examples, see the [demo app](./demo/) — standard IdP auth redirect, **navigation drawer**, **component demo page**, and **admin (config) page**. See [Authentication integration](#authentication-integration) above.
 
 ## Contributing
 

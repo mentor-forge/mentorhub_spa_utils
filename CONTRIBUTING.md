@@ -43,7 +43,7 @@ npm run cypress:run
 ```
 mentorhub_spa_utils/
 ├── src/
-│   ├── composables/     # Reusable composables
+│   ├── composables/     # Reusable composables (useAuth, useErrorHandler, useRoles, …)
 │   ├── components/      # Vue components
 │   ├── utils/           # Utility functions (incl. urlAuthBootstrap for URL hash / clear query)
 │   └── index.ts         # Main export
@@ -136,10 +136,12 @@ npm run major   # 0.1.0 → 1.0.0
 
 ## Demo App
 
-The demo app provides a full flow: **sign-in** (localStorage or URL hash via `bootstrapAuthFromUrl`) → **component demos** (navigation drawer) → **admin page** (config) when the user has the `admin` role. The dev server may proxy `/api` to an [api_utils](https://github.com/mentor-forge/mentorhub_api_utils) demo for config; SPAs do not use APIs as a credential-issuing login surface.
+The demo app provides a full flow: **IdP login redirect** → **component demos** (navigation drawer) → **admin page** (config) when the user has the `admin` role. The dev server may proxy `/api` to an [api_utils](https://github.com/mentor-forge/mentorhub_api_utils) demo for config; SPAs do not use APIs as a credential-issuing login surface.
 
-- **Auth flow:** [demo/bootstrap-auth.ts](./demo/bootstrap-auth.ts) — URL bootstrap + shared `useAuth` hydration; unauthenticated users redirect to Developer Edition `login.html`
+- **Shared auth:** [src/composables/useAuth.ts](./src/composables/useAuth.ts) — exported for journey SPAs; demo imports from `../src/composables/useAuth`
+- **Auth bootstrap:** [demo/bootstrap-auth.ts](./demo/bootstrap-auth.ts) — `bootstrapAuthFromUrl` + `syncAuthFromStorage`; router/logout use `redirectToIdpLogin`
 - **Layout & nav:** [demo/App.vue](./demo/App.vue) — app bar, hamburger, drawer (demo / admin / logout)
+- **Router:** [demo/router.ts](./demo/router.ts) — `/` → `/demo`; unauthenticated routes redirect to `:8080/login.html`
 - **Component demos:** [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) — AutoSaveField, AutoSaveSelect, ListPageSearch, formatDate, validationRules
 - **Admin (config):** [demo/pages/AdminPage.vue](./demo/pages/AdminPage.vue) — config items, versions, enumerators, token (requires `admin` role)
 

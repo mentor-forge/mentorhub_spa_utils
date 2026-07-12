@@ -1,6 +1,6 @@
 # F013 – Update auth integration documentation
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F012  
 **Description**: Document the standard journey-SPA auth integration using spa_utils exports so consumers can remove local `loginRedirect.ts` and duplicated `useAuth` modules.
@@ -60,4 +60,6 @@ The agent must not update files outside this list.
 
 ## Execution Notes
 
-_Reserved for the task execution agent._
+- Consolidated README **Authentication integration** section with initAuth, guards, logout, and env guidance.
+- Updated CONTRIBUTING demo app references for shared `useAuth` and standard IdP redirect flow.
+- `npm run test` 109 passed; `npm run build` success.
