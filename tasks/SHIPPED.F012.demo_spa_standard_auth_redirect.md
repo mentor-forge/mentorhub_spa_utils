@@ -1,6 +1,6 @@
 # F012 – Refactor demo SPA to standard IdP auth redirect and shared useAuth
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F010, F011  
 **Description**: Replace the demo app's local public-auth hint page with the standard journey-SPA pattern: IdP redirect to `:8080/login.html`, shared `useAuth` hydration, and logout redirect.
@@ -84,4 +84,8 @@ The agent must not update files outside this list.
 
 ## Execution Notes
 
-_Reserved for the task execution agent._
+- Demo uses shared `useAuth` / `redirectToIdpLogin`; removed `PublicAuthHint.vue` and local `useAuth`.
+- Router guards redirect unauthenticated users to `:8080/login.html`; logout uses `redirectToIdpLogin`.
+- Added `.env.development` and vitest `VITE_IDP_LOGIN_URI` env.
+- Updated `cypress/e2e/navigation.cy.ts` and `cypress/support/commands.ts` (logout no longer asserts `/` pathname after IdP redirect).
+- Tests: `npm run test` 109 passed; `npm run build` success; `npm run cypress:run` 41 passed.

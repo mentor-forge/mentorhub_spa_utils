@@ -50,11 +50,10 @@ mentorhub_spa_utils/
 ├── demo/                # Demo app for testing components
 │   ├── App.vue          # Layout: app bar, nav drawer, router-view
 │   ├── main.ts          # Entry point
-│   ├── bootstrap-auth.ts    # bootstrapAuthFromUrl before app
-│   ├── router.ts        # Routes: / (public auth hint), /demo, /admin
-│   ├── composables/     # useAuth, useConfig (demo-only)
+│   ├── bootstrap-auth.ts    # bootstrapAuthFromUrl + syncAuthFromStorage before app
+│   ├── router.ts        # Routes: / → /demo, /demo, /admin (IdP redirect when unauthenticated)
+│   ├── composables/     # useConfig (demo-only); useAuth from src/composables
 │   ├── pages/
-│   │   ├── PublicAuthHint.vue  # Unauthenticated entry (IdP / hash; no backend login API)
 │   │   ├── DemoPage.vue     # Component & utility demos
 │   │   └── AdminPage.vue    # Config (api_utils /api/config)
 │   ├── components/      # Admin UI (config tables, token card)
@@ -84,7 +83,7 @@ When adding new utilities, components, or composables:
    - Follow existing test patterns
 
 4. **Add examples to the demo app:**
-   - Add to [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) (or AdminPage / PublicAuthHint as appropriate)
+   - Add to [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) (or AdminPage as appropriate)
    - This helps users understand how to use your utility
 
 5. **Add E2E tests:**
@@ -139,7 +138,7 @@ npm run major   # 0.1.0 → 1.0.0
 
 The demo app provides a full flow: **sign-in** (localStorage or URL hash via `bootstrapAuthFromUrl`) → **component demos** (navigation drawer) → **admin page** (config) when the user has the `admin` role. The dev server may proxy `/api` to an [api_utils](https://github.com/mentor-forge/mentorhub_api_utils) demo for config; SPAs do not use APIs as a credential-issuing login surface.
 
-- **Unauthenticated entry:** [demo/pages/PublicAuthHint.vue](./demo/pages/PublicAuthHint.vue) — hash / IdP instructions (uses [demo/bootstrap-auth.ts](./demo/bootstrap-auth.ts))
+- **Auth flow:** [demo/bootstrap-auth.ts](./demo/bootstrap-auth.ts) — URL bootstrap + shared `useAuth` hydration; unauthenticated users redirect to Developer Edition `login.html`
 - **Layout & nav:** [demo/App.vue](./demo/App.vue) — app bar, hamburger, drawer (demo / admin / logout)
 - **Component demos:** [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) — AutoSaveField, AutoSaveSelect, ListPageSearch, formatDate, validationRules
 - **Admin (config):** [demo/pages/AdminPage.vue](./demo/pages/AdminPage.vue) — config items, versions, enumerators, token (requires `admin` role)

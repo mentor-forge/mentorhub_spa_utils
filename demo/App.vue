@@ -54,11 +54,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuth } from './composables/useAuth'
+import { useAuth } from '../src/composables/useAuth'
+import { redirectToIdpLogin } from '../src/utils/idpRedirect'
 import { useConfig } from './composables/useConfig'
 
-const router = useRouter()
 const { isAuthenticated, logout, roles } = useAuth()
 const { loadConfig } = useConfig()
 const drawer = ref(false)
@@ -76,8 +75,9 @@ onMounted(async () => {
 })
 
 function handleLogout() {
+  const returnTo = `${window.location.origin}/`
   logout()
   drawer.value = false
-  router.push('/')
+  redirectToIdpLogin(returnTo)
 }
 </script>
