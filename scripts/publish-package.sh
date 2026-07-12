@@ -33,7 +33,7 @@ END=$(aws codeartifact get-repository-endpoint \
 HOST="${END#https://}"
 
 {
-  grep '^#' .npmrc 2>/dev/null || true
+  grep '^#' .npmrc.example 2>/dev/null || true
   echo "@mentor-forge:registry=${END}"
   echo "//${HOST}:_authToken=${TOKEN}"
 } > .npmrc

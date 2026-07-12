@@ -117,6 +117,8 @@ npm run major   # 0.1.0 → 1.0.0
 
 **Local publish** (SRE / debugging, skips CI): `aws sso login --profile mentorhub-shared` then `npm run publish-package`.
 
+**npm / CodeArtifact auth:** `.npmrc` is gitignored (tokens must not be committed). Use `.npmrc.example` as the template; CI and `publish-package.sh` copy its comments and inject a short-lived `_authToken`. For local installs of `@mentor-forge/*` packages, run `mh` or copy `.npmrc.example` to `.npmrc` and add your token.
+
 **`npm run build-package`** installs dev dependencies and builds **`dist/`** (Launch / automation). **`delete-package`** remains a no-op so Stage0 Launch npm steps always find that script.
 
 ## Testing Requirements
