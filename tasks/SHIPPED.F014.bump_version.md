@@ -1,6 +1,6 @@
 # F014 – Bump package version for auth redirect and useAuth release
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F013  
 **Description**: Bump `@mentor-forge/mentorhub_spa_utils` version for the shared auth composable and reliable IdP redirect changes.
@@ -43,4 +43,5 @@ The agent must not update files outside this list.
 
 ## Execution Notes
 
-_Reserved for the task execution agent._
+- Bumped `0.3.0` → `0.4.0` (minor: new `useAuth` export + `redirectToIdpLogin` behavior change).
+- `npm run test` and `npm run build` verified after version bump.
