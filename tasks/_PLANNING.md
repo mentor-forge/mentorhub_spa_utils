@@ -27,7 +27,7 @@ Each task file must contain the following sections under H1 and H2 headings.
     - `RUNNING.` – (Optional) Tasks currently being executed in this session.
     - `SHIPPED.` – Tasks that are fully implemented and completed.
   - **Type**: `Feature` | `Defect` to describe why we are running this task
-  - **Depends On**: `L010_update_profile_openapi` the required predecessor task **in this repo**, or `none` for parallel tasks
+  - **Depends On**: `F010_reliable_idp_redirect_helpers` — the required predecessor task **in this repo** (`none` only for the first task in a workflow)
   - **Description**: A brief human description of the task.
 
 - Under a **Path anchoring** H2 header:
@@ -70,6 +70,14 @@ Each task file must contain the following sections under H1 and H2 headings.
 
 - Under an **Execution Notes** H2 header:
   - Reserved for the task execution agent to record plan, commands run, test results, and follow-ups.
+
+## Task sequencing (serial only)
+
+Always plan tasks as a **single serial chain**. Each task after the first must declare **Depends On** the immediately preceding task in that chain (e.g. F010 → F011 → F012).
+
+Do **not** plan parallel tasks or mark multiple tasks as `Depends On: none` in the same workflow. Parallel execution is too risky for testing and change control — one commit and one verification pass per task keeps failures isolated and reproducible.
+
+The orchestrator runs `PENDING.*` tasks **one at a time** in dependency order.
 
 ## Naming Conventions
 - **Recommended filename pattern** for new tasks:
