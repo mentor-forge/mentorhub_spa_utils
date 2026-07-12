@@ -23,6 +23,13 @@ Journey SPAs redirect unauthenticated users, `401` responses, and logout to the 
 
 ### Composables
 
+#### useAuth
+
+JWT auth state from localStorage (`access_token`, `token_expires_at`, `user_roles`). Call **`bootstrapAuthFromUrl()`** then **`syncAuthFromStorage()`** once before the router mounts (e.g. `src/initAuth.ts` imported from `main.ts`). Re-call **`syncAuthFromStorage()`** after clearing tokens (e.g. on `401`). Use **`hasStoredRole()`** in router guards; pair with **`redirectToIdpLogin()`** for unauthenticated redirects and logout.
+
+**Source:** [src/composables/useAuth.ts](./src/composables/useAuth.ts)  
+**Tests:** [tests/composables/useAuth.test.ts](./tests/composables/useAuth.test.ts)
+
 #### useErrorHandler
 
 Handle errors from queries/mutations with reactive error state. Returns `showError`, `errorMessage`, and `clearError` refs.

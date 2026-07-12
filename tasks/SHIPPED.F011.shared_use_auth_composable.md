@@ -1,6 +1,6 @@
 # F011 – Shared useAuth composable with storage hydration
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F010  
 **Description**: Publish a shared `useAuth` composable (with `syncAuthFromStorage`) so journey SPAs can drop duplicated local auth state and post-bootstrap hydration workarounds.
@@ -64,4 +64,6 @@ The agent must not update files outside this list.
 
 ## Execution Notes
 
-_Reserved for the task execution agent._
+- Added `src/composables/useAuth.ts` with module-load hydration, `syncAuthFromStorage`, role helpers.
+- Exported from `src/composables/index.ts`; confirmed in `dist/composables/index.d.ts`.
+- Tests: `npm run test` — 109 passed (10 new). `npm run build` — success.
