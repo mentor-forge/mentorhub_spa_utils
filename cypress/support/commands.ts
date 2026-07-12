@@ -26,8 +26,8 @@ Cypress.Commands.add('logout', () => {
         .should('exist')
         .scrollIntoView()
         .click({ force: true })
-
-      cy.location('pathname', { timeout: 5000 }).should('eq', '/')
+    } else {
+      cy.clearLocalStorage()
     }
   })
 })

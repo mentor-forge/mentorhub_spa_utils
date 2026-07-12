@@ -1,22 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuth } from './composables/useAuth'
+import { useAuth, hasStoredRole } from '../src/composables/useAuth'
+import { redirectToIdpLogin } from '../src/utils/idpRedirect'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: '/',
-      name: 'PublicEntry',
-      component: () => import('./pages/PublicAuthHint.vue'),
-      meta: { requiresAuth: false },
-      beforeEnter: (_to, _from, next) => {
-        const { isAuthenticated } = useAuth()
-        if (isAuthenticated.value) {
-          next({ name: 'Demo', replace: true })
-        } else {
-          next()
-        }
-      },
+      redirect: '/demo',
     },
     {
       path: '/demo',
@@ -41,29 +32,15 @@ router.beforeEach((to, _from, next) => {
   const { isAuthenticated } = useAuth()
 
   if (to.meta.requiresAuth && !isAuthenticated.value) {
-    let redirectPath = '/demo'
-    if (to.name === 'Demo') {
-      redirectPath = '/demo'
-    } else if (to.name === 'Admin') {
-      redirectPath = '/admin'
-    }
-
-    next({
-      path: '/',
-      query: { redirect: redirectPath },
-      replace: true,
-    })
+    redirectToIdpLogin(window.location.origin + to.fullPath)
+    next(false)
     return
   }
 
   const requiredRole = to.meta.requiresRole as string | undefined
-  if (requiredRole) {
-    const storedRoles = localStorage.getItem('user_roles')
-    const roles = storedRoles ? JSON.parse(storedRoles) : []
-    if (!roles.includes(requiredRole)) {
-      next({ name: 'Demo' })
-      return
-    }
+  if (requiredRole && !hasStoredRole(requiredRole)) {
+    next({ name: 'Demo' })
+    return
   }
 
   next()

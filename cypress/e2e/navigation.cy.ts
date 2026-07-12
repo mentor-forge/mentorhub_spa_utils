@@ -3,14 +3,9 @@ describe('Navigation & Routing', () => {
     beforeEach(() => {
       cy.clearLocalStorage()
       cy.login(['admin']) // Use admin role to access admin features
-      cy.visit('/demo', { timeout: 10000 })
       cy.url({ timeout: 5000 }).should('include', '/demo')
       cy.get('body', { timeout: 10000 }).should('be.visible')
       cy.wait(1000)
-    })
-    
-    afterEach(() => {
-      cy.logout()
     })
     
     it('should show hamburger when authenticated', () => {
@@ -91,40 +86,43 @@ describe('Navigation & Routing', () => {
       cy.contains('spa_utils Component Testing', { timeout: 10000 }).should('be.visible')
     })
     
-    it('should logout and return to public entry', () => {
+    it('should logout and redirect to IdP login', () => {
       cy.get('[data-automation-id="nav-drawer-toggle"]').click()
       cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
       cy.get('[data-automation-id="nav-logout-link"]', { timeout: 5000 })
         .should('be.visible')
         .click()
-      cy.location('pathname', { timeout: 5000 }).should('eq', '/')
-      
-      // Verify localStorage is cleared
-      cy.window().then((win) => {
-        expect(win.localStorage.getItem('access_token')).to.be.null
-        expect(win.localStorage.getItem('token_expires_at')).to.be.null
-        expect(win.localStorage.getItem('user_roles')).to.be.null
+
+      cy.origin('http://127.0.0.1:8080', () => {
+        cy.location('pathname', { timeout: 10000 }).should('eq', '/login.html')
+        cy.location('search').should('include', 'return_to=')
       })
-      
-      cy.visit('/demo')
-      cy.location('pathname', { timeout: 5000 }).should('eq', '/')
-      cy.url().should('include', 'redirect=/demo')
     })
   })
   
-  describe('Token Expiration', () => {
-    it('should handle expired token gracefully', () => {
-      // Set expired token in localStorage
-      cy.visit('/', {
-        onBeforeLoad(win) {
-          const expiredTime = new Date(Date.now() - 1000 * 60 * 60).toISOString() // 1 hour ago
-          win.localStorage.setItem('access_token', 'expired-token')
-          win.localStorage.setItem('token_expires_at', expiredTime)
-          win.localStorage.setItem('user_roles', JSON.stringify(['admin']))
-        }
+  describe('Unauthenticated access', () => {
+    it('should redirect to IdP login when visiting a protected route', () => {
+      cy.visit('/demo')
+
+      cy.origin('http://127.0.0.1:8080', () => {
+        cy.location('pathname', { timeout: 10000 }).should('eq', '/login.html')
+        cy.location('search').should('include', 'return_to=')
       })
-      
-      cy.location('pathname', { timeout: 5000 }).should('eq', '/')
+    })
+  })
+
+  describe('Token Expiration', () => {
+    it('should redirect expired sessions to IdP login', () => {
+      cy.login(['admin'])
+      cy.window().then((win) => {
+        const expiredTime = new Date(Date.now() - 1000 * 60 * 60).toISOString()
+        win.localStorage.setItem('token_expires_at', expiredTime)
+      })
+      cy.reload()
+      cy.origin('http://127.0.0.1:8080', () => {
+        cy.location('pathname', { timeout: 10000 }).should('eq', '/login.html')
+        cy.location('search').should('include', 'return_to=')
+      })
     })
   })
 })
