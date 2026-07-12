@@ -5,6 +5,9 @@
  * Production: commercial IdP authorize/login URL.
  */
 
+/** Developer Edition welcome-page login when `VITE_IDP_LOGIN_URI` is unset at build time. */
+export const DEVELOPER_EDITION_IDP_LOGIN_URI = 'http://127.0.0.1:8080/login.html'
+
 function readConfiguredIdpLoginUri(): string | undefined {
   try {
     const url = import.meta.env?.VITE_IDP_LOGIN_URI
@@ -17,6 +20,13 @@ function readConfiguredIdpLoginUri(): string | undefined {
   return undefined
 }
 
+function resolveIdpLoginUri(override?: string): string {
+  if (override?.trim()) {
+    return override.trim()
+  }
+  return readConfiguredIdpLoginUri() ?? DEVELOPER_EDITION_IDP_LOGIN_URI
+}
+
 function defaultReturnTo(): string {
   if (typeof window === 'undefined') {
     return ''
@@ -25,24 +35,17 @@ function defaultReturnTo(): string {
 }
 
 /**
- * Resolved IdP login page URL from build-time env (`VITE_IDP_LOGIN_URI`).
+ * Resolved IdP login page URL from build-time env (`VITE_IDP_LOGIN_URI`) or Developer Edition fallback.
  */
-export function getIdpLoginBaseUrl(override?: string): string | undefined {
-  if (override?.trim()) {
-    return override.trim()
-  }
-  return readConfiguredIdpLoginUri()
+export function getIdpLoginBaseUrl(override?: string): string {
+  return resolveIdpLoginUri(override)
 }
 
 /**
  * Build a login redirect URL with `return_to` set to the SPA entry (or an explicit target).
  */
 export function buildIdpLoginRedirectUrl(returnTo?: string, idpLoginUri?: string): string {
-  const base = idpLoginUri ?? getIdpLoginBaseUrl()
-  if (!base) {
-    throw new Error('VITE_IDP_LOGIN_URI is not configured')
-  }
-
+  const base = resolveIdpLoginUri(idpLoginUri)
   const url = new URL(base)
   url.searchParams.set('return_to', returnTo ?? defaultReturnTo())
   return url.toString()
@@ -50,17 +53,12 @@ export function buildIdpLoginRedirectUrl(returnTo?: string, idpLoginUri?: string
 
 /**
  * Navigate to the configured IdP / dev login page (`login.html` in Developer Edition).
- * No-op when `VITE_IDP_LOGIN_URI` is unset — journey SPAs do not host a local `/login` route.
+ * Uses `location.replace` so the SPA route is not left in browser history.
  */
 export function redirectToIdpLogin(returnTo?: string, idpLoginUri?: string): void {
   if (typeof window === 'undefined') {
     return
   }
 
-  const base = idpLoginUri ?? getIdpLoginBaseUrl()
-  if (!base) {
-    return
-  }
-
-  window.location.href = buildIdpLoginRedirectUrl(returnTo, base)
+  window.location.replace(buildIdpLoginRedirectUrl(returnTo, idpLoginUri))
 }

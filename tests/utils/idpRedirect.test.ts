@@ -3,6 +3,7 @@
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import {
+  DEVELOPER_EDITION_IDP_LOGIN_URI,
   getIdpLoginBaseUrl,
   buildIdpLoginRedirectUrl,
   redirectToIdpLogin,
@@ -24,8 +25,8 @@ describe('idpRedirect', () => {
       )
     })
 
-    it('returns undefined when no override and env unset', () => {
-      expect(getIdpLoginBaseUrl()).toBeUndefined()
+    it('returns Developer Edition fallback when no override and env unset', () => {
+      expect(getIdpLoginBaseUrl()).toBe(DEVELOPER_EDITION_IDP_LOGIN_URI)
     })
   })
 
@@ -56,26 +57,24 @@ describe('idpRedirect', () => {
       delete globalThis.window
     })
 
-    it('throws when IdP URI is not configured', () => {
-      expect(() => buildIdpLoginRedirectUrl('http://127.0.0.1:8388/')).toThrow(
-        'VITE_IDP_LOGIN_URI is not configured'
+    it('uses Developer Edition fallback when IdP URI is not configured', () => {
+      const url = buildIdpLoginRedirectUrl('http://127.0.0.1:8388/')
+      expect(url).toBe(
+        `${DEVELOPER_EDITION_IDP_LOGIN_URI}?return_to=http%3A%2F%2F127.0.0.1%3A8388%2F`
       )
     })
   })
 
   describe('redirectToIdpLogin', () => {
-    let href = ''
+    let replaceTarget = ''
 
     beforeEach(() => {
-      href = ''
+      replaceTarget = ''
       installWindowLocation({
         pathname: '/subscriptions',
         search: '',
-        set href(value: string) {
-          href = value
-        },
-        get href() {
-          return href
+        replace(value: string) {
+          replaceTarget = value
         },
       })
     })
@@ -88,14 +87,16 @@ describe('idpRedirect', () => {
 
     it('redirects to IdP login when configured', () => {
       redirectToIdpLogin('http://127.0.0.1:8388/', 'http://127.0.0.1:8080/login.html')
-      expect(href).toBe(
+      expect(replaceTarget).toBe(
         'http://127.0.0.1:8080/login.html?return_to=http%3A%2F%2F127.0.0.1%3A8388%2F'
       )
     })
 
-    it('does not navigate when IdP is not configured', () => {
+    it('uses Developer Edition fallback when IdP is not configured', () => {
       redirectToIdpLogin('/subscriptions')
-      expect(href).toBe('')
+      expect(replaceTarget).toBe(
+        `${DEVELOPER_EDITION_IDP_LOGIN_URI}?return_to=%2Fsubscriptions`
+      )
     })
   })
 })

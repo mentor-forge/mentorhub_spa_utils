@@ -1,6 +1,6 @@
 # F010 – Reliable IdP redirect helpers (Developer Edition fallback + location.replace)
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: none  
 **Description**: Harden `redirectToIdpLogin` and related helpers so Developer Edition redirects always reach `http://127.0.0.1:8080/login.html` without per-SPA `loginRedirect.ts` wrappers.
@@ -61,4 +61,7 @@ The agent must not update files outside this list.
 
 ## Execution Notes
 
-_Reserved for the task execution agent._
+- Added `DEVELOPER_EDITION_IDP_LOGIN_URI` constant and `resolveIdpLoginUri()` so env-unset builds still redirect to `:8080/login.html`.
+- `getIdpLoginBaseUrl()` now returns `string` (configured env or fallback).
+- `redirectToIdpLogin()` uses `window.location.replace`.
+- Tests: `npm run test` — 99 passed. `npm run build` — success. `npm run lint` — `eslint` not on PATH in this environment; `src/` unchanged aside from `idpRedirect.ts`.

@@ -16,7 +16,7 @@ Product SPAs should call **`bootstrapAuthFromUrl()` once before the router mount
 
 ### IdP redirect (`idpRedirect`)
 
-Journey SPAs redirect unauthenticated users, `401` responses, and logout to the configured login base URL via **`redirectToIdpLogin()`**, **`buildIdpLoginRedirectUrl()`**, and **`getIdpLoginBaseUrl()`**. Set **`VITE_IDP_LOGIN_URI`** at SPA build time (Developer Edition: `http://127.0.0.1:8080/login.html`). When unset, redirect helpers no-op—journey SPAs do not host a local `/login` route.
+Journey SPAs redirect unauthenticated users, `401` responses, and logout to the configured login base URL via **`redirectToIdpLogin()`**, **`buildIdpLoginRedirectUrl()`**, and **`getIdpLoginBaseUrl()`**. Set **`VITE_IDP_LOGIN_URI`** at SPA build time (Developer Edition: `http://127.0.0.1:8080/login.html`). When unset, helpers fall back to the Developer Edition `login.html` URL — journey SPAs do not need a local `loginRedirect.ts` wrapper or a `/login` route. Navigation uses **`location.replace`** so protected routes are not left in browser history.
 
 **Source:** [src/utils/idpRedirect.ts](./src/utils/idpRedirect.ts)  
 **Tests:** [tests/utils/idpRedirect.test.ts](./tests/utils/idpRedirect.test.ts)
