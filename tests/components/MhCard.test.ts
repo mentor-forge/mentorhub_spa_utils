@@ -60,6 +60,7 @@ describe('MhCard', () => {
     await wrapper.vm.$nextTick()
 
     expect(vm.isCollapsed).toBe(true)
+    expect(wrapper.classes()).toContain('mh-card--collapsed')
     expect(wrapper.emitted('update:collapsed')).toBeUndefined()
   })
 

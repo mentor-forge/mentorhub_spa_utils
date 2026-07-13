@@ -18,6 +18,8 @@ describe('CardGrid', () => {
       expect(col.props('sm')).toBe('6')
       expect(col.props('md')).toBe('4')
       expect(col.props('lg')).toBe('3')
+      // Keep intrinsic height so collapsed cards shrink independently of row siblings.
+      expect(col.classes()).toContain('align-self-start')
     })
   })
 

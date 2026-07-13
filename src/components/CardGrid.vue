@@ -68,7 +68,9 @@ export default defineComponent({
                 md: props.md,
                 lg: props.lg,
                 xl: props.xl,
-                class: 'mh-card-grid__col d-flex',
+                // align-self-start: columns (and their cards) keep intrinsic height so a
+                // collapsed MhCard shrinks to its title bar while siblings in the row stay tall.
+                class: 'mh-card-grid__col d-flex align-self-start',
               },
               () => [node]
             )

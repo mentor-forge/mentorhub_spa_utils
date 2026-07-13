@@ -1,6 +1,7 @@
 <template>
   <v-card
     class="mh-card"
+    :class="{ 'mh-card--collapsed': isCollapsed }"
     variant="outlined"
     rounded="lg"
     elevation="2"
@@ -94,10 +95,19 @@ defineExpose({
 
 <style scoped>
 .mh-card {
+  /* Do not stretch to sibling row height — collapsed cards should shrink to the title bar. */
   display: flex;
   flex-direction: column;
+  align-self: flex-start;
   width: 100%;
+  height: auto;
+  flex: 0 0 auto;
   background-color: rgb(var(--v-theme-surface));
+}
+
+.mh-card--collapsed {
+  /* Body is hidden; keep chrome tight to the title bar even inside stretched flex columns. */
+  min-height: 0;
 }
 
 .mh-card__title-bar {
