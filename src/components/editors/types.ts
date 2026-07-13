@@ -27,3 +27,14 @@ export interface StringEditorProps extends BaseEditorProps<string | number | und
   textarea?: boolean
   rows?: number
 }
+
+/**
+ * `breadcrumb` configurator type: composite audit object rendered by
+ * `BreadcrumbDisplay` (F019). Always display-only — see `BreadcrumbDisplay.vue`.
+ */
+export interface BreadcrumbValue {
+  from_ip?: string
+  by_user?: string
+  at_time?: string
+  correlation_id?: string
+}

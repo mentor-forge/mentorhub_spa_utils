@@ -197,4 +197,34 @@ describe('validation rules', () => {
       expect(validationRules.ratingRange(2.5)).toBe('Must be a whole number between 1 and 4')
     })
   })
+
+  describe('dateTimePattern', () => {
+    it('should accept valid ISO-8601 date-time strings and empty string', () => {
+      expect(validationRules.dateTimePattern('2024-01-15T10:30:00Z')).toBe(true)
+      expect(validationRules.dateTimePattern('2024-01-15T10:30:00.123Z')).toBe(true)
+      expect(validationRules.dateTimePattern('2024-01-15T10:30:00+05:00')).toBe(true)
+      expect(validationRules.dateTimePattern('')).toBe(true)
+    })
+
+    it('should reject non-ISO strings and unparseable dates', () => {
+      expect(validationRules.dateTimePattern('01/15/2024')).toBe('Must be a valid ISO-8601 date-time')
+      expect(validationRules.dateTimePattern('not-a-date')).toBe('Must be a valid ISO-8601 date-time')
+    })
+  })
+
+  describe('durationPattern', () => {
+    it('should accept valid ISO-8601 durations and empty string', () => {
+      expect(validationRules.durationPattern('P3DT4H30M')).toBe(true)
+      expect(validationRules.durationPattern('P3D')).toBe(true)
+      expect(validationRules.durationPattern('PT4H30M')).toBe(true)
+      expect(validationRules.durationPattern('PT0S')).toBe(true)
+      expect(validationRules.durationPattern('')).toBe(true)
+    })
+
+    it('should reject malformed durations', () => {
+      expect(validationRules.durationPattern('3 days')).toBe('Must be a valid ISO-8601 duration (e.g. P3DT4H30M)')
+      expect(validationRules.durationPattern('P')).toBe('Must be a valid ISO-8601 duration (e.g. P3DT4H30M)')
+      expect(validationRules.durationPattern('PT')).toBe('Must be a valid ISO-8601 duration (e.g. P3DT4H30M)')
+    })
+  })
 })

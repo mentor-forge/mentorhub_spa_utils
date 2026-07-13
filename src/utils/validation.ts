@@ -118,4 +118,26 @@ export const validationRules = {
     const num = Number(v)
     return (Number.isInteger(num) && num >= 1 && num <= 4) || 'Must be a whole number between 1 and 4'
   },
+
+  /**
+   * `date-time` configurator type: ISO-8601 date-time string.
+   */
+  dateTimePattern: (v: string | number) => {
+    const str = String(v)
+    if (!str) return true
+    const isoShape = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/
+    return (isoShape.test(str) && !Number.isNaN(Date.parse(str))) || 'Must be a valid ISO-8601 date-time'
+  },
+
+  /**
+   * `duration` configurator type: ISO-8601 duration (`P…T…`), day/hour/minute/second components only.
+   */
+  durationPattern: (v: string | number) => {
+    const str = String(v)
+    if (!str) return true
+    return (
+      /^P(?!$)(\d+D)?(T(?=\d)(\d+H)?(\d+M)?(\d+S)?)?$/.test(str) ||
+      'Must be a valid ISO-8601 duration (e.g. P3DT4H30M)'
+    )
+  },
 }

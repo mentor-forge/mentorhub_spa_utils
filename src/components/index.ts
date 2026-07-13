@@ -13,8 +13,15 @@ export {
   UsPhoneEditor,
   IpAddressEditor,
   IdentifierEditor,
+  BooleanEditor,
+  CountEditor,
+  IndexEditor,
+  RatingEditor,
+  DateTimeEditor,
+  DurationEditor,
+  BreadcrumbDisplay,
 } from './editors'
-export type { BaseEditorProps, StringEditorProps } from './editors'
+export type { BaseEditorProps, StringEditorProps, BreadcrumbValue } from './editors'
 export { default as AdminPage } from './AdminPage.vue'
 export { default as ConfigItemsTable } from './admin/ConfigItemsTable.vue'
 export { default as VersionsTable } from './admin/VersionsTable.vue'

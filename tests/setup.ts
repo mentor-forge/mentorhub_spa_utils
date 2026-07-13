@@ -27,6 +27,19 @@ config.global.stubs = {
     props: ['modelValue', 'items', 'label', 'disabled', 'error', 'errorMessages', 'hint', 'variant', 'density', 'data-automation-id'],
     emits: ['update:modelValue', 'blur']
   },
+  'v-switch': {
+    template: '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
+    props: ['modelValue', 'label', 'disabled', 'hint', 'color', 'density', 'hideDetails', 'data-automation-id'],
+    emits: ['update:modelValue']
+  },
+  'v-rating': {
+    template: '<div class="v-rating-stub" @click="$emit(\'update:modelValue\', clickValue)"></div>',
+    props: ['modelValue', 'length', 'clearable', 'halfIncrements', 'readonly', 'hover', 'color', 'density', 'disabled', 'data-automation-id'],
+    emits: ['update:modelValue'],
+    data() {
+      return { clickValue: 3 }
+    }
+  },
   'v-progress-circular': {
     template: '<div class="v-progress-circular"></div>',
     props: ['size', 'width', 'indeterminate', 'color']

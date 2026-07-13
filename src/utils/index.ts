@@ -1,4 +1,5 @@
 export * from './date'
+export * from './duration'
 export * from './validation'
 export * from './admin'
 export * from './urlAuthBootstrap'
