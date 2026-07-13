@@ -1,6 +1,6 @@
 # F017 – Editor foundation: shared props, StringEditor base, AutoSave alignment
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F016  
 **Description**: Establish the shared view/edit editor contract and an abstract string-input base. Make `AutoSaveField` a thin compatibility wrapper around the string base (non-breaking). Prefer typed editors as the new public API.
@@ -114,4 +114,32 @@ The agent must not update demo pages (F021) or documentation (F023) beyond what 
 
 ## Execution Notes
 
-(reserved for execution agent)
+### Plan
+
+Implemented only the F017 foundation pieces (no typed derivatives — those are F018/F019):
+
+1. `src/composables/useDataCardContext.ts` — `dataCardContextKey` `Symbol` `InjectionKey<DataCardContext>`, `DataCardModel`/`DataCardContext` interfaces (`model: MaybeRefOrGetter<TModel>`, `onSave(field, value)`), `provideDataCardContext()`, typed `useDataCardContext()` inject helper, and `resolveDataCardModel()` to unwrap ref/getter/plain-object models. Re-exported from `src/composables/index.ts`.
+2. `src/components/editors/types.ts` — `BaseEditorProps<TValue>` (F015-locked `field`/`modelValue`/`onSave`/`editable`/`visible`/`automationId`/`label`/`hint`/`rules`) and `StringEditorProps` (adds `textarea`/`rows`).
+3. `src/components/editors/StringEditor.vue` — abstract string-input base. Encapsulates `v-text-field`/`v-textarea`, AutoSave saving/saved/error affordances, blur-triggered save, `density="comfortable"` + `variant="outlined"`, `width: 100%`. Prefers injected `DataCardContext` (`field` + context → `context.onSave(field, value)`) over standalone `modelValue`/`onSave`. `editable=false` renders a plain readonly display (not an input) and suffixes `automationId` with `-display` (idempotent if already suffixed) per spa_standards `-display` norm; the editable control keeps the automationId unsuffixed (matches existing `AutoSaveField` behavior — non-breaking). `visible=false` renders nothing (`v-if` on the whole template) without unmounting the component. Exposes `currentValue`/`saving`/`saved`/`error`/`handleInput`/`handleBlur` for tests and future composition.
+4. `src/components/editors/index.ts` — exports `StringEditor` + prop types.
+5. `src/components/AutoSaveField.vue` — reduced to a thin wrapper: forwards its unchanged prop surface (`modelValue`, `label`, `onSave`, `hint`, `rules`, `textarea`, `rows`, `automationId`) straight through to `StringEditor` (no `field`, so it always uses the standalone path). Export name and public props unchanged — non-breaking.
+6. `src/components/index.ts` — added `StringEditor` + type exports; `AutoSaveField`/`AutoSaveSelect` untouched exports retained. `AutoSaveSelect.vue` left as-is (no edits at all, not even incidental typing).
+7. `src/utils/validation.ts` — added stub/rule exports aligned to the F017 configurator-type catalog for F018/F019 to consume: `wordPattern`, `sentencePattern`, `markdownPattern`, `emailPattern`, `urlPattern`, `usPhonePattern`, `ipAddressPattern`, `identifierPattern`, `nonNegativeInteger`, `ratingRange`. Existing `required`/`namePattern`/`descriptionPattern` untouched.
+8. Tests: rewrote `tests/components/AutoSaveField.test.ts` for the wrapper refactor (now asserts prop forwarding to `StringEditor` plus full end-to-end save/error/saving/saved behavior via the mounted `StringEditor` instance, since shallow-stubbing would hide the delegate). Added `tests/components/editors/StringEditor.test.ts` (standalone behavior, `editable`/`visible` contract, `DataCard` context provide/inject), `tests/composables/useDataCardContext.test.ts`, and extended `tests/utils/validation.test.ts` for the new rule stubs.
+
+### Test results
+
+- `npm run test` — **170/170 tests passed** (16 test files), including 17 new `StringEditor` tests, 13 updated `AutoSaveField` tests, new `useDataCardContext` composable tests, and new validation-rule stub tests. Pre-existing `[Vue warn] Failed to resolve component: v-card/...` noise in `MhCard.test.ts` is unrelated pre-existing behavior (Vuetify components aren't globally registered in unit tests) and not a failure.
+- `npm run build` — succeeded (`vite build` + `tsc --emitDeclarationOnly`), package still builds cleanly with the new `editors/` and composable exports.
+- `npm run test:coverage` — new files (`StringEditor.vue`, `useDataCardContext.ts`, `validation.ts`) are at 100% lines/branches/functions. The overall `src/components/**` and `src/utils/**` coverage-threshold failures are **pre-existing** (untested `AdminPage.vue`, `components/admin/*`, `utils/admin.ts`, `utils/urlAuthBootstrap.ts` — none touched by this task) and unrelated to F017.
+- Cypress: not run — `AutoSaveField.cy.ts` targets `data-automation-id="demo-autosave-field"` on the editable control, whose `data-automation-id` is unchanged (unsuffixed) via `StringEditor`'s `editable=true` path, so behavior stays non-breaking; deferred per task note ("run after F021 when demos move" / optional this task).
+
+### Notes / follow-ups for F018–F020
+
+- `DataCard` (F020) should call `provideDataCardContext({ model, onSave })` from `src/composables`; typed editors read via `field` + injected context automatically once that lands — no changes needed to `StringEditor`.
+- F018/F019 typed editors (`WordEditor`, `EmailEditor`, etc.) should extend `StringEditorProps`/`BaseEditorProps` from `src/components/editors/types.ts` and wrap `StringEditor` (word/sentence/email/url/us_phone/ip_address/identifier) the same way `AutoSaveField` does, adding their own `rules` default from the new `validationRules` stubs.
+- No demo/doc changes made (out of scope per task); `AutoSaveSelect.vue` left byte-for-byte unchanged.
+
+### Blockers
+
+None.
