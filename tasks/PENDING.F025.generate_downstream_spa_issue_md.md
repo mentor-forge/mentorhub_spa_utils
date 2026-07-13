@@ -3,7 +3,7 @@
 **Status**: Pending  
 **Type**: Feature  
 **Depends On**: F024  
-**Description**: Create concise `ISSUE.md` files under `tasks/` with copy suitable for opening issues in each journey `*_spa` repo. Those issues will feed `_PLANNING.md` work in the respective SPAs to adopt spa_utils Card/DataCard/type editors after the new package version publishes.
+**Description**: Create concise `ISSUE.md` files under `tasks/` with copy suitable for opening issues in each journey `*_spa` repo. Those issues will feed `_PLANNING.md` work in the respective SPAs to adopt spa_utils Card/DataCard/type editors after `0.5.0` publishes.
 
 ## Path anchoring
 
@@ -24,8 +24,8 @@ Always read these files before implementation:
 - `tasks/_PLANNING.md` — external repository boundaries (do **not** edit sibling SPA repos)
 - `tasks/_ORCHESTRATE.md`
 - `README.md` — final Card/DataCard/editor docs from F023
-- `package.json` — published target version from F024
-- Peer-review outcomes in F015 Execution Notes (adoption risks, breaking changes)
+- `package.json` — published target version from F024 (`0.5.0`)
+- `tasks/SHIPPED.F015.peer_review_card_editor_approach.md` — adoption notes (additive API; AutoSaveField compatibility)
 
 **Downstream SPA targets (issue text only; no commits outside this repo):**
 
@@ -43,10 +43,11 @@ Always read these files before implementation:
   - `tasks/ISSUE.mentorhub_coordinator_spa.adopt_cards_and_type_editors.md`
 - Each file is **brief and concise** paste-ready issue body text including:
   - Title line
-  - Short summary (adopt `@mentor-forge/mentorhub_spa_utils@<version>` Card / CardGrid / DataCard / type editors)
-  - Bulleted planning prompts for that SPA’s `_PLANNING.md` (bump dependency; list pages → CardGrid; edit/view pages → DataCard + typed editors; replace ad-hoc AutoSave fields where types match; Cypress automation ids; remove duplicate local card chrome)
-  - Explicit **external prerequisite**: spa_utils F015–F024 shipped and package published to CodeArtifact
-  - Call out any breaking AutoSave/migration notes from F023/F024
+  - Short summary (adopt `@mentor-forge/mentorhub_spa_utils@0.5.0` MhCard / CardGrid / DataCard / type editors)
+  - Bulleted planning prompts for that SPA’s `_PLANNING.md` (bump dependency; list pages → CardGrid with default breakpoints; edit/view pages → DataCard + typed editors with `field`/`editable`/`automationId`; prefer typed editors over `AutoSaveField` but keep existing AutoSaveField usage working; Cypress automation ids; remove duplicate local card chrome)
+  - Note: `AutoSaveSelect` / generic enum editor not in this package wave — keep local select patterns where needed
+  - Explicit **external prerequisite**: spa_utils F015–F024 shipped and package `0.5.0` published to CodeArtifact
+  - Call out that adoption is **additive** (no forced AutoSaveField rename)
 - Do **not** open GitHub issues from this task; only author the markdown seeds.
 - Do **not** modify files in sibling `*_spa` repositories.
 
@@ -54,7 +55,7 @@ Always read these files before implementation:
 
 Run all commands from **this spa_utils repository root**.
 
-- Manual review: each ISSUE file is concise, repo-specific enough to feed planning, and references the correct package version.
+- Manual review: each ISSUE file is concise, repo-specific enough to feed planning, and references package version `0.5.0`.
 - No code/test run required unless incidental README touches occur (should not).
 
 ## Outputs

@@ -1,6 +1,6 @@
 # F015 – Peer review: Card, DataCard, and type-aligned editor approach
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: none  
 **Description**: Kickoff peer review of the planned reusable Card/layout system and configurator-type-aligned view/edit components. Identify gaps and anti-patterns, then adjust the remaining PENDING tasks in this workflow before implementation starts.
@@ -94,4 +94,43 @@ The agent must not update files outside this list (no `src/`, `demo/`, or docs c
 
 ## Execution Notes
 
-(reserved for execution agent)
+### Peer review findings
+
+Reviewed against Vue 3 + Vuetify 3 practice, spa_standards AutoSave/automation patterns, and current package surface (`AutoSaveField`, `AutoSaveSelect`, `validationRules`). Overall approach is sound; gaps were naming ambiguity (`data`), incomplete inject typing, missing density/variant defaults, and unclear AutoSave migration. Decisions baked into F016–F025:
+
+| Topic | Decision | Rationale |
+|-------|----------|-----------|
+| Prop naming | **Keep/change:** `field` (model key), `model` (DataCard document), `nameField` (title-bar binding), `editable` + optional `visible`, `automationId` → `data-automation-id` | Avoids Vue `data` confusion; aligns with existing AutoSave `automationId` |
+| Binding | **Keep:** `provide`/`inject` via exported Symbol; editors also keep standalone `modelValue` + `onSave` | Idiomatic Vue 3; demos work without DataCard |
+| Collapse | **Keep/change:** uncontrolled local default; optional `v-model:collapsed`; **no persistence** | Simple; parent can control when needed; avoids stale localStorage |
+| View vs edit | **Keep:** single `*Editor` / `BreadcrumbDisplay` family with `editable` prop (not separate View/Edit components) | One automation-id contract; matches spa_standards `-display` when readonly |
+| AutoSaveField | **Change:** thin compatibility wrapper around string base; **no rename** of export | Non-breaking for journey SPAs; typed editors preferred going forward |
+| AutoSaveSelect / enum | **Defer:** leave `AutoSaveSelect` as-is; no generic enum editor this wave | Out of configurator-type set; avoids scope creep |
+| Identifier / breadcrumb | **Keep:** default `editable=false`; name stays `BreadcrumbDisplay` (display-first) | ObjectIds and audit trails are rarely user-edited |
+| CardGrid breakpoints | **Keep:** defaults `cols="12" sm="6" md="4" lg="3"` with override props | Clear mobile→wide progression; documented for consumers |
+| Package API | **Keep:** additive minor **`0.5.0`**; retain `AutoSaveField` export name | Pre-1.0 minor for additive surface; no forced SPA breakage |
+| Component names | **Keep:** `MhCard`, `CardGrid`, `DataCard`, `*Editor`, `BreadcrumbDisplay` | Clear public API; `Mh` prefix disambiguates from Vuetify `v-card` |
+| Boolean / Rating save | **Keep:** change-based `onSave` (not blur) | Blur is wrong for switch/rating UX; document in F019/F023 |
+| Folder layout | **Keep:** `src/components/editors/` for typed editors; cards at `src/components/` | Editors folder scales; cards stay package-root components |
+| Density / variant | **Add (gap):** default `density="comfortable"` + `variant="outlined"` | Match existing AutoSaveField/Select chrome |
+| Provide key + typing | **Add (gap):** export Symbol provide key + typed inject interface in F017; wire in F020 | Prevents untyped string keys and ad-hoc inject contracts |
+
+### Gap / anti-pattern resolutions applied
+
+- Rejected prop name `data` / preferred `dataKey` → locked **`field`**.
+- Rejected dual View/Edit component trees → locked **`editable`**.
+- Rejected parallel AutoSave + typed string editors → wrapper + preferred typed API.
+- Rejected collapse persistence → none.
+- Deferred enum editor explicitly in F019/F023/F025.
+
+### Downstream task updates
+
+- F016–F025 Goals/Outputs/Testing Expectations updated in place with locked names, breakpoints, collapse, provide/inject, AutoSave wrapper, save triggers, folder layout, and `0.5.0`.
+- Context links retargeted to `SHIPPED.F015...` where appropriate.
+- Dependency chain unchanged: F015 → F016 → … → F025 (serial).
+
+### Verification
+
+- Task layout sections present on F016–F025 per `_PLANNING.md`.
+- No `src/`, `demo/`, or docs edits in this task.
+- No commit/push (orchestrator owns change control).

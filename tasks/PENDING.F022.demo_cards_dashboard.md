@@ -3,7 +3,7 @@
 **Status**: Pending  
 **Type**: Feature  
 **Depends On**: F021  
-**Description**: Add a demo dashboard page that uses the Card + CardGrid layout as a list-style adaptive card interface (mobile single column → desktop/wide multi-column) with title-bar actions.
+**Description**: Add a demo dashboard page that uses the MhCard + CardGrid layout as a list-style adaptive card interface (mobile single column → desktop/wide multi-column) with title-bar actions.
 
 ## Path anchoring
 
@@ -23,6 +23,7 @@ Always read these files before implementation:
 - `../mentorhub/DeveloperEdition/standards/sre_standards.md`
 - `tasks/_PLANNING.md`
 - `tasks/_ORCHESTRATE.md`
+- `tasks/SHIPPED.F015.peer_review_card_editor_approach.md`
 - `README.md`
 - `demo/router.ts`
 - `demo/App.vue`
@@ -31,12 +32,12 @@ Always read these files before implementation:
 
 ## Goals
 
-- Add a dashboard demo route (e.g. `/demo/dashboard`) showcasing:
-  - `CardGrid` with a set of sample entity cards (static or reactive fixture data).
+- Add a dashboard demo route (`/demo/dashboard`) showcasing:
+  - `CardGrid` with F015 default breakpoints (`cols="12" sm="6" md="4" lg="3"`) and a set of sample entity `MhCard`s (static or reactive fixture data).
   - Each `MhCard` with colored title bar, name/identifier, body summary content, and right-justified action icons (e.g. view/edit/delete placeholders using `mdi-*` icons).
   - Responsive behavior at mobile, desktop, and wide breakpoints (document expected column counts in the page header or Cypress assertions on layout classes if practical).
 - Register route and navigation entry alongside the editors demo.
-- Automation ids for grid, cards, and action buttons.
+- Automation ids (`automationId` → `data-automation-id`) for grid, cards, and action buttons.
 
 ## Testing Expectations
 

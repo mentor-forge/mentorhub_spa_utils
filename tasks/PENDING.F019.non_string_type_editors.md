@@ -23,10 +23,10 @@ Always read these files before implementation:
 - `../mentorhub/DeveloperEdition/standards/sre_standards.md`
 - `tasks/_PLANNING.md`
 - `tasks/_ORCHESTRATE.md`
-- `tasks/PENDING.F015.peer_review_card_editor_approach.md`
+- `tasks/SHIPPED.F015.peer_review_card_editor_approach.md`
 - `tasks/PENDING.F017.editor_foundation_and_autosave.md` — design catalog + shared contract
 - `README.md`
-- `src/components/AutoSaveSelect.vue` — pattern reference for discrete value saves
+- `src/components/AutoSaveSelect.vue` — pattern reference only; leave as-is (no generic enum editor this wave)
 - `src/components/index.ts`
 - F017/F018 editor base and validation utilities
 
@@ -36,22 +36,22 @@ Always read these files before implementation:
 
 | Type | Component | Control | Validation / behavior |
 |------|-----------|---------|------------------------|
-| `boolean` | `BooleanEditor` | `v-switch` (preferred) or `v-checkbox` | true/false; AutoSave on change (not blur) is acceptable — document choice |
-| `count` | `CountEditor` | `v-text-field` `type="number"` or `v-number-input` if available in project Vuetify | integer ≥ 0 |
+| `boolean` | `BooleanEditor` | `v-switch` (preferred) | true/false; **AutoSave on change** (not blur) — F015 locked |
+| `count` | `CountEditor` | `v-text-field` `type="number"` or `v-number-input` if available in project Vuetify | integer ≥ 0; blur save when editable |
 | `index` | `IndexEditor` | same as count | integer ≥ 0; zero-based semantics in label/hint |
-| `rating` | `RatingEditor` | `v-rating` | integer 1–4 only; clear empty/half-star disabled |
+| `rating` | `RatingEditor` | `v-rating` | integer 1–4 only; clear empty/half-star disabled; **AutoSave on change** (not blur) — F015 locked |
 | `date-time` | `DateTimeEditor` | Prefer standard Vuetify date/time pickers; fallback outlined text field with ISO-8601 rules | store/display ISO-8601 strings consistent with API JSON |
-| `breadcrumb` | `BreadcrumbDisplay` | Read-only layout (fields or definition list) inside card body | Shows `from_ip`, `by_user`, `at_time`, `correlation_id`; not an edit form by default. May compose `IpAddressEditor` / `WordEditor` / `DateTimeEditor` in `editable=false` mode |
+| `breadcrumb` | `BreadcrumbDisplay` | Read-only layout (fields or definition list) inside card body | Shows `from_ip`, `by_user`, `at_time`, `correlation_id`; **default `editable=false`** — display-only, not an edit form. Name stays `BreadcrumbDisplay`. May compose string/date editors in `editable=false` mode |
 
-Shared contract parity with F018: visibility, editability (where applicable), automation ids, full-width in card bodies, exports from `src/components/index.ts`.
+Shared contract parity with F018: `field`, optional `visible`, `editable` (where applicable), `automationId` → `data-automation-id`, full-width in card bodies, density/variant defaults, exports from `src/components/index.ts`.
 
-Note: Enumerator/`AutoSaveSelect` remains available; a generic enum editor is **out of scope** unless F015 explicitly pulled it in.
+**Out of scope (F015 defer):** generic enum / enumerator editor; `AutoSaveSelect` remains the discrete-select pattern for this wave.
 
 ## Testing Expectations
 
 Run all commands from **this spa_utils repository root**.
 
-- Unit tests for each new editor/display component (validation bounds for count/index/rating; breadcrumb renders all four fields).
+- Unit tests for each new editor/display component (validation bounds for count/index/rating; breadcrumb renders all four fields; Boolean/Rating save on change; default `editable=false` for BreadcrumbDisplay).
 - `npm run test`
 - `npm run build`
 

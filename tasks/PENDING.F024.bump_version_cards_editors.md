@@ -3,7 +3,7 @@
 **Status**: Pending  
 **Type**: Feature  
 **Depends On**: F023  
-**Description**: Bump `@mentor-forge/mentorhub_spa_utils` to the next appropriate semver reflecting the new Card/DataCard/editor public API (likely minor `0.5.0` unless F015 classified changes as patch-only), and ensure package exports and changelog/README version references stay consistent.
+**Description**: Bump `@mentor-forge/mentorhub_spa_utils` to **`0.5.0`** (additive minor release) reflecting the new Card/DataCard/editor public API, and ensure package exports and changelog/README version references stay consistent.
 
 ## Path anchoring
 
@@ -26,13 +26,13 @@ Always read these files before implementation:
 - `README.md`
 - `package.json`
 - `tasks/SHIPPED.F014.bump_version.md` — prior bump pattern
-- Peer-review notes in F015 regarding breaking vs additive API
+- `tasks/SHIPPED.F015.peer_review_card_editor_approach.md` — semver decision: additive minor `0.5.0`; no `AutoSaveField` rename
 
-**Semver guidance (default):** Additive public components → **minor** bump (`0.4.1` → `0.5.0`). If AutoSaveField required a breaking rename without compatibility shim, treat as **minor** still while pre-1.0, and call out migration in README (already F023) and ISSUE.md (F025).
+**Semver (F015 locked):** Additive public components → **minor** bump (`0.4.1` → **`0.5.0`**). `AutoSaveField` export name retained (compatibility wrapper). Not a breaking major.
 
 ## Goals
 
-- Update `package.json` / `package-lock.json` version.
+- Update `package.json` / `package-lock.json` version to `0.5.0`.
 - Confirm `exports` already expose new components via `./components` (fix if any additional entry points were added).
 - Align any version badges or install examples in README if they pin the prior version.
 - Do not publish or tag from this task — orchestrator / developer release process handles publish after PR merge.

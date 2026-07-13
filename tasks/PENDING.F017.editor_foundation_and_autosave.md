@@ -3,7 +3,7 @@
 **Status**: Pending  
 **Type**: Feature  
 **Depends On**: F016  
-**Description**: Establish the shared view/edit editor contract and an abstract string-input base. Refactor existing AutoSave field patterns so type-specific editors compose one consistent declarative API (field key, visibility, editability, automation id, save behavior).
+**Description**: Establish the shared view/edit editor contract and an abstract string-input base. Make `AutoSaveField` a thin compatibility wrapper around the string base (non-breaking). Prefer typed editors as the new public API.
 
 ## Path anchoring
 
@@ -23,10 +23,10 @@ Always read these files before implementation:
 - `../mentorhub/DeveloperEdition/standards/sre_standards.md`
 - `tasks/_PLANNING.md`
 - `tasks/_ORCHESTRATE.md`
-- `tasks/PENDING.F015.peer_review_card_editor_approach.md` — naming / provide-inject decisions
+- `tasks/SHIPPED.F015.peer_review_card_editor_approach.md` — naming / provide-inject / AutoSave decisions
 - `README.md`
 - `src/components/AutoSaveField.vue`
-- `src/components/AutoSaveSelect.vue`
+- `src/components/AutoSaveSelect.vue` — leave as-is this wave (no generic enum editor)
 - `src/components/index.ts`
 - `src/utils/validation.ts`
 - `tests/components/AutoSaveField.test.ts`
@@ -36,20 +36,33 @@ Always read these files before implementation:
 
 ### Shared editor contract (all typed editors)
 
-Document and implement a common props/API surface (exact names per F015), including:
+Implement a common props/API surface using **F015 locked names**:
 
-- **Field binding** — property key on a parent model (e.g. `field` / `dataKey`; avoid reserved Vue prop pitfalls called out in F015).
-- **Visibility** — show/hide the control without removing it from the form model.
-- **Editability** — view (read-only display) vs edit (writable control); editable fields support AutoSave-on-blur (or agreed save trigger) with saving/saved/error affordances matching current AutoSave UX.
-- **Automation** — `automationId` / `data-automation-id` for interactive and key display elements.
-- **Label / hint / rules** — optional presentation and validation hooks.
-- **Width** — controls expand to fill the parent card/body horizontal space.
+| Prop | Role |
+|------|------|
+| `field` | Model property key when inside `DataCard` (preferred over `data` / `dataKey`) |
+| `modelValue` + `onSave` | Standalone binding for demos / pages not using `DataCard` |
+| `editable` | View vs edit (single component family — **not** separate View/Edit components). Default `true` except Identifier / Breadcrumb (see catalog). When `editable=false`, render readonly Vuetify controls or plain display; keep the same `automationId` and use `-display` / control suffix norms from spa_standards |
+| `visible` | Optional boolean; when `false`, hide the control without removing it from the form model (default `true`) |
+| `automationId` | Maps to `data-automation-id` attribute |
+| `label` / `hint` / `rules` | Optional presentation and validation hooks |
+
+- **Width** — controls expand to fill the parent card/body horizontal space (`width: 100%` / Vuetify block behavior).
+- **Density / variant defaults (F015 gap closure):** match existing AutoSave UX — `density="comfortable"` and `variant="outlined"` on Vuetify text/select/switch controls unless a typed editor needs a specific exception.
+- **Save triggers:** string-family = AutoSave-on-blur (spa_standards). Boolean/Rating = change-based (document in F019). Keep saving/saved/error affordances matching current AutoSave UX.
 
 ### Abstract string input
 
-- Introduce a base string editor (composition or wrapper) used by word/sentence/email/url/… derivatives.
+- Introduce `StringEditor` (or similarly named base) under `src/components/editors/` used by word/sentence/email/url/… derivatives.
 - Encapsulate Vuetify `v-text-field` / `v-textarea` usage, AutoSave state icons, and error display.
-- Existing `AutoSaveField` should either become this base or thin-wrap it — **no duplicate parallel string editors**. Update unit and Cypress tests accordingly. Prefer non-breaking re-exports where practical; if a breaking rename is required, note it for F023 and F025.
+- **`AutoSaveField` (F015 locked):** make it a **thin compatibility wrapper** around the string base — **non-breaking**. Keep the `AutoSaveField` export name and existing prop surface (`modelValue`, `label`, `onSave`, `hint`, `rules`, `textarea`, `rows`, `automationId`). Typed editors are the preferred API going forward.
+- **`AutoSaveSelect`:** leave as-is this wave; defer a generic enum/enumerator editor to a later workflow.
+
+### Provide/inject readiness (contract pieces; DataCard wires in F020)
+
+- Export a **Symbol** provide key (e.g. `dataCardContextKey`) and a typed inject interface / helper so F020 `DataCard` and editors share one contract.
+- Editors prefer injected `DataCard` context when present; otherwise use standalone `modelValue` + `onSave`.
+- Include inject typing (TypeScript interface for context: model, onSave, optional helpers).
 
 ### Validation helpers
 
@@ -57,47 +70,47 @@ Document and implement a common props/API surface (exact names per F015), includ
 
 ### Planned component family (design catalog)
 
-The following names are the planned typed editors (implemented in F018/F019). This foundation must make each derivative thin:
+Folder: typed editors live under `src/components/editors/`; re-export from `src/components/index.ts`.
 
 | Configurator type | Planned component | Base / notes |
 |-------------------|-------------------|--------------|
 | `word` | `WordEditor` | String base + max 40 / no whitespace |
 | `sentence` | `SentenceEditor` | String base + 0–255 / no tabs-newlines |
-| `markdown` | `MarkdownEditor` | Textarea (or markdown-capable Vuetify control) + max 4096 |
-| `email` | `EmailEditor` | String base + email pattern / type |
+| `markdown` | `MarkdownEditor` | Textarea + max 4096 |
+| `email` | `EmailEditor` | String base + email pattern |
 | `url` | `UrlEditor` | String base + URI pattern |
 | `us_phone` | `UsPhoneEditor` | String base + US phone pattern |
 | `duration` | `DurationEditor` | String base + ISO-8601 duration pattern |
 | `ip_address` | `IpAddressEditor` | String base + IP format |
-| `identifier` | `IdentifierEditor` | String base; often read-only ObjectId |
-| `boolean` | `BooleanEditor` | `v-switch` or `v-checkbox` |
+| `identifier` | `IdentifierEditor` | String base; **default `editable=false`** (ObjectId display-first) |
+| `boolean` | `BooleanEditor` | `v-switch`; save on change |
 | `count` | `CountEditor` | numeric ≥ 0 |
 | `index` | `IndexEditor` | numeric ≥ 0 (zero-based) |
-| `rating` | `RatingEditor` | `v-rating` 1–4 |
+| `rating` | `RatingEditor` | `v-rating` 1–4; save on change |
 | `date-time` | `DateTimeEditor` | ISO date-time via standard Vuetify date/time controls or text+rules |
-| `breadcrumb` | `BreadcrumbDisplay` | Composite read-only display of four fields |
+| `breadcrumb` | `BreadcrumbDisplay` | Composite **display** (name stays `BreadcrumbDisplay`); **default `editable=false`** |
 
 ## Testing Expectations
 
 Run all commands from **this spa_utils repository root**.
 
-- Update `tests/components/AutoSaveField.test.ts` and any Cypress AutoSave tests for the refactor.
-- Add unit tests for the new string base / shared contract helpers.
+- Update `tests/components/AutoSaveField.test.ts` and any Cypress AutoSave tests for the wrapper refactor (API must remain non-breaking).
+- Add unit tests for the new string base / shared contract helpers / provide-key export.
 - `npm run test`
 - `npm run build`
-- Existing Cypress: `npm run cypress:run` for AutoSaveField (and related) if the demo route still hosts them; otherwise run after F021 when demos move.
+- Existing Cypress: `npm run cypress:run` for AutoSaveField if the demo route still hosts them; otherwise run after F021 when demos move.
 
 ## Outputs
 
-- `src/components/` — string editor base and any shared editor helpers/composables as needed
-- `src/components/AutoSaveField.vue` — refactored to align with base
-- `src/components/index.ts` — exports
+- `src/components/editors/` — string editor base and shared editor helpers as needed
+- `src/components/editors/` or `src/composables/` — exported provide Symbol + typed inject helper (shared with F020)
+- `src/components/AutoSaveField.vue` — thin wrapper around string base (non-breaking)
+- `src/components/index.ts` — exports (`AutoSaveField` retained; new base/helpers exported)
 - `src/utils/validation.ts` — extended type-aligned rules
 - `tests/components/AutoSaveField.test.ts` and new base-editor tests
-- `cypress/e2e/components/AutoSaveField.cy.ts` — updated if selectors/API change
-- Optional: `tests/utils/validation.test.ts` updates
+- `cypress/e2e/components/AutoSaveField.cy.ts` — updated only if behavior changes (should not for compatibility)
 
-The agent must not update demo pages (F021) or documentation (F023) beyond what is required to keep the package buildable.
+The agent must not update demo pages (F021) or documentation (F023) beyond what is required to keep the package buildable. Do not modify `AutoSaveSelect.vue` except for incidental shared-typing imports if truly required.
 
 ## Execution Notes
 

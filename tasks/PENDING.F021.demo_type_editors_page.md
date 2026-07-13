@@ -23,6 +23,7 @@ Always read these files before implementation:
 - `../mentorhub/DeveloperEdition/standards/sre_standards.md`
 - `tasks/_PLANNING.md`
 - `tasks/_ORCHESTRATE.md`
+- `tasks/SHIPPED.F015.peer_review_card_editor_approach.md`
 - `README.md`
 - `demo/pages/DemoPage.vue`
 - `demo/router.ts`
@@ -33,16 +34,16 @@ Always read these files before implementation:
 
 ## Goals
 
-- Add or reshape a demo route/page (e.g. `/demo/editors` or replace sections of `/demo`) that places **every** configurator-aligned editor into **several** `DataCard`s inside a `CardGrid`, for example:
-  - **Identity** — word, sentence, identifier
+- Add a demo route/page (prefer `/demo/editors`) that places **every** configurator-aligned editor into **several** `DataCard`s inside a `CardGrid`, for example:
+  - **Identity** — word, sentence, identifier (`editable=false` by default)
   - **Contact** — email, us_phone, url, ip_address
   - **Content** — markdown, duration, date-time
-  - **Metrics** — boolean, count, index, rating
-  - **Audit** — breadcrumb display
-- Use a local reactive demo model (in-memory save stubs are fine) so users can see AutoSave, validation errors, and title-bar identifier updates.
-- Include at least one card demonstrating collapse/show-hide and one demonstrating view-only vs editable controls.
-- Keep/align existing AutoSaveField/Select demos: either migrate them onto the new editors page or leave a short legacy section without breaking navigation Cypress tests.
-- Stable `data-automation-id`s for Cypress coverage of cards and a representative set of editors.
+  - **Metrics** — boolean, count, index, rating (boolean/rating demonstrate change-based save)
+  - **Audit** — `BreadcrumbDisplay` (display-only)
+- Use a local reactive demo `model` (in-memory save stubs) so users can see AutoSave, validation errors, and title-bar identifier updates via `nameField`.
+- Include at least one card demonstrating collapse/show-hide (`v-model:collapsed` optional) and one demonstrating view-only vs editable controls (`editable` prop).
+- Keep existing AutoSaveField/Select demos on `/demo` (or a short legacy section) without breaking navigation Cypress tests — typed editors are preferred; AutoSaveField remains as compatibility wrapper.
+- Stable `data-automation-id`s (`automationId` props) for Cypress coverage of cards and a representative set of editors.
 - Navigation drawer / router entry for the new page.
 
 ## Testing Expectations

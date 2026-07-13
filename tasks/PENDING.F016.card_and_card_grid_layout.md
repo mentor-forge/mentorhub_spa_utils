@@ -3,7 +3,7 @@
 **Status**: Pending  
 **Type**: Feature  
 **Depends On**: F015  
-**Description**: Implement reusable Card and layout components that drive adaptive list and form containers: solid-color title bar with identifier, action-icon slot, white body, border/radius/shadow, collapse toggle for form cards, and a responsive multi-column card grid.
+**Description**: Implement reusable `MhCard` and `CardGrid` layout components that drive adaptive list and form containers: solid-color title bar with identifier, action-icon slot, white body, border/radius/shadow, collapse toggle for form cards, and a responsive multi-column card grid.
 
 ## Path anchoring
 
@@ -23,7 +23,7 @@ Always read these files before implementation:
 - `../mentorhub/DeveloperEdition/standards/sre_standards.md`
 - `tasks/_PLANNING.md`
 - `tasks/_ORCHESTRATE.md`
-- `tasks/PENDING.F015.peer_review_card_editor_approach.md` — peer-review decisions
+- `tasks/SHIPPED.F015.peer_review_card_editor_approach.md` — peer-review decisions (locked)
 - `README.md`
 - `src/components/index.ts`
 - `src/components/admin/TokenClaimsCard.vue` — existing card usage reference only
@@ -32,49 +32,53 @@ Always read these files before implementation:
 
 ## Goals
 
-Ship the following components (names may follow F015 naming decisions; default names below):
+Ship these components under `src/components/` (cards stay at the components root; typed editors go under `editors/` in later tasks).
 
-### `MhCard` (or equivalent)
+### `MhCard`
 
 - Thin border, slightly rounded corners, elevation/shadow; white body background.
-- Title bar with solid-color background (`color` prop, default Vuetify primary or a documented theme color).
-- Title text plus optional Name/identifier shown in the title bar.
+- Title bar with solid-color background (`color` prop, default Vuetify primary).
+- Title text plus optional name/identifier shown in the title bar via `name` prop (static string) or, when composed by `DataCard` later, via `nameField` binding — F016 may accept a simple `name?: string` display prop.
 - Right-justified `#actions` slot for action icons (Material Design Icons / `v-btn` icon buttons).
 - Default `#default` slot for the body.
-- Optional show/hide (collapse) toggle icon on the title bar for form/input-container usage; body expands/collapses; controls in the body should grow to available width when visible.
+- **Collapse (F015 decision):**
+  - Uncontrolled local collapse by default (`collapsed` internal ref, default `false` = expanded).
+  - Optional `v-model:collapsed` for parent control.
+  - **No persistence** (no localStorage / sessionStorage).
+  - Optional show/hide toggle icon on the title bar; when body is visible, content grows to available width.
 - Cards expand to fill available horizontal space in their grid cell/container.
-- Stable `data-automation-id` props for the card root, title, collapse toggle, and actions region per spa_standards naming guidance.
+- Prop `automationId` → attribute `data-automation-id` on the card root; also expose stable automation ids for title, collapse toggle, and actions region per spa_standards (`-button`, `-display` suffixes as appropriate).
 
-### `CardGrid` (or equivalent)
+### `CardGrid`
 
-- Adaptive grid for list-style card interfaces.
-- Breakpoints: single column on mobile; multiple columns on desktop and wide-screen breakpoints (use standard Vuetify grid: e.g. `cols="12" sm="6" md="4" lg="3"` or values decided in F015).
+- Adaptive grid for list-style card interfaces using Vuetify `v-row` / `v-col`.
+- **Default breakpoints (F015 locked):** `cols="12" sm="6" md="4" lg="3"` — document these as defaults and expose override props (`cols`, `sm`, `md`, `lg`, `xl`) so consumers can tune layout.
 - Default slot projects cards; cards should stretch evenly within columns.
 - Suitable as the layout primitive for both list dashboards and multi-card edit pages.
+- Prop `automationId` → `data-automation-id` on the grid root.
 
 ### Package surface
 
-- Export new components from `src/components/index.ts` (and package `./components` entry as already configured).
+- Export `MhCard` and `CardGrid` from `src/components/index.ts` (and package `./components` entry as already configured).
 - Use only standard Vuetify / Material Design controls, icons, and styles — no custom CSS design system beyond thin card chrome that Vuetify does not cover.
 
 ## Testing Expectations
 
 Run all commands from **this spa_utils repository root**.
 
-- Add co-located Vitest unit tests for Card and CardGrid (mount/shallow-mount; assert slots, collapse toggle, props, automation ids). Meet spa_standards coverage targets for components.
+- Add co-located Vitest unit tests for `MhCard` and `CardGrid` (mount/shallow-mount; assert slots, collapse toggle, uncontrolled + `v-model:collapsed`, default grid breakpoints, props, automation ids). Meet spa_standards coverage targets for components.
 - `npm install --include=dev` if dependencies change (unlikely).
 - `npm run test`
 - `npm run build`
-- Manual or Cypress smoke optional here; full demo coverage lands in F021/F022. If a minimal Cypress component/page smoke is cheap, add it; otherwise defer to F021.
+- Cypress smoke deferred to F021/F022.
 
 ## Outputs
 
-- `src/components/MhCard.vue` (or peer-review-approved name)
-- `src/components/CardGrid.vue` (or peer-review-approved name)
+- `src/components/MhCard.vue`
+- `src/components/CardGrid.vue`
 - `src/components/index.ts` — exports
-- `tests/components/MhCard.test.ts` (or matching name)
-- `tests/components/CardGrid.test.ts` (or matching name)
-- Optional: `cypress/e2e/components/MhCard.cy.ts` / `CardGrid.cy.ts` if not deferred
+- `tests/components/MhCard.test.ts`
+- `tests/components/CardGrid.test.ts`
 
 The agent must not update files outside this list (documentation in F023; demo pages in F021/F022).
 
