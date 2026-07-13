@@ -1,6 +1,6 @@
 # F023 – Document Card, DataCard, and type-aligned editors
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F022  
 **Description**: Update spa_utils documentation so consumers can adopt MhCard/CardGrid/DataCard and the configurator-type-aligned editors using the demo as the reference implementation.
@@ -58,4 +58,10 @@ The agent must not bump the version (F024) or create ISSUE files (F025).
 
 ## Execution Notes
 
-(reserved for execution agent)
+### Plan
+Document MhCard/CardGrid/DataCard, type-aligned editors, AutoSave migration notes, and demo routes; refresh CONTRIBUTING structure.
+
+### Results
+- README: new Cards/DataCard and type-editor sections; AutoSaveField marked as compatibility wrapper; validation/demo routes updated.
+- CONTRIBUTING: editors folder, EditorsPage, DashboardPage, expanded demo routes.
+- `npm run build` / `npm run test` verified by orchestrator.

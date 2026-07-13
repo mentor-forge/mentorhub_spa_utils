@@ -43,24 +43,28 @@ npm run cypress:run
 ```
 mentorhub_spa_utils/
 ├── src/
-│   ├── composables/     # Reusable composables (useAuth, useErrorHandler, useRoles, …)
-│   ├── components/      # Vue components
-│   ├── utils/           # Utility functions (incl. urlAuthBootstrap for URL hash / clear query)
+│   ├── composables/     # Reusable composables (useAuth, useDataCardContext, …)
+│   ├── components/      # Vue components (MhCard, CardGrid, DataCard, AutoSave*, …)
+│   │   ├── editors/     # Configurator-type editors (WordEditor, DurationEditor, …)
+│   │   └── admin/       # Admin/config display components
+│   ├── utils/           # Utility functions (validation, duration, urlAuthBootstrap, …)
 │   └── index.ts         # Main export
 ├── demo/                # Demo app for testing components
 │   ├── App.vue          # Layout: app bar, nav drawer, router-view
 │   ├── main.ts          # Entry point
 │   ├── bootstrap-auth.ts    # bootstrapAuthFromUrl + syncAuthFromStorage before app
-│   ├── router.ts        # Routes: / → /demo, /demo, /admin (IdP redirect when unauthenticated)
+│   ├── router.ts        # Routes: /demo, /demo/editors, /demo/dashboard, /admin
 │   ├── composables/     # useConfig (demo-only); useAuth from src/composables
 │   ├── pages/
-│   │   ├── DemoPage.vue     # Component & utility demos
-│   │   └── AdminPage.vue    # Config (api_utils /api/config)
+│   │   ├── DemoPage.vue       # Legacy AutoSave / utility demos
+│   │   ├── EditorsPage.vue    # Type-aligned editor gallery (DataCards)
+│   │   ├── DashboardPage.vue  # CardGrid + MhCard list dashboard
+│   │   └── AdminPage.vue      # Config (api_utils /api/config)
 │   ├── components/      # Admin UI (config tables, token card)
 │   └── utils/           # Admin helpers
 ├── tests/               # Unit test files
 ├── cypress/             # E2E test files
-│   ├── e2e/             # Test specs (components, utils, navigation)
+│   ├── e2e/             # Test specs (components, pages, navigation)
 │   └── support/         # Support files and commands
 ├── dist/                # Build output
 └── package.json
@@ -83,7 +87,9 @@ When adding new utilities, components, or composables:
    - Follow existing test patterns
 
 4. **Add examples to the demo app:**
-   - Add to [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) (or AdminPage as appropriate)
+   - Typed editors / cards → [demo/pages/EditorsPage.vue](./demo/pages/EditorsPage.vue) or [DashboardPage.vue](./demo/pages/DashboardPage.vue)
+   - Legacy / misc components → [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) (or AdminPage as appropriate)
+   - Register routes in [demo/router.ts](./demo/router.ts) and drawer links in [demo/App.vue](./demo/App.vue) when adding pages
    - This helps users understand how to use your utility
 
 5. **Add E2E tests:**
