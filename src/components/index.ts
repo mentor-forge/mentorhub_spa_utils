@@ -3,7 +3,17 @@ export { default as AutoSaveSelect } from './AutoSaveSelect.vue'
 export { default as ListPageSearch } from './ListPageSearch.vue'
 export { default as MhCard } from './MhCard.vue'
 export { default as CardGrid } from './CardGrid.vue'
-export { StringEditor } from './editors'
+export {
+  StringEditor,
+  WordEditor,
+  SentenceEditor,
+  MarkdownEditor,
+  EmailEditor,
+  UrlEditor,
+  UsPhoneEditor,
+  IpAddressEditor,
+  IdentifierEditor,
+} from './editors'
 export type { BaseEditorProps, StringEditorProps } from './editors'
 export { default as AdminPage } from './AdminPage.vue'
 export { default as ConfigItemsTable } from './admin/ConfigItemsTable.vue'
