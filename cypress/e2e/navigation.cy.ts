@@ -23,6 +23,16 @@ describe('Navigation & Routing', () => {
         .should('exist')
         .should('be.visible')
     })
+
+    it('should show and navigate to the type editors link', () => {
+      cy.get('[data-automation-id="nav-drawer-toggle"]').click()
+      cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
+      cy.get('[data-automation-id="nav-editors-link"]', { timeout: 5000 })
+        .should('be.visible')
+        .click()
+      cy.url({ timeout: 5000 }).should('include', '/demo/editors')
+      cy.contains('Type Editor Gallery', { timeout: 10000 }).should('be.visible')
+    })
     
     it('should show admin link when user has admin role', () => {
       cy.get('[data-automation-id="nav-drawer-toggle"]').click()

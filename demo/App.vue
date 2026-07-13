@@ -23,6 +23,12 @@
           data-automation-id="nav-demo-link"
         />
         <v-list-item
+          to="/demo/editors"
+          prepend-icon="mdi-form-textbox"
+          title="Type Editors"
+          data-automation-id="nav-editors-link"
+        />
+        <v-list-item
           v-if="hasAdminRole"
           to="/admin"
           prepend-icon="mdi-cog"
