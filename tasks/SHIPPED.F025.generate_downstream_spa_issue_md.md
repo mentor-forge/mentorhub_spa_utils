@@ -1,6 +1,6 @@
 # F025 – Generate downstream SPA ISSUE.md planning seeds
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F024  
 **Description**: Create concise `ISSUE.md` files under `tasks/` with copy suitable for opening issues in each journey `*_spa` repo. Those issues will feed `_PLANNING.md` work in the respective SPAs to adopt spa_utils Card/DataCard/type editors after `0.5.0` publishes.
@@ -69,4 +69,6 @@ The agent must not update files outside this list.
 
 ## Execution Notes
 
-(reserved for execution agent)
+### Results
+- Created ISSUE.md seeds for mentor, mentee, customer, and coordinator SPAs targeting spa_utils **0.5.0**.
+- No sibling SPA repos were modified.

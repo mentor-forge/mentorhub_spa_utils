@@ -1,6 +1,6 @@
 # F024 – Bump spa_utils package version for cards and type editors
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F023  
 **Description**: Bump `@mentor-forge/mentorhub_spa_utils` to **`0.5.0`** (additive minor release) reflecting the new Card/DataCard/editor public API, and ensure package exports and changelog/README version references stay consistent.
@@ -55,4 +55,8 @@ The agent must not create downstream ISSUE files (F025).
 
 ## Execution Notes
 
-(reserved for execution agent)
+### Results
+- Bumped `@mentor-forge/mentorhub_spa_utils` to **0.5.0** (`package.json` / lockfile).
+- No README version pins required changing.
+- `npm run test` and `npm run build` passed.
+- Publish/tag left for post-merge release process.
