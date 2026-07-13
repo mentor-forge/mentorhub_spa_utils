@@ -3,6 +3,7 @@ export { default as AutoSaveSelect } from './AutoSaveSelect.vue'
 export { default as ListPageSearch } from './ListPageSearch.vue'
 export { default as MhCard } from './MhCard.vue'
 export { default as CardGrid } from './CardGrid.vue'
+export { default as DataCard } from './DataCard.vue'
 export {
   StringEditor,
   WordEditor,
