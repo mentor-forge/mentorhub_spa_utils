@@ -80,14 +80,14 @@ Folder: typed editors live under `src/components/editors/`; re-export from `src/
 | `email` | `EmailEditor` | String base + email pattern |
 | `url` | `UrlEditor` | String base + URI pattern |
 | `us_phone` | `UsPhoneEditor` | String base + US phone pattern |
-| `duration` | `DurationEditor` | String base + ISO-8601 duration pattern |
 | `ip_address` | `IpAddressEditor` | String base + IP format |
 | `identifier` | `IdentifierEditor` | String base; **default `editable=false`** (ObjectId display-first) |
 | `boolean` | `BooleanEditor` | `v-switch`; save on change |
 | `count` | `CountEditor` | numeric ≥ 0 |
 | `index` | `IndexEditor` | numeric ≥ 0 (zero-based) |
 | `rating` | `RatingEditor` | `v-rating` 1–4; save on change |
-| `date-time` | `DateTimeEditor` | ISO date-time via standard Vuetify date/time controls or text+rules |
+| `date-time` | `DateTimeEditor` | ISO date-time via standard Vuetify date/time controls (wire ISO string; do not expect users to type the format) |
+| `duration` | `DurationEditor` | Structured duration UX (days/hours/minutes/…); wire ISO-8601 duration string — same idea as `date-time`, not a patterned text field (F019) |
 | `breadcrumb` | `BreadcrumbDisplay` | Composite **display** (name stays `BreadcrumbDisplay`); **default `editable=false`** |
 
 ## Testing Expectations

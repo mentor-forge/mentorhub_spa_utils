@@ -44,9 +44,10 @@ Implement and export each editor below under `src/components/editors/`. Stick to
 | `email` | `EmailEditor` | `v-text-field` (`type="email"` where appropriate) | `^[^\s@]+@[^\s@]+\.[^\s@]+$` |
 | `url` | `UrlEditor` | `v-text-field` | `^https?://[^\s]+$`; in `editable=false` mode, render as plain text or simple link (`a` / `v-btn` variant text) without a separate View component |
 | `us_phone` | `UsPhoneEditor` | `v-text-field` | `^(\+1[0-9]{10}\|[0-9]{3}-[0-9]{3}-[0-9]{4})$` |
-| `duration` | `DurationEditor` | `v-text-field` | ISO-8601 duration pattern; hint showing example `P3DT4H30M` |
 | `ip_address` | `IpAddressEditor` | `v-text-field` | IPv4/IPv6-aware rules; view mode plain text / readonly field |
 | `identifier` | `IdentifierEditor` | `v-text-field` | `^[0-9a-fA-F]{24}$`; **default `editable=false`** (ObjectIds rarely edited) |
+
+**Moved to F019:** `duration` — like `date-time`, stored as an ISO string but edited via a structured control so users never type `P3DT4H30M`.
 
 Declarative usage target (F015 locked prop names):
 
@@ -74,7 +75,6 @@ Run all commands from **this spa_utils repository root**.
 - `src/components/editors/EmailEditor.vue`
 - `src/components/editors/UrlEditor.vue`
 - `src/components/editors/UsPhoneEditor.vue`
-- `src/components/editors/DurationEditor.vue`
 - `src/components/editors/IpAddressEditor.vue`
 - `src/components/editors/IdentifierEditor.vue`
 - `src/components/index.ts` — exports

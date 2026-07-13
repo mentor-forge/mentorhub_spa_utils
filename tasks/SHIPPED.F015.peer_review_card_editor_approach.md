@@ -134,3 +134,7 @@ Reviewed against Vue 3 + Vuetify 3 practice, spa_standards AutoSave/automation p
 - Task layout sections present on F016–F025 per `_PLANNING.md`.
 - No `src/`, `demo/`, or docs edits in this task.
 - No commit/push (orchestrator owns change control).
+
+### Post-ship amendment (human review)
+
+- **`duration` moved F018 → F019:** Like `date-time`, the wire type is an ISO string, but primary edit UX must be a structured duration control (human units), not a patterned text field requiring `P3DT4H30M` knowledge. Catalog and F017/F018/F019/F021 updated accordingly.

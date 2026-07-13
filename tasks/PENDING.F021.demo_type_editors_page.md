@@ -37,7 +37,8 @@ Always read these files before implementation:
 - Add a demo route/page (prefer `/demo/editors`) that places **every** configurator-aligned editor into **several** `DataCard`s inside a `CardGrid`, for example:
   - **Identity** — word, sentence, identifier (`editable=false` by default)
   - **Contact** — email, us_phone, url, ip_address
-  - **Content** — markdown, duration, date-time
+  - **Content** — markdown
+  - **Time** — duration (structured units UX), date-time (picker UX); assert neither requires typing ISO wire format
   - **Metrics** — boolean, count, index, rating (boolean/rating demonstrate change-based save)
   - **Audit** — `BreadcrumbDisplay` (display-only)
 - Use a local reactive demo `model` (in-memory save stubs) so users can see AutoSave, validation errors, and title-bar identifier updates via `nameField`.
