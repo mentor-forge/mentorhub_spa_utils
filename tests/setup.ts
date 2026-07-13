@@ -47,5 +47,15 @@ config.global.stubs = {
   'v-icon': {
     template: '<span class="v-icon"></span>',
     props: ['size', 'color']
-  }
+  },
+  // CardGrid resolves these at render time via resolveComponent('VRow'/'VCol')
+  VRow: {
+    name: 'VRow',
+    template: '<div class="v-row mh-card-grid-stub"><slot /></div>',
+  },
+  VCol: {
+    name: 'VCol',
+    props: ['cols', 'sm', 'md', 'lg', 'xl'],
+    template: '<div class="v-col mh-card-grid__col"><slot /></div>',
+  },
 }

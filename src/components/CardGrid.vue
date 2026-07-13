@@ -1,12 +1,22 @@
 <script lang="ts">
 /**
  * CardGrid has no <template> block: it re-parents each slotted card VNode into a
- * generated `v-col` (instead of cloning/wrapping via string templates) so cards keep
- * their identity/keys across re-renders. Vuetify's `v-row`/`v-col` are registered
- * globally by consuming apps (see demo/main.ts), so plain string component names are
- * used here rather than importing from `vuetify/components`.
+ * generated column so cards keep their identity/keys across re-renders.
+ *
+ * Uses `resolveComponent('VRow'/'VCol')` so consuming apps' globally registered
+ * Vuetify components resolve at render time. Plain string tags in `h()` do not.
  */
-import { Comment, Fragment, Text, computed, defineComponent, h, useSlots, type VNode } from 'vue'
+import {
+  Comment,
+  Fragment,
+  Text,
+  computed,
+  defineComponent,
+  h,
+  resolveComponent,
+  useSlots,
+  type VNode,
+} from 'vue'
 
 type ColSize = string | number
 
@@ -40,28 +50,31 @@ export default defineComponent({
 
     const cardNodes = computed(() => flattenCardNodes(slots.default ? slots.default() : []))
 
-    return () =>
-      // Array children (not a slots object) so this renders correctly whether
-      // `v-row`/`v-col` resolve to real Vuetify components or plain elements.
-      h(
-        'v-row',
+    return () => {
+      const Row = resolveComponent('VRow')
+      const Col = resolveComponent('VCol')
+
+      return h(
+        Row,
         { class: 'mh-card-grid', 'data-automation-id': props.automationId },
-        cardNodes.value.map((node, index) =>
-          h(
-            'v-col',
-            {
-              key: node.key ?? index,
-              cols: props.cols,
-              sm: props.sm,
-              md: props.md,
-              lg: props.lg,
-              xl: props.xl,
-              class: 'mh-card-grid__col d-flex',
-            },
-            [node]
+        () =>
+          cardNodes.value.map((node, index) =>
+            h(
+              Col,
+              {
+                key: node.key ?? index,
+                cols: props.cols,
+                sm: props.sm,
+                md: props.md,
+                lg: props.lg,
+                xl: props.xl,
+                class: 'mh-card-grid__col d-flex',
+              },
+              () => [node]
+            )
           )
-        )
       )
+    }
   },
 })
 </script>

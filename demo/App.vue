@@ -29,6 +29,12 @@
           data-automation-id="nav-editors-link"
         />
         <v-list-item
+          to="/demo/dashboard"
+          prepend-icon="mdi-view-dashboard-outline"
+          title="Dashboard"
+          data-automation-id="nav-dashboard-link"
+        />
+        <v-list-item
           v-if="hasAdminRole"
           to="/admin"
           prepend-icon="mdi-cog"

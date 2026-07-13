@@ -11,13 +11,13 @@ describe('CardGrid', () => {
       },
     })
 
-    const cols = wrapper.findAll('v-col')
+    const cols = wrapper.findAllComponents({ name: 'VCol' })
     expect(cols).toHaveLength(2)
     cols.forEach((col) => {
-      expect(col.attributes('cols')).toBe('12')
-      expect(col.attributes('sm')).toBe('6')
-      expect(col.attributes('md')).toBe('4')
-      expect(col.attributes('lg')).toBe('3')
+      expect(col.props('cols')).toBe('12')
+      expect(col.props('sm')).toBe('6')
+      expect(col.props('md')).toBe('4')
+      expect(col.props('lg')).toBe('3')
     })
   })
 
@@ -27,12 +27,12 @@ describe('CardGrid', () => {
       slots: { default: () => [h('div', 'Card 1')] },
     })
 
-    const col = wrapper.find('v-col')
-    expect(col.attributes('cols')).toBe('6')
-    expect(col.attributes('sm')).toBe('4')
-    expect(col.attributes('md')).toBe('3')
-    expect(col.attributes('lg')).toBe('2')
-    expect(col.attributes('xl')).toBe('1')
+    const col = wrapper.findComponent({ name: 'VCol' })
+    expect(col.props('cols')).toBe('6')
+    expect(col.props('sm')).toBe('4')
+    expect(col.props('md')).toBe('3')
+    expect(col.props('lg')).toBe('2')
+    expect(col.props('xl')).toBe('1')
   })
 
   it('should apply automationId to the grid root', () => {
@@ -41,7 +41,7 @@ describe('CardGrid', () => {
       slots: { default: () => [h('div', 'Card 1')] },
     })
 
-    expect(wrapper.find('v-row').attributes('data-automation-id')).toBe('dashboard-grid')
+    expect(wrapper.findComponent({ name: 'VRow' }).attributes('data-automation-id')).toBe('dashboard-grid')
   })
 
   it('should render each slotted card inside its own v-col, preserving content', () => {
@@ -70,7 +70,7 @@ describe('CardGrid', () => {
       },
     })
 
-    expect(wrapper.findAll('v-col')).toHaveLength(3)
+    expect(wrapper.findAllComponents({ name: 'VCol' })).toHaveLength(3)
     expect(wrapper.findAll('.card').map((c) => c.text())).toEqual(['One', 'Two', 'Three'])
   })
 
@@ -81,14 +81,14 @@ describe('CardGrid', () => {
       },
     })
 
-    expect(wrapper.findAll('v-col')).toHaveLength(1)
+    expect(wrapper.findAllComponents({ name: 'VCol' })).toHaveLength(1)
     expect(wrapper.find('.card').text()).toBe('Visible')
   })
 
   it('should render an empty row when no cards are slotted', () => {
     const wrapper = shallowMount(CardGrid)
 
-    expect(wrapper.find('v-row').exists()).toBe(true)
-    expect(wrapper.findAll('v-col')).toHaveLength(0)
+    expect(wrapper.findComponent({ name: 'VRow' }).exists()).toBe(true)
+    expect(wrapper.findAllComponents({ name: 'VCol' })).toHaveLength(0)
   })
 })

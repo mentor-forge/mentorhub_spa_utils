@@ -1,6 +1,6 @@
 # F022 – Demo page: cards-based dashboard
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F021  
 **Description**: Add a demo dashboard page that uses the MhCard + CardGrid layout as a list-style adaptive card interface (mobile single column → desktop/wide multi-column) with title-bar actions.
@@ -60,4 +60,14 @@ The agent must not update package version or README (F023/F024).
 
 ## Execution Notes
 
-(reserved for execution agent)
+### Plan
+Ship `/demo/dashboard` using fixture entities in `MhCard`s inside default-breakpoint `CardGrid`, with view/edit/delete title actions, nav + Cypress including mobile/desktop column smoke checks.
+
+### Results
+- Added `demo/pages/DashboardPage.vue`, route `/demo/dashboard`, drawer link `nav-dashboard-link`.
+- Cypress: `cypress/e2e/pages/dashboard.cy.ts` + navigation dashboard coverage.
+- **Bugfix:** `CardGrid` now uses `resolveComponent('VRow'/'VCol')` so Vuetify grid columns resolve in consuming apps (plain `h('v-col')` tags were leaking into the DOM).
+- Layout Cypress asserts breakpoint classes (`v-col-12` / `sm-6` / `md-4` / `lg-3`) instead of fragile pixel widths.
+- Nav dashboard link uses `scrollIntoView` + `force: true` so the taller drawer still reaches the new item.
+- Removed transient `cypress/e2e/debug.cy.ts` scaffolding.
+- Verified: unit tests, build, `dashboard.cy.ts` + `navigation.cy.ts` Cypress.

@@ -33,6 +33,17 @@ describe('Navigation & Routing', () => {
       cy.url({ timeout: 5000 }).should('include', '/demo/editors')
       cy.contains('Type Editor Gallery', { timeout: 10000 }).should('be.visible')
     })
+
+    it('should show and navigate to the dashboard link', () => {
+      cy.get('[data-automation-id="nav-drawer-toggle"]').click()
+      cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
+      cy.get('[data-automation-id="nav-dashboard-link"]', { timeout: 5000 })
+        .scrollIntoView()
+        .should('exist')
+        .click({ force: true })
+      cy.url({ timeout: 5000 }).should('include', '/demo/dashboard')
+      cy.contains('h1', 'Dashboard', { timeout: 10000 }).should('be.visible')
+    })
     
     it('should show admin link when user has admin role', () => {
       cy.get('[data-automation-id="nav-drawer-toggle"]').click()
