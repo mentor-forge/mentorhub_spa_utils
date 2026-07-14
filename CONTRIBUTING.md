@@ -12,8 +12,15 @@ Thank you for contributing to mentorhub_spa_utils! This guide will help you get 
 ### Getting Started
 
 ```bash
-# Install dependencies
-npm install --dev
+# CodeArtifact auth (needed once per shell for @mentor-forge packages)
+mh
+
+# Install dependencies (use the lockfile — pin Cypress to the exact version in package.json)
+npm install --include=dev
+
+# Download the Cypress binary that matches the pinned package version
+# (required after Cypress version changes, or when node_modules was installed with --ignore-scripts)
+npm run cypress:install
 
 # Build
 npm run build
@@ -31,12 +38,14 @@ npm run test:ui
 # Assumes api_utils dev server running at localhost:8385
 npm run dev
 
-# Cypress E2E tests (interactive)
+# Cypress E2E tests (interactive) — requires `npm run dev` on baseUrl http://localhost:8386
 npm run cypress
 
 # Cypress E2E tests (headless)
 npm run cypress:run
 ```
+
+**Note:** Cypress and `@bahmutov/cypress-esbuild-preprocessor` are **exact pins** (no `^`). If E2E commands hang or time out right after install, run `npm run cypress:install` and confirm `npx cypress --version` matches `package.json`.
 
 ## Project Structure
 
