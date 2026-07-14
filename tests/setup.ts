@@ -27,6 +27,19 @@ config.global.stubs = {
     props: ['modelValue', 'items', 'label', 'disabled', 'error', 'errorMessages', 'hint', 'variant', 'density', 'data-automation-id'],
     emits: ['update:modelValue', 'blur']
   },
+  'v-switch': {
+    template: '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
+    props: ['modelValue', 'label', 'disabled', 'hint', 'color', 'density', 'hideDetails', 'data-automation-id'],
+    emits: ['update:modelValue']
+  },
+  'v-rating': {
+    template: '<div class="v-rating-stub" @click="$emit(\'update:modelValue\', clickValue)"></div>',
+    props: ['modelValue', 'length', 'clearable', 'halfIncrements', 'readonly', 'hover', 'color', 'density', 'disabled', 'data-automation-id'],
+    emits: ['update:modelValue'],
+    data() {
+      return { clickValue: 3 }
+    }
+  },
   'v-progress-circular': {
     template: '<div class="v-progress-circular"></div>',
     props: ['size', 'width', 'indeterminate', 'color']
@@ -34,5 +47,15 @@ config.global.stubs = {
   'v-icon': {
     template: '<span class="v-icon"></span>',
     props: ['size', 'color']
-  }
+  },
+  // CardGrid resolves these at render time via resolveComponent('VRow'/'VCol')
+  VRow: {
+    name: 'VRow',
+    template: '<div class="v-row mh-card-grid-stub"><slot /></div>',
+  },
+  VCol: {
+    name: 'VCol',
+    props: ['cols', 'sm', 'md', 'lg', 'xl'],
+    template: '<div class="v-col mh-card-grid__col"><slot /></div>',
+  },
 }

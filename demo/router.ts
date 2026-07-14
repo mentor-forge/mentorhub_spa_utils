@@ -16,6 +16,18 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/demo/editors',
+      name: 'DemoEditors',
+      component: () => import('./pages/EditorsPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/demo/dashboard',
+      name: 'DemoDashboard',
+      component: () => import('./pages/DashboardPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/admin',
       name: 'Admin',
       component: () => import('./pages/AdminPage.vue'),

@@ -124,14 +124,66 @@ Role-based access control with dependency injection pattern.
 
 ### Components
 
+#### MhCard / CardGrid / DataCard
+
+Adaptive card chrome for list dashboards and declarative edit forms. Defaults use stock Vuetify/Material Design (`density="comfortable"`, `variant="outlined"` on form controls).
+
+**Demo:** [demo/pages/DashboardPage.vue](./demo/pages/DashboardPage.vue) (`/demo/dashboard`), [demo/pages/EditorsPage.vue](./demo/pages/EditorsPage.vue) (`/demo/editors`)
+
+| Component | Role |
+|-----------|------|
+| `MhCard` | Solid-color title bar (title + optional `name`), white body, `#actions` slot, optional collapse (`collapsible`; uncontrolled or `v-model:collapsed`; **no persistence**) |
+| `CardGrid` | Responsive `VRow`/`VCol` grid. **Defaults:** `cols="12" sm="6" md="4" lg="3"`. Override via props. |
+| `DataCard` | Form section: composes `MhCard`, takes `model` + optional `nameField` + `onSave`, and `provide`s context so child editors bind by `field` |
+
+```vue
+<CardGrid>
+  <DataCard title="Identity" name-field="word" :model="doc" :on-save="saveField">
+    <WordEditor field="word" label="Name" automation-id="profile-name" />
+    <MarkdownEditor field="description" label="Description" automation-id="profile-description" />
+  </DataCard>
+</CardGrid>
+```
+
+**Sources:** [MhCard.vue](./src/components/MhCard.vue), [CardGrid.vue](./src/components/CardGrid.vue), [DataCard.vue](./src/components/DataCard.vue)  
+**Context helpers:** [useDataCardContext.ts](./src/composables/useDataCardContext.ts)
+
+#### Type-aligned editors
+
+Configurator-type view/edit controls under `src/components/editors/`. Prefer these over raw AutoSave fields for new work.
+
+**Shared props:** `field` (when inside `DataCard`), standalone `modelValue` + `onSave`, `editable` (default `true` except Identifier/Breadcrumb), optional `visible`, `automationId` → `data-automation-id`, plus `label` / `hint` / `rules`.
+
+**Save triggers:** blur for string / count / index / date-time / duration composites; **change** for boolean and rating.
+
+| Type | Component | Notes |
+|------|-----------|-------|
+| `word` | `WordEditor` | 1–40 chars, no whitespace |
+| `sentence` | `SentenceEditor` | 0–255, no tabs/newlines |
+| `markdown` | `MarkdownEditor` | textarea, max 4096 |
+| `email` | `EmailEditor` | email pattern |
+| `url` | `UrlEditor` | URI; link in view mode |
+| `us_phone` | `UsPhoneEditor` | US phone patterns |
+| `ip_address` | `IpAddressEditor` | IPv4/IPv6 |
+| `identifier` | `IdentifierEditor` | ObjectId; **default `editable=false`** |
+| `boolean` | `BooleanEditor` | `v-switch`; save on change |
+| `count` / `index` | `CountEditor` / `IndexEditor` | non-negative int |
+| `rating` | `RatingEditor` | `v-rating` 1–4; save on change |
+| `date-time` | `DateTimeEditor` | picker UX → ISO-8601 string |
+| `duration` | `DurationEditor` | human units → ISO-8601 duration (not raw `P…T…` typing) |
+| `breadcrumb` | `BreadcrumbDisplay` | display-only audit trail |
+
+**Demo:** `/demo/editors`  
+**Folder:** [src/components/editors/](./src/components/editors/)
+
 #### AutoSaveField
 
-Text input or textarea with auto-save on blur.
+Text input or textarea with auto-save on blur. **Compatibility wrapper** around `StringEditor` — export and props remain non-breaking. Prefer typed editors (`WordEditor`, `SentenceEditor`, …) for new forms.
 
 **Source:** [src/components/AutoSaveField.vue](./src/components/AutoSaveField.vue)  
 **Tests:** [tests/components/AutoSaveField.test.ts](./tests/components/AutoSaveField.test.ts)  
 **Demo:** See [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) for working examples  
-**E2E Tests:** [cypress/e2e/components.cy.ts](./cypress/e2e/components.cy.ts)
+**E2E Tests:** [cypress/e2e/components/AutoSaveField.cy.ts](./cypress/e2e/components/AutoSaveField.cy.ts)
 
 **Props:**
 - `modelValue: string | number | undefined` - Current value
@@ -152,12 +204,12 @@ Text input or textarea with auto-save on blur.
 
 #### AutoSaveSelect
 
-Select dropdown with auto-save on blur.
+Select dropdown with auto-save on blur. Unchanged this release — no generic enum/enumerator editor yet; keep using `AutoSaveSelect` for discrete option lists.
 
 **Source:** [src/components/AutoSaveSelect.vue](./src/components/AutoSaveSelect.vue)  
 **Tests:** [tests/components/AutoSaveSelect.test.ts](./tests/components/AutoSaveSelect.test.ts)  
 **Demo:** See [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) for working examples  
-**E2E Tests:** [cypress/e2e/components.cy.ts](./cypress/e2e/components.cy.ts)
+**E2E Tests:** [cypress/e2e/components/AutoSaveSelect.cy.ts](./cypress/e2e/components/AutoSaveSelect.cy.ts)
 
 **Props:**
 - `modelValue: string | undefined` - Current value
@@ -194,7 +246,7 @@ Format ISO date strings to localized strings. Returns `"N/A"` for null/undefined
 
 #### validationRules
 
-Common validation rules for form fields. Includes `required`, `namePattern` (no whitespace, max 40 chars), and `descriptionPattern` (max 255 chars, no tabs/newlines). Each rule returns `true` for valid input or an error message string for invalid input.
+Common validation rules for form fields. Includes legacy helpers (`required`, `namePattern`, `descriptionPattern`) plus configurator-aligned patterns (`wordPattern`, `sentencePattern`, `emailPattern`, `durationPattern`, etc.). Each rule returns `true` for valid input or an error message string for invalid input.
 
 **Source:** [src/utils/validation.ts](./src/utils/validation.ts)  
 **Tests:** [tests/utils/validation.test.ts](./tests/utils/validation.test.ts)  
@@ -205,7 +257,7 @@ Common validation rules for form fields. Includes `required`, `namePattern` (no 
 
 ## Demo App
 
-For complete working examples, see the [demo app](./demo/) — standard IdP auth redirect, **navigation drawer**, **component demo page**, and **admin (config) page**. See [Authentication integration](#authentication-integration) above.
+For complete working examples, see the [demo app](./demo/) — standard IdP auth redirect, **navigation drawer**, **component demo** (`/demo`), **type editor gallery** (`/demo/editors`), **cards dashboard** (`/demo/dashboard`), and **admin (config)** page. See [Authentication integration](#authentication-integration) above.
 
 ## Contributing
 
