@@ -1,6 +1,6 @@
 {
   "name": "@mentor-forge/mentorhub_spa_utils",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "type": "module",
   "engines": {
     "node": ">=24.0.0"

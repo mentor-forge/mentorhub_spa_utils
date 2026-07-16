@@ -36,12 +36,9 @@ jobs:
         with:
           node-version: "24"
 
-      - name: Install and build
-        run: |
-          npm ci
-          npm run build
-
-      - name: Publish to CodeArtifact
+      # Auth must land before npm ci: package-lock may resolve some tarballs from CodeArtifact
+      # (and npm publish also needs this host token). Same ordering as journey SPA Docker builds.
+      - name: Configure CodeArtifact npm auth
         run: |
           TOKEN=$(aws codeartifact get-authorization-token \
             --domain ${{ vars.CODEARTIFACT_DOMAIN }} \
@@ -59,4 +56,11 @@ jobs:
             echo "@mentor-forge:registry=${END}"
             echo "//${HOST}:_authToken=${TOKEN}"
           } > .npmrc
-          npm publish
+
+      - name: Install and build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Publish to CodeArtifact
+        run: npm publish
