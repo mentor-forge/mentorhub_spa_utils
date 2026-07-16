@@ -13,9 +13,7 @@ region="${AWS_REGION:-us-east-1}"
 
 export AWS_PROFILE="${MH_AWS_PROFILE_SHARED:-mentorhub-shared}"
 
-npm ci
-npm run build
-
+# Auth must land before npm ci so CodeArtifact-resolved lockfile URLs succeed.
 TOKEN=$(aws codeartifact get-authorization-token \
   --domain "${domain}" \
   --domain-owner "${owner}" \
@@ -38,4 +36,6 @@ HOST="${END#https://}"
   echo "//${HOST}:_authToken=${TOKEN}"
 } > .npmrc
 
+npm ci
+npm run build
 npm publish
