@@ -1,6 +1,6 @@
 # F029 – Harvest responsive equal-height CardGrid
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: none  
 **Description**: Replace the shared Vuetify row/column `CardGrid` layout with the validated domain-independent CSS Grid behavior: equal-width tracks, equal-height expanded cards, responsive growth from one through eight columns, stable slot identity, and collapsed-card intrinsic height.
@@ -96,4 +96,33 @@ Run all commands from this repository root.
 The agent must not edit `MhCard.vue`, exports, README, demo/Cypress files, package versions, publishing workflows, or any journey SPA in this task.
 
 ## Execution Notes
+
+### Plan
+
+1. **`src/components/CardGrid.vue`** — keep the `defineComponent` render-function + `flattenCardNodes` pattern from F016, but replace Vuetify `VRow`/`VCol` with plain HTML:
+   - Props: only `automationId` (remove `cols`/`sm`/`md`/`lg`/`xl`).
+   - Root: `h('div', { class: 'mh-card-grid', 'data-automation-id': automationId }, items)`.
+   - Each card: `h('div', { key: node.key ?? index, class: 'mh-card-grid__item' }, [node])`.
+   - Preserve recursive Fragment flatten; skip null/Comment/Text.
+   - Scoped CSS: `display: grid; width: 100%; gap: 16px; align-items: stretch; grid-template-columns: minmax(0, 1fr)` with media queries at 600/960/1280/1600/1920/2240/2560 for 2→8 equal `minmax(0,1fr)` tracks; no 9+ rule.
+   - Items: `display: flex; flex-direction: column; min-width: 0; height: 100%`.
+   - `:deep(.mh-card:not(.mh-card--collapsed))` → stretch / height 100% / flex 1 1 auto.
+   - `:deep(.mh-card--collapsed)` → flex-start / height auto / flex 0 0 auto / min-height 0.
+   - Document the 1→8 breakpoint contract in a source comment.
+2. **`tests/components/CardGrid.test.ts`** — rewrite for the new contract:
+   - one `.mh-card-grid__item` per card + content; nested Fragment flatten; null/comment/text skip; key preserve + index fallback; empty grid; `automationId` on root; no legacy breakpoint props; CSS source contracts (equal tracks, stretch, every breakpoint, no 9+); expanded vs collapsed MhCard depth rules; domain-independence (no Paths/journey naming).
+3. Run testing expectations; on success update notes, set Status Shipped, rename to `SHIPPED.F029...`.
+   - Do not edit MhCard, exports, README, demo, Cypress, or package.json.
+
+### Results
+
+- Implemented `src/components/CardGrid.vue`: CSS Grid root (`.mh-card-grid`) with `.mh-card-grid__item` wrappers; removed `cols`/`sm`/`md`/`lg`/`xl` and `VRow`/`VCol`; kept `automationId` + Fragment flatten / null-Comment-Text skip / key-or-index; scoped 1→8 breakpoints at 0/600/960/1280/1600/1920/2240/2560 with `minmax(0,1fr)` tracks capped at 8; scoped `:deep` expanded stretch vs collapsed intrinsic height (MhCard global styles untouched).
+- Rewrote `tests/components/CardGrid.test.ts` (10 cases) covering wrappers, nested Fragments, null/comment/text skip, key preservation + index fallback, empty grid, automationId, legacy prop removal, CSS 1→8/no-9+ contract, expanded vs collapsed MhCard rules, and domain independence.
+- `npm run test -- tests/components/CardGrid.test.ts`: **10/10 passed**.
+- `npm run test`: **383/383 passed** (36 files), including `MhCard.test.ts` **10/10** (intrinsic collapsed chrome outside CardGrid unchanged).
+- `npm run test:coverage`: tests passed; **known unrelated** threshold failure on `src/utils/**` (`admin.ts`, `urlAuthBootstrap.ts`, etc.) — `CardGrid.vue` **100%** stmts/lines/funcs, **94.11%** branches.
+- `npm run lint`: **blocked by pre-existing env** — `eslint` is not in `package.json` / `node_modules` (`eslint: command not found`); not introduced by this task.
+- `npm run build`: **succeeded**; `dist/index.js` exports `CardGrid`; `dist/components/index.d.ts` and package root / `./components` exports still expose `CardGrid`; `dist/index.css` includes the 1→8 grid + deep stretch/collapsed rules.
+- Outputs only: `CardGrid.vue`, `CardGrid.test.ts`, and this task file. No commit/push.
+- No blockers for F029 implementation (lint tooling gap is pre-existing; coverage threshold gap is pre-existing/unrelated).
 
