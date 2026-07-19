@@ -14,6 +14,14 @@ Install from CodeArtifact (run `mh` first for credentials):
 npm install @mentor-forge/mentorhub_spa_utils@0.5.3
 ```
 
+**Component styles:** Prefer the package root import so Vite consumers receive component CSS automatically (the built `dist/index.js` side-effect-imports `./index.css`; `package.json` marks `**/*.css` as `sideEffects`). Optionally import the stylesheet once at app bootstrap:
+
+```typescript
+import '@mentor-forge/mentorhub_spa_utils/style.css'
+```
+
+That entry maps to `dist/index.css` via `exports["./style.css"]`. In published `0.5.3`, a JS-only root import was insufficient: layout CSS existed only as an unlinked `dist/index.css`, so `CardGrid` rendered as a single column without equal-height rows.
+
 Working examples live in the [demo app](./demo/): IdP auth, navigation drawer, **type editor gallery** (`/demo/editors`), **cards dashboard** (`/demo/dashboard`), legacy component demos (`/demo`), and admin config (`/admin`).
 
 ### Preferred UI: Cards + type-aligned field editors
@@ -31,6 +39,8 @@ Adaptive card chrome for list dashboards and declarative edit forms. Defaults us
 | `MhCard` | Solid-color title bar (title + optional `name`), white body, `#actions` slot, optional collapse (`collapsible`; uncontrolled or `v-model:collapsed`; **no persistence**). A standalone `MhCard` keeps its intrinsic height. |
 | `CardGrid` | Fixed responsive CSS Grid with equal-width tracks and a 16px gap. Expanded `MhCard` siblings stretch to equal height within each visual row; this override is scoped to cards inside `CardGrid`. |
 | `DataCard` | Form section: composes `MhCard`, takes `model` + optional `nameField` + `onSave`, and `provide`s context so child editors bind by `field` |
+
+`CardGrid` layout rules live in the package stylesheet (not Vuetify). Importing `{ CardGrid }` from `@mentor-forge/mentorhub_spa_utils` pulls that CSS for Vite consumers; see [Component styles](#usage) above. Omitting the stylesheet (as with the unlinked `0.5.3` artifact) yields single-column / non-equal-height markup.
 
 `CardGrid` has a fixed, container-width-based column contract:
 
@@ -132,7 +142,7 @@ Declarative usage inside a `DataCard` (no option lists on the component):
 **Folder:** [src/components/editors/](./src/components/editors/)  
 **Base:** [StringEditor.vue](./src/components/editors/StringEditor.vue) — abstract string input used by word/sentence/email/… derivatives
 
-Import from the package root or `./components`:
+Import from the package root (preferred — includes component CSS for Vite) or `./components` (types/JS only; add the `style.css` import if you use that path):
 
 ```typescript
 import {
@@ -144,6 +154,9 @@ import {
   EnumArrayEditor,
   provideEditorConfig,
 } from '@mentor-forge/mentorhub_spa_utils'
+
+// Optional explicit stylesheet (same rules as the automatic root side-effect import):
+// import '@mentor-forge/mentorhub_spa_utils/style.css'
 ```
 
 ### Harvesting a local control into spa_utils

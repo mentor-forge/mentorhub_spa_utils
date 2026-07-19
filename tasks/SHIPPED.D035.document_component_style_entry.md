@@ -1,6 +1,6 @@
 # D035 – Document component stylesheet packaging for consumers
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Defect  
 **Depends On**: D034  
 **Description**: Document how domain SPAs obtain `@mentor-forge/mentorhub_spa_utils` component styles (automatic with the JS import, or the required style entry), especially so `CardGrid` CSS Grid / equal-height layout works outside the demo app.
@@ -52,3 +52,27 @@ Run all commands from this repository root.
 The agent must not edit component implementation, packaging beyond what D034 already shipped, package versions, publishing workflows, or any journey SPA in this task.
 
 ## Execution Notes
+
+### Plan
+
+1. Confirm D034 packaging from `SHIPPED.D034` + `package.json`: automatic CSS via root `dist/index.js` → `import './index.css'`; `sideEffects: ["**/*.css"]`; optional `exports["./style.css"]` → `./dist/index.css`. Note `./components` is not the CSS injection target.
+2. Update `README.md` near Usage / MhCard·CardGrid and the package import example:
+   - Root import `{ CardGrid }` pulls component CSS for Vite consumers (sideEffects).
+   - Optional explicit `import '@mentor-forge/mentorhub_spa_utils/style.css'`.
+   - Call out that in published `0.5.3` JS-only import left layout CSS unlinked in `dist/index.css` (single-column / non-equal-height).
+   - Layout rules live in the package stylesheet (not Vuetify); keep domain-independent.
+3. Manually compare README claims to `package.json` exports/sideEffects.
+4. Run `npm run test` and `npm run build`.
+5. Record results; mark Shipped; rename to `SHIPPED.D035.document_component_style_entry.md`.
+
+### Results
+
+- **README updates** (`README.md` only):
+  - Usage: document automatic root CSS via `dist/index.js` → `import './index.css'` + `sideEffects: ["**/*.css"]`; optional `import '@mentor-forge/mentorhub_spa_utils/style.css'` (`exports["./style.css"]` → `./dist/index.css`); note that published `0.5.3` JS-only import left layout CSS unlinked.
+  - MhCard / CardGrid: layout rules live in package stylesheet (not Vuetify); root import pulls CSS for Vite; omit → single-column / non-equal-height.
+  - Import example: prefer package root for CSS; `./components` needs explicit `style.css` if used.
+- **Manual compare**: README claims match `package.json` (`./style.css` → `./dist/index.css`, `sideEffects: ["**/*.css"]`) and built `dist/index.js` starting with `import './index.css';`.
+- **Tests**: `npm run test` — **385 passed** (37 files).
+- **Build**: `npm run build` — succeeded; CSS inject present on `dist/index.js`.
+- **Version/publish/packaging**: unchanged (still `0.5.3`); no journey SPA edits.
+- **Blockers**: none.
