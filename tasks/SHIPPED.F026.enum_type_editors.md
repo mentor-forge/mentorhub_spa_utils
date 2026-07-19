@@ -1,6 +1,6 @@
 # F026 – Runtime-configured Enum and EnumArray type editors
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F025  
 **Description**: Add declarative `EnumEditor` and `EnumArrayEditor` components aligned with configurator `enum` and `enum_array` fields. Resolve allowed values from the runtime `/api/config` enumerator payload while retaining all legacy AutoSave components unchanged.
@@ -117,4 +117,33 @@ The agent must not update legacy AutoSave component source, demo pages, document
 
 ## Execution Notes
 
-Reserved for implementation plan, commands, test results, decisions, and follow-ups.
+### Plan
+
+1. Extended `src/components/editors/types.ts` with runtime enumerator shapes (`EnumeratorValue`, `NamedEnumerator`, `EnumeratorVersionPayload`, `RuntimeEditorConfig`, `EnumOption`) and `EnumEditorProps` / `EnumArrayEditorProps` (required `enums`, optional per-component `config` override).
+2. Added `src/composables/useEditorConfig.ts` — `editorConfigKey` Symbol, `provideEditorConfig` / `useEditorConfig` / `resolveEditorConfig`, `resolveEnumeratorOptions` (description→title, case-sensitive name, de-dupe, empty on missing), and `useEnumeratorOptions` computed helper. **Version rule:** when the same enumerator `name` appears in multiple payloads, the payload with the highest numeric `version` wins (latest/active); non-numeric versions are ignored relative to numeric ones.
+3. `EnumEditor.vue` — `v-select`, AutoSave on blur (AutoSaveSelect parity), DataCard `field` preference, display mode shows description (fallback value / `—`), optional `config` prop override.
+4. `EnumArrayEditor.vue` — `v-autocomplete` multiple + closable chips; constrain to enumerator values; clone arrays; ordered equality; AutoSave on container `focusout` (whole control); display pills with `{automationId}-pill-{value}` IDs.
+5. Exported editors/types from `editors/index.ts` and `components/index.ts`; composable helpers from `composables/index.ts`. Left `AutoSaveSelect` / `AutoSaveField` untouched.
+6. Tests: `useEditorConfig`, `EnumEditor`, `EnumArrayEditor`; extended `tests/setup.ts` with a realistic `v-autocomplete` multiple/chip stub. Did not update demos, docs, or package version.
+
+### Commands
+
+- `npm run test` — **380/380 passed** (36 files)
+- `npm run test:coverage` — new files at ≥98% lines (`EnumEditor` 100%, `EnumArrayEditor` 98.7%, `useEditorConfig` 98.66%). Overall `src/utils/**` threshold failures are **pre-existing** (untested `admin.ts`, `urlAuthBootstrap.ts`) — same caveat as F017/F019.
+- `npm run lint` — **blocked in this environment**: `eslint` binary not present in `node_modules` (`eslint: command not found`). Script is `"lint": "eslint src"`; no local eslint install. Not a code defect from this task.
+- `npm run build` — succeeded (`vite build` + `tsc --emitDeclarationOnly`); `dist/index.js` 89.14 kB / gzip 15.79 kB.
+
+### Decisions
+
+- Optional `config` prop on both editors is a test/standalone override only; production apps should `provideEditorConfig` with the startup `/api/config` ref.
+- EnumArray delayed config: while options are empty, do not wipe `currentValue`; once options load, constrain selections. `handleInput` with an empty allowed set rejects free-form values (`[]`).
+- Stub change: removed `data-automation-id` from Vuetify stub prop lists so the attribute falls through to the root element (enables automation-id assertions without competing prop binding).
+
+### Blockers
+
+None for the feature. Lint could not be executed here due to missing local `eslint` install (environment/tooling gap). Orchestrator may re-run `npm run lint` after `npm ci` / CodeArtifact auth if needed.
+
+### Follow-ups
+
+- F027: demo + document enum editors
+- F028: patch version bump
