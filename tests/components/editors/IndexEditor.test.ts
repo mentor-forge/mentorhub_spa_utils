@@ -83,22 +83,16 @@ describe('IndexEditor', () => {
       expect(vm.resolvedRules).toEqual([validationRules.nonNegativeInteger])
     })
 
-    it('should default the hint to a zero-based explanation', () => {
-      const wrapper = mount(IndexEditor, {
+    it('should pass through an optional hint with no preset default', () => {
+      const withoutHint = mount(IndexEditor, {
         props: { modelValue: 0, onSave: vi.fn() },
       })
+      expect(withoutHint.props('hint')).toBeUndefined()
 
-      const vm = wrapper.vm as any
-      expect(vm.resolvedHint).toBe('Zero-based index')
-    })
-
-    it('should honor a custom hint override', () => {
-      const wrapper = mount(IndexEditor, {
+      const withHint = mount(IndexEditor, {
         props: { modelValue: 0, onSave: vi.fn(), hint: 'Position in list' },
       })
-
-      const vm = wrapper.vm as any
-      expect(vm.resolvedHint).toBe('Position in list')
+      expect(withHint.props('hint')).toBe('Position in list')
     })
   })
 

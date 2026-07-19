@@ -14,7 +14,6 @@
         multiple
         chips
         closable-chips
-        persistent-hint
         variant="outlined"
         density="comfortable"
         class="enum-array-editor__control"

@@ -12,7 +12,6 @@
       :error-messages="error"
       :hint="hint"
       :rules="rules"
-      persistent-hint
       variant="outlined"
       density="comfortable"
       class="enum-editor"

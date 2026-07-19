@@ -7,7 +7,6 @@
         :label="label"
         :disabled="saving"
         :hint="hint"
-        persistent-hint
         color="primary"
         density="comfortable"
         hide-details="auto"

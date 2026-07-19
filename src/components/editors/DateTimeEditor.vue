@@ -8,7 +8,6 @@
           type="date"
           label="Date"
           :disabled="saving"
-          persistent-hint
           variant="outlined"
           density="comfortable"
           hide-details="auto"
@@ -21,7 +20,6 @@
           step="1"
           label="Time"
           :disabled="saving"
-          persistent-hint
           variant="outlined"
           density="comfortable"
           hide-details="auto"
@@ -185,6 +183,10 @@ defineExpose({
 .date-time-editor__label,
 .date-time-editor__display-label {
   line-height: 1.2;
+}
+
+.date-time-editor__label {
+  margin-bottom: 8px;
 }
 
 .date-time-editor__hint {

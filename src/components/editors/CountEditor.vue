@@ -14,7 +14,6 @@
       :error-messages="error"
       :hint="hint"
       :rules="resolvedRules"
-      persistent-hint
       variant="outlined"
       density="comfortable"
       class="count-editor"

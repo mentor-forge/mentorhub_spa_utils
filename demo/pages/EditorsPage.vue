@@ -130,7 +130,13 @@
       >
         <BooleanEditor field="boolean" label="Active" automation-id="editors-boolean" />
         <CountEditor field="count" label="Count" automation-id="editors-count" class="mt-4" />
-        <IndexEditor field="index" label="Index" automation-id="editors-index" class="mt-4" />
+        <IndexEditor
+          field="index"
+          label="Index"
+          hint="Zero-based index"
+          automation-id="editors-index"
+          class="mt-4"
+        />
         <RatingEditor field="rating" label="Rating" automation-id="editors-rating" class="mt-4" />
       </DataCard>
 

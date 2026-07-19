@@ -12,9 +12,8 @@
       :disabled="saving"
       :error="!!error"
       :error-messages="error"
-      :hint="resolvedHint"
+      :hint="hint"
       :rules="resolvedRules"
-      persistent-hint
       variant="outlined"
       density="comfortable"
       class="index-editor"
@@ -36,7 +35,7 @@
 
 <script setup lang="ts">
 // F019: `index` configurator type — non-negative, zero-based integer, AutoSave on
-// blur. Same shape as `CountEditor`; distinguished by zero-based hint/label semantics.
+// blur. Same shape as `CountEditor`; callers may pass a hint for zero-based semantics.
 import { computed, ref, watch } from 'vue'
 import { useDataCardContext, resolveDataCardModel } from '../../composables/useDataCardContext'
 import { validationRules } from '../../utils/validation'
@@ -50,7 +49,6 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const resolvedRules = computed(() => props.rules ?? [validationRules.nonNegativeInteger])
-const resolvedHint = computed(() => props.hint ?? 'Zero-based index')
 
 const context = useDataCardContext()
 
@@ -120,7 +118,6 @@ defineExpose({
   saved,
   error,
   resolvedRules,
-  resolvedHint,
   handleInput,
   handleBlur,
 })
