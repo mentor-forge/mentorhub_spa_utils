@@ -1,6 +1,6 @@
 # F032 – Patch version for responsive CardGrid
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F031  
 **Description**: Apply the exact `0.5.3` package version for the CardGrid layout harvest, then verify the complete distributable before release.
@@ -66,3 +66,35 @@ Run all commands from this repository root.
 The agent must not edit implementation, tests, demo/Cypress behavior, release scripts, tags, downstream repositories, or CodeArtifact in this task.
 
 ## Execution Notes
+
+### Plan
+
+1. Confirmed F029–F031 are `SHIPPED.*`; starting version in `package.json` / lockfile root is **0.5.2** (patch → **0.5.3**).
+2. Run `mh` if needed, then `npm run patch`; abort if result ≠ `0.5.3`.
+3. Update README install example from `@0.5.2` → `@0.5.3` only (migration prose already mentions 0.5.3).
+4. Verify: `npm run test`, `test:coverage`, `lint`, `build`; Cypress `dashboard.cy.ts` against `npm run dev`; inspect dist exports/props for `CardGrid`.
+5. No publish/tag/push/downstream SPA changes. Mark Shipped and rename task file.
+
+### Commands
+
+- `mh` — CodeArtifact auth refreshed
+- Starting version in `package.json` was **0.5.2**
+- `npm run patch` → **v0.5.3** (`package.json`, `package-lock.json` root, and `packages[""].version` all **0.5.3**)
+- README install example updated: `@mentor-forge/mentorhub_spa_utils@0.5.3`
+- `npm install --include=dev` — not required (lockfile already synchronized by `npm version patch`)
+- `npm run test` — **383/383 passed** (36 files)
+- `npm run test:coverage` — tests passed; overall `src/utils/**` threshold failures are **pre-existing** (untested `admin.ts`, `urlAuthBootstrap.ts`) — same caveat as F017/F019/F026/F028. Exit code 1 from thresholds only.
+- `npm run lint` — **blocked in this environment**: `eslint` binary not present (`eslint: command not found`). Same tooling gap as F026/F028.
+- `npm run build` — succeeded (`vite build` + `tsc --emitDeclarationOnly`)
+- `npm run dev` + `npx cypress run --spec cypress/e2e/pages/dashboard.cy.ts` — **8/8 passed**
+
+### Export verification (dist)
+
+- `dist/components/index.d.ts`: exports `CardGrid`
+- `dist/index.d.ts`: re-exports `./components` (package-root consumers get `CardGrid`)
+- `dist/index.js`: `name: "CardGrid"` with props `{ automationId: { type: String, default: void 0 } }` only — no `cols` / `sm` / `md` / `lg` / `xl` props; exported as `CardGrid`
+
+### Decisions / follow-ups
+
+- No publish, tag, push, or downstream SPA dependency changes (per task). Publishing remains gated by F033 after merge to `main`.
+- Orchestrator may re-run `npm run lint` after a full `npm ci` if eslint is restored to the toolchain.
