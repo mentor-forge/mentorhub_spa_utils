@@ -1,6 +1,6 @@
 # F031 – Document responsive equal-height CardGrid
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F030  
 **Description**: Document the fixed 1→8 CardGrid layout, equal-height and collapsed-card contracts, consumer width responsibility, and the migration away from Vuetify breakpoint props (shipped as a patch in early development).
@@ -71,3 +71,22 @@ The agent must not edit component implementation, tests, demo/Cypress files, pac
 
 ## Execution Notes
 
+### Plan
+
+1. Update the README `MhCard / CardGrid / DataCard` section to replace the removed Vuetify breakpoint-prop contract with the fixed CSS Grid contract: equal-width tracks, equal-height expanded cards scoped to `CardGrid`, intrinsic standalone and collapsed `MhCard` behavior, and the exact 1→8 breakpoints.
+2. Document `CardGrid`'s default-slot flattening/key behavior and root `automationId` contract, plus the `0.5.3` early-development migration decision and consumer responsibility for available page/container width.
+3. Link `/demo/dashboard`, explain wide-viewport verification for 5–8 columns, mention `/demo/editors` inheritance, and update the harvesting sequence to shared implementation/tests → demo/docs → version/release → downstream adoption/local-prototype deletion.
+4. Manually compare the README against `CardGrid.vue`, `MhCard.vue`, their unit tests, and the dashboard; confirm no removed breakpoint-prop examples or Paths-specific additions; run `npm run test` and `npm run build`; then record results and ship this task.
+
+### Results
+
+- Updated the README `MhCard / CardGrid / DataCard` contract for fixed equal-width CSS Grid tracks, exact 1→8 breakpoints, row-equal-height expanded cards scoped to `CardGrid`, intrinsic standalone cards, and non-stretching collapsed cards.
+- Documented default-slot Fragment flattening, one item per meaningful VNode, key preservation/index fallback, null/comment/text skipping, and root `automationId`.
+- Added the `0.5.3` early-development patch migration note: removed `cols`/`sm`/`md`/`lg`/`xl`, automatic new layout for existing consumers, consumer-controlled page/container width, and guidance for designs requiring intrinsic-height expanded cards.
+- Linked `/demo/dashboard` with 1600/1920/2240/2560px verification for 5/6/7/8 columns and the permanent eight-column cap; noted `/demo/editors` inherits the fixed layout.
+- Updated the harvesting workflow order to shared implementation/tests, demo/docs, version/release, then downstream adoption and verified local-prototype deletion.
+- Manual comparison against `CardGrid.vue`, `MhCard.vue`, `CardGrid.test.ts`, `MhCard.test.ts`, and `DashboardPage.vue`: README claims match implementation and tests; no README example passes removed breakpoint props; no Paths-specific content was added.
+- `npm run test`: **383/383 passed** (36 files).
+- `npm run build`: **succeeded** (Vite package build and TypeScript declarations).
+- Outputs only: `README.md` plus this task lifecycle record. No component, test, demo/Cypress, package-version, publishing, or journey-SPA edits. No commit/push.
+- **Blockers**: none.
