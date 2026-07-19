@@ -21,8 +21,21 @@ export {
   DateTimeEditor,
   DurationEditor,
   BreadcrumbDisplay,
+  EnumEditor,
+  EnumArrayEditor,
 } from './editors'
-export type { BaseEditorProps, StringEditorProps, BreadcrumbValue } from './editors'
+export type {
+  BaseEditorProps,
+  StringEditorProps,
+  BreadcrumbValue,
+  EnumeratorValue,
+  NamedEnumerator,
+  EnumeratorVersionPayload,
+  RuntimeEditorConfig,
+  EnumOption,
+  EnumEditorProps,
+  EnumArrayEditorProps,
+} from './editors'
 export { default as AdminPage } from './AdminPage.vue'
 export { default as ConfigItemsTable } from './admin/ConfigItemsTable.vue'
 export { default as VersionsTable } from './admin/VersionsTable.vue'

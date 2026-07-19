@@ -38,3 +38,61 @@ export interface BreadcrumbValue {
   at_time?: string
   correlation_id?: string
 }
+
+/** Single allowed value inside a named runtime enumerator (`/api/config`). */
+export interface EnumeratorValue {
+  value: string
+  description?: string
+}
+
+/** Named enumerator: dictionary `enums` key → this `name`. */
+export interface NamedEnumerator {
+  name: string
+  values: EnumeratorValue[]
+}
+
+/**
+ * One versioned enumerator payload from `/api/config.enumerators[]`.
+ * When the same `name` appears in multiple payloads, editors use the highest
+ * numeric `version` (latest / active).
+ */
+export interface EnumeratorVersionPayload {
+  version: number
+  enumerators: NamedEnumerator[]
+}
+
+/**
+ * Minimum runtime config shape consumed by enum editors.
+ * Applications fetch `/api/config` at startup and provide this (or a superset).
+ */
+export interface RuntimeEditorConfig {
+  enumerators?: EnumeratorVersionPayload[]
+}
+
+/** Vuetify-ready option resolved from a runtime enumerator value. */
+export interface EnumOption {
+  title: string
+  value: string
+}
+
+/** Props for `EnumEditor` (configurator type `enum`). */
+export interface EnumEditorProps extends BaseEditorProps<string | undefined> {
+  /** Case-sensitive enumerator name matching a dictionary property `enums` key. */
+  enums: string
+  /**
+   * Optional per-component config override for tests / standalone demos.
+   * Prefer the app-level `provideEditorConfig` context in production.
+   */
+  config?: RuntimeEditorConfig | null
+}
+
+/** Props for `EnumArrayEditor` (configurator type `enum_array`). */
+export interface EnumArrayEditorProps extends BaseEditorProps<string[] | undefined> {
+  /** Case-sensitive enumerator name matching a dictionary property `enums` key. */
+  enums: string
+  /**
+   * Optional per-component config override for tests / standalone demos.
+   * Prefer the app-level `provideEditorConfig` context in production.
+   */
+  config?: RuntimeEditorConfig | null
+}

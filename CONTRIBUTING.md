@@ -59,14 +59,14 @@ mentorhub_spa_utils/
 │   ├── utils/           # Utility functions (validation, duration, urlAuthBootstrap, …)
 │   └── index.ts         # Main export
 ├── demo/                # Demo app for testing components
-│   ├── App.vue          # Layout: app bar, nav drawer, router-view
+│   ├── App.vue          # Layout: app bar, nav drawer, router-view; provideEditorConfig(startup config)
 │   ├── main.ts          # Entry point
 │   ├── bootstrap-auth.ts    # bootstrapAuthFromUrl + syncAuthFromStorage before app
 │   ├── router.ts        # Routes: /demo, /demo/editors, /demo/dashboard, /admin
-│   ├── composables/     # useConfig (demo-only); useAuth from src/composables
+│   ├── composables/     # useConfig (typed RuntimeEditorConfig; demo-only); useAuth from src/composables
 │   ├── pages/
 │   │   ├── DemoPage.vue       # Legacy AutoSave / utility demos
-│   │   ├── EditorsPage.vue    # Type-aligned editor gallery (DataCards)
+│   │   ├── EditorsPage.vue    # Type-aligned editor gallery (DataCards), incl. Enum/EnumArray
 │   │   ├── DashboardPage.vue  # CardGrid + MhCard list dashboard
 │   │   └── AdminPage.vue      # Config (api_utils /api/config)
 │   ├── components/      # Admin UI (config tables, token card)
@@ -100,10 +100,12 @@ When adding new utilities, components, or composables:
    - Legacy / misc components → [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) (or AdminPage as appropriate)
    - Register routes in [demo/router.ts](./demo/router.ts) and drawer links in [demo/App.vue](./demo/App.vue) when adding pages
    - This helps users understand how to use your utility
+   - **Enum-like / discrete option controls:** use `EnumEditor` / `EnumArrayEditor` with a declarative `enums` name and app-root `provideEditorConfig` from the startup `/api/config` fetch — do not hard-code option arrays or derive them from OpenAPI. Do not add new pages on `AutoSaveSelect` (legacy).
 
 5. **Add E2E tests:**
    - Add tests in [cypress/e2e](./cypress/e2e)
    - Use automation IDs for reliable selectors
+   - For enum editors, stub `GET /api/config` with a fixture (see [cypress/fixtures/editor-config.json](./cypress/fixtures/editor-config.json)) so options resolve without a live API
 
 6. **Update README:**
    - Add documentation with links to source code and examples

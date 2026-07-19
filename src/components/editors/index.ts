@@ -1,5 +1,16 @@
 export { default as StringEditor } from './StringEditor.vue'
-export type { BaseEditorProps, StringEditorProps, BreadcrumbValue } from './types'
+export type {
+  BaseEditorProps,
+  StringEditorProps,
+  BreadcrumbValue,
+  EnumeratorValue,
+  NamedEnumerator,
+  EnumeratorVersionPayload,
+  RuntimeEditorConfig,
+  EnumOption,
+  EnumEditorProps,
+  EnumArrayEditorProps,
+} from './types'
 
 // F018: string-family typed editors
 export { default as WordEditor } from './WordEditor.vue'
@@ -19,3 +30,7 @@ export { default as RatingEditor } from './RatingEditor.vue'
 export { default as DateTimeEditor } from './DateTimeEditor.vue'
 export { default as DurationEditor } from './DurationEditor.vue'
 export { default as BreadcrumbDisplay } from './BreadcrumbDisplay.vue'
+
+// F026: runtime-configured enum editors
+export { default as EnumEditor } from './EnumEditor.vue'
+export { default as EnumArrayEditor } from './EnumArrayEditor.vue'

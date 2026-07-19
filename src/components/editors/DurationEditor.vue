@@ -10,7 +10,6 @@
           step="1"
           label="Days"
           :disabled="saving"
-          persistent-hint
           variant="outlined"
           density="comfortable"
           hide-details="auto"
@@ -25,7 +24,6 @@
           step="1"
           label="Hours"
           :disabled="saving"
-          persistent-hint
           variant="outlined"
           density="comfortable"
           hide-details="auto"
@@ -39,21 +37,6 @@
           step="1"
           label="Minutes"
           :disabled="saving"
-          persistent-hint
-          variant="outlined"
-          density="comfortable"
-          hide-details="auto"
-          class="duration-editor__field"
-        />
-        <v-text-field
-          v-model.number="secondsInput"
-          type="number"
-          min="0"
-          max="59"
-          step="1"
-          label="Seconds"
-          :disabled="saving"
-          persistent-hint
           variant="outlined"
           density="comfortable"
           hide-details="auto"
@@ -80,11 +63,13 @@
 <script setup lang="ts">
 // F019: `duration` configurator type (moved from F018 per the F015 post-ship
 // amendment). Wire value is an ISO-8601 duration string (`P…T…`), but the primary
-// edit UX is four structured Vuetify number fields (days/hours/minutes/seconds) —
+// edit UX is three structured Vuetify number fields (days/hours/minutes) —
 // never a raw `P3DT4H30M` text field. View mode renders a readable summary via
-// `formatDurationHuman`. AutoSave fires on blur of the *composite* control (all four
+// `formatDurationHuman`. Existing wire-value seconds are preserved internally when
+// another unit is edited, but are not exposed as an input. AutoSave fires on blur of the
+// *composite* control (all three
 // fields together, via container `focusout`) rather than per-field blur, so tabbing
-// between the day/hour/minute/second fields doesn't trigger repeated partial saves.
+// between the day/hour/minute fields doesn't trigger repeated partial saves.
 import { computed, ref, watch } from 'vue'
 import { useDataCardContext, resolveDataCardModel } from '../../composables/useDataCardContext'
 import { parseDurationIso, formatDurationIso, formatDurationHuman } from '../../utils/duration'
@@ -210,6 +195,10 @@ defineExpose({
 .duration-editor__label,
 .duration-editor__display-label {
   line-height: 1.2;
+}
+
+.duration-editor__label {
+  margin-bottom: 8px;
 }
 
 .duration-editor__hint {

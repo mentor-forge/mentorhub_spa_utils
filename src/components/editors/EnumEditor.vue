@@ -1,22 +1,20 @@
 <template>
   <template v-if="visible">
-    <v-text-field
+    <v-select
       v-if="editable"
       :model-value="currentValue"
       @update:model-value="handleInput"
       @blur="handleBlur"
-      type="number"
-      min="0"
-      step="1"
+      :items="options"
       :label="label"
       :disabled="saving"
       :error="!!error"
       :error-messages="error"
       :hint="hint"
-      :rules="resolvedRules"
+      :rules="rules"
       variant="outlined"
       density="comfortable"
-      class="count-editor"
+      class="enum-editor"
       :data-automation-id="automationId"
     >
       <template v-if="saving" #append-inner>
@@ -25,36 +23,35 @@
       <template v-else-if="saved" #append-inner>
         <v-icon size="16" color="success">mdi-check</v-icon>
       </template>
-    </v-text-field>
-    <div v-else class="count-editor count-editor--display" :data-automation-id="resolvedAutomationId">
-      <div v-if="label" class="count-editor__display-label text-caption text-medium-emphasis">{{ label }}</div>
-      <div class="count-editor__display-value">{{ displayValue }}</div>
+    </v-select>
+    <div v-else class="enum-editor enum-editor--display" :data-automation-id="resolvedAutomationId">
+      <div v-if="label" class="enum-editor__display-label text-caption text-medium-emphasis">{{ label }}</div>
+      <div class="enum-editor__display-value">{{ displayValue }}</div>
     </div>
   </template>
 </template>
 
 <script setup lang="ts">
-// F019: `count` configurator type — non-negative integer, AutoSave on blur.
 import { computed, ref, watch } from 'vue'
 import { useDataCardContext, resolveDataCardModel } from '../../composables/useDataCardContext'
-import { validationRules } from '../../utils/validation'
-import type { BaseEditorProps } from './types'
+import { useEnumeratorOptions } from '../../composables/useEditorConfig'
+import type { EnumEditorProps } from './types'
 
-interface Props extends BaseEditorProps<number | undefined> {}
-
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<EnumEditorProps>(), {
   editable: true,
   visible: true,
 })
 
-const resolvedRules = computed(() => props.rules ?? [validationRules.nonNegativeInteger])
-
 const context = useDataCardContext()
+const options = useEnumeratorOptions(
+  () => props.enums,
+  () => props.config
+)
 
-const sourceValue = computed<number | undefined>(() => {
+const sourceValue = computed<string | undefined>(() => {
   if (props.field && context) {
     const model = resolveDataCardModel(context)
-    return model?.[props.field] as number | undefined
+    return model?.[props.field] as string | undefined
   }
   return props.modelValue
 })
@@ -62,7 +59,7 @@ const sourceValue = computed<number | undefined>(() => {
 const saving = ref(false)
 const saved = ref(false)
 const error = ref<string | null>(null)
-const currentValue = ref<number | undefined>(sourceValue.value)
+const currentValue = ref(sourceValue.value)
 
 watch(sourceValue, (newValue) => {
   currentValue.value = newValue
@@ -70,7 +67,9 @@ watch(sourceValue, (newValue) => {
 
 const displayValue = computed(() => {
   const value = currentValue.value
-  return value === undefined || value === null ? '—' : String(value)
+  if (value === undefined || value === null || value === '') return '—'
+  const match = options.value.find((o) => o.value === value)
+  return match?.title ?? value
 })
 
 const resolvedAutomationId = computed(() => {
@@ -78,8 +77,8 @@ const resolvedAutomationId = computed(() => {
   return props.automationId.endsWith('-display') ? props.automationId : `${props.automationId}-display`
 })
 
-function handleInput(value: string | number) {
-  currentValue.value = value === '' || value === undefined || value === null ? undefined : Number(value)
+function handleInput(value: string) {
+  currentValue.value = value
   saved.value = false
   error.value = null
 }
@@ -113,29 +112,29 @@ async function handleBlur() {
 
 defineExpose({
   currentValue,
+  options,
   saving,
   saved,
   error,
-  resolvedRules,
   handleInput,
   handleBlur,
 })
 </script>
 
 <style scoped>
-.count-editor {
+.enum-editor {
   width: 100%;
 }
 
-.count-editor--display {
+.enum-editor--display {
   width: 100%;
 }
 
-.count-editor__display-label {
+.enum-editor__display-label {
   line-height: 1.2;
 }
 
-.count-editor__display-value {
+.enum-editor__display-value {
   word-break: break-word;
 }
 </style>

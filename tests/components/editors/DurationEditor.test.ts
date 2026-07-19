@@ -10,17 +10,18 @@ describe('DurationEditor', () => {
   })
 
   describe('standalone modelValue + onSave', () => {
-    it('should default to editable=true and render four structured numeric fields (not a raw ISO text field)', () => {
+    it('should render day/hour/minute fields without a seconds or raw ISO input', () => {
       const wrapper = mount(DurationEditor, {
         props: { modelValue: 'P3DT4H30M', onSave: vi.fn() },
       })
 
       const inputs = wrapper.findAll('input')
-      expect(inputs.length).toBe(4)
+      expect(inputs.length).toBe(3)
+      expect(wrapper.text()).not.toContain('Seconds')
       expect(wrapper.text()).not.toContain('P3DT4H30M')
     })
 
-    it('should parse an ISO duration into day/hour/minute/second parts', () => {
+    it('should parse seconds internally so existing wire precision is preserved', () => {
       const wrapper = mount(DurationEditor, {
         props: { modelValue: 'P3DT4H30M15S', onSave: vi.fn() },
       })
@@ -30,6 +31,19 @@ describe('DurationEditor', () => {
       expect(vm.hoursInput).toBe(4)
       expect(vm.minutesInput).toBe(30)
       expect(vm.secondsInput).toBe(15)
+    })
+
+    it('should preserve existing seconds when an editable unit changes', async () => {
+      const onSave = vi.fn().mockResolvedValue(undefined)
+      const wrapper = mount(DurationEditor, {
+        props: { modelValue: 'PT4H30M15S', onSave },
+      })
+
+      const vm = wrapper.vm as any
+      vm.minutesInput = 45
+      await vm.handleBlur()
+
+      expect(onSave).toHaveBeenCalledWith('PT4H45M15S')
     })
 
     it('should serialize edited units into an ISO duration string and save on composite blur', async () => {
@@ -42,7 +56,6 @@ describe('DurationEditor', () => {
       vm.daysInput = 1
       vm.hoursInput = 2
       vm.minutesInput = 0
-      vm.secondsInput = 0
       await vm.handleBlur()
 
       expect(onSave).toHaveBeenCalledWith('P1DT2H')
@@ -83,7 +96,7 @@ describe('DurationEditor', () => {
       const container = wrapper.find('.duration-editor__controls').element as HTMLElement
       const innerInput = wrapper.findAll('input')[1].element
 
-      // Focus moving between the day/hour/minute/second sub-fields (still inside the
+      // Focus moving between the day/hour/minute sub-fields (still inside the
       // composite) must not save yet.
       await vm.handleContainerBlur({ currentTarget: container, relatedTarget: innerInput } as unknown as FocusEvent)
       expect(onSave).not.toHaveBeenCalled()

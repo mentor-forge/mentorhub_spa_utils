@@ -67,12 +67,16 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useAuth } from '../src/composables/useAuth'
+import { provideEditorConfig } from '../src/composables/useEditorConfig'
 import { redirectToIdpLogin } from '../src/utils/idpRedirect'
 import { useConfig } from './composables/useConfig'
 
 const { isAuthenticated, logout, roles } = useAuth()
-const { loadConfig } = useConfig()
+const { config, loadConfig } = useConfig()
 const drawer = ref(false)
+
+// One startup `/api/config` fetch; enum editors resolve options from this reactive ref.
+provideEditorConfig(config)
 
 const hasAdminRole = computed(() => (roles.value || []).includes('admin'))
 

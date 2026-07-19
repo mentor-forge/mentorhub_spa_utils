@@ -9,6 +9,14 @@ export {
   useDataCardContext,
   resolveDataCardModel,
 } from './useDataCardContext'
+export {
+  editorConfigKey,
+  provideEditorConfig,
+  useEditorConfig,
+  resolveEditorConfig,
+  resolveEnumeratorOptions,
+  useEnumeratorOptions,
+} from './useEditorConfig'
 export type { AuthProvider, ConfigProvider } from './useRoles'
 export type { InfiniteScrollResponse, InfiniteScrollParams, UseInfiniteScrollOptions } from './useInfiniteScroll'
 export type { DataCardModel, DataCardContext } from './useDataCardContext'

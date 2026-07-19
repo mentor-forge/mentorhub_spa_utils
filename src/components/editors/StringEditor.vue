@@ -12,7 +12,6 @@
       :hint="hint"
       :rules="rules"
       :rows="rows"
-      persistent-hint
       variant="outlined"
       density="comfortable"
       class="string-editor"
@@ -36,7 +35,6 @@
       :error-messages="error"
       :hint="hint"
       :rules="rules"
-      persistent-hint
       variant="outlined"
       density="comfortable"
       class="string-editor"
