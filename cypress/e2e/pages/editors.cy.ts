@@ -1,11 +1,14 @@
 describe('Type Editors Demo Page', () => {
   beforeEach(() => {
     cy.clearLocalStorage()
+    // Stub startup `/api/config` so EnumEditor / EnumArrayEditor resolve real named enumerators.
+    cy.intercept('GET', '**/api/config', { fixture: 'editor-config.json' }).as('editorConfig')
     cy.login()
     cy.visit('/demo/editors', { timeout: 10000 })
     cy.url({ timeout: 5000 }).should('include', '/demo/editors')
     cy.get('body', { timeout: 10000 }).should('be.visible')
-    cy.wait(1000) // Wait for Vue app to render
+    cy.wait('@editorConfig')
+    cy.wait(1000) // Wait for Vue app to render after config inject
   })
 
   afterEach(() => {
@@ -22,6 +25,7 @@ describe('Type Editors Demo Page', () => {
     cy.get('[data-automation-id="editors-content-card"]').should('be.visible')
     cy.get('[data-automation-id="editors-time-card"]').should('be.visible')
     cy.get('[data-automation-id="editors-metrics-card"]').should('be.visible')
+    cy.get('[data-automation-id="editors-enums-card"]').should('be.visible')
     cy.get('[data-automation-id="editors-audit-card"]').should('be.visible')
   })
 
@@ -40,6 +44,8 @@ describe('Type Editors Demo Page', () => {
     cy.get('[data-automation-id="editors-count"]').should('exist')
     cy.get('[data-automation-id="editors-index"]').should('exist')
     cy.get('[data-automation-id="editors-rating"]').should('exist')
+    cy.get('[data-automation-id="editors-status"]').should('exist')
+    cy.get('[data-automation-id="editors-tags"]').should('exist')
     // Audit card starts collapsed (controlled v-model:collapsed demo) so assert existence only.
     cy.get('[data-automation-id="editors-breadcrumb"]').should('exist')
   })
@@ -93,5 +99,75 @@ describe('Type Editors Demo Page', () => {
 
     cy.get('[data-automation-id="editors-contact-editable-toggle"]').find('input').click({ force: true })
     cy.get('[data-automation-id="editors-email"]').find('input').should('exist')
+  })
+
+  it('should select a scalar enum from startup config and save the wire value', () => {
+    // Options come from fixture enumerators named "status" (description labels, wire values).
+    cy.get('[data-automation-id="editors-status"]').click()
+    cy.contains('.v-list-item-title', 'Archived').should('be.visible').click()
+
+    cy.wait(300)
+    cy.get('body').click(0, 0) // blur → AutoSave
+
+    cy.get('[data-automation-id="editors-save-log"]', { timeout: 3000 })
+      .should('be.visible')
+      .and('contain', 'Saved "status"')
+      .and('contain', '"archived"')
+  })
+
+  it('should autocomplete enum_array values, manage pills, and save a string array', () => {
+    // Starts with ["alpha"]; add "beta", then remove "alpha", then blur to save.
+    cy.get('[data-automation-id="editors-tags"]').click()
+    cy.contains('.v-list-item-title', 'Beta tag').should('be.visible').click()
+
+    // Closable chips render in the input area for selected values.
+    cy.get('[data-automation-id="editors-tags"]').within(() => {
+      cy.contains('.v-chip', 'Alpha tag').should('be.visible')
+      cy.contains('.v-chip', 'Beta tag').should('be.visible')
+      // Remove the alpha pill via its close icon.
+      cy.contains('.v-chip', 'Alpha tag').find('.v-chip__close').click({ force: true })
+    })
+
+    cy.wait(300)
+    cy.get('body').click(0, 0) // focus leaves the control → AutoSave
+
+    cy.get('[data-automation-id="editors-save-log"]', { timeout: 3000 })
+      .should('be.visible')
+      .and('contain', 'Saved "tags"')
+      .and('contain', '["beta"]')
+  })
+
+  it('should show enum read-only displays with description labels and pills', () => {
+    cy.get('[data-automation-id="editors-enums-editable-toggle"]').find('input').click({ force: true })
+
+    cy.get('[data-automation-id="editors-status-display"]')
+      .should('be.visible')
+      .and('contain', 'Active')
+
+    cy.get('[data-automation-id="editors-tags-display"]').should('be.visible')
+    cy.get('[data-automation-id="editors-tags-pill-alpha"]')
+      .should('be.visible')
+      .and('contain', 'Alpha tag')
+  })
+
+  it('should not invent options when enumerator payload is empty', () => {
+    cy.intercept('GET', '**/api/config', {
+      statusCode: 200,
+      body: { config_items: [], versions: [], enumerators: [], token: {} },
+    }).as('emptyConfig')
+
+    cy.visit('/demo/editors', { timeout: 10000 })
+    cy.wait('@emptyConfig')
+    cy.contains('Type Editor Gallery').should('be.visible')
+    cy.get('[data-automation-id="editors-enums-card"]').scrollIntoView().should('be.visible')
+    cy.wait(500)
+
+    // Select still mounts; opening it must not invent Active/Archived/Draft options.
+    // Vuetify shows a single "No data available" placeholder when items are empty.
+    cy.get('[data-automation-id="editors-status"]').should('be.visible').click()
+    cy.contains('.v-overlay--active .v-list-item-title', 'No data available', { timeout: 4000 })
+      .should('be.visible')
+    cy.get('.v-overlay--active .v-list-item-title').should('have.length', 1)
+    cy.get('body').click(0, 0)
   })
 })

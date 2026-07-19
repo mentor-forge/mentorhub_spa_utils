@@ -16,9 +16,19 @@
           hide-details
           data-automation-id="editors-contact-editable-toggle"
         />
+        <v-switch
+          v-model="enumsEditable"
+          label="Enums card editable"
+          color="primary"
+          density="comfortable"
+          hide-details
+          class="mt-2"
+          data-automation-id="editors-enums-editable-toggle"
+        />
         <p class="text-caption text-medium-emphasis">
           The Audit card below is collapsed via a controlled <code>v-model:collapsed</code> binding (starts
-          collapsed) — all other cards use the default uncontrolled collapse toggle.
+          collapsed) — all other cards use the default uncontrolled collapse toggle. Enum options come from the
+          startup <code>/api/config</code> payload via <code>provideEditorConfig</code> (no hard-coded items).
         </p>
       </v-col>
     </v-row>
@@ -125,6 +135,32 @@
       </DataCard>
 
       <DataCard
+        title="Enums"
+        color="secondary"
+        :model="model"
+        :on-save="handleSave"
+        automation-id="editors-enums-card"
+      >
+        <EnumEditor
+          field="status"
+          enums="status"
+          label="Status"
+          hint="Scalar enum — options from runtime enumerator name"
+          :editable="enumsEditable"
+          automation-id="editors-status"
+        />
+        <EnumArrayEditor
+          field="tags"
+          enums="tags"
+          label="Tags"
+          hint="Enum array — autocomplete + closable pills; saves string[]"
+          :editable="enumsEditable"
+          automation-id="editors-tags"
+          class="mt-4"
+        />
+      </DataCard>
+
+      <DataCard
         title="Audit"
         color="secondary"
         :model="model"
@@ -150,9 +186,10 @@
 </template>
 
 <script setup lang="ts">
-// Demo: places every configurator-type-aligned editor (F018/F019) into several
+// Demo: places every configurator-type-aligned editor (F018/F019/F026) into several
 // DataCards (F020) inside a CardGrid (F016), against one shared reactive model with
-// in-memory AutoSave stubs. Not wired to a backing API — purely client-side.
+// in-memory AutoSave stubs. Enum options come from App.vue's startup /api/config via
+// provideEditorConfig — no hard-coded option lists on the editors themselves.
 import { reactive, ref } from 'vue'
 import {
   CardGrid,
@@ -171,11 +208,14 @@ import {
   CountEditor,
   IndexEditor,
   RatingEditor,
+  EnumEditor,
+  EnumArrayEditor,
   BreadcrumbDisplay,
 } from '../../src/index'
 
 // Demonstrates the `editable` prop toggling live across a whole card's editors.
 const contactEditable = ref(true)
+const enumsEditable = ref(true)
 // Demonstrates the optional controlled `v-model:collapsed` contract (starts collapsed).
 const auditCollapsed = ref(true)
 
@@ -194,6 +234,8 @@ const model = reactive<Record<string, unknown>>({
   count: 3,
   index: 0,
   rating: 3,
+  status: 'active',
+  tags: ['alpha'],
   breadcrumb: {
     from_ip: '10.0.0.5',
     by_user: 'demo-user',

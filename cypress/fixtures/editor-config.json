@@ -1,0 +1,28 @@
+{
+  "config_items": [],
+  "versions": [],
+  "enumerators": [
+    {
+      "version": 1,
+      "enumerators": [
+        {
+          "name": "status",
+          "values": [
+            { "value": "active", "description": "Active" },
+            { "value": "archived", "description": "Archived" },
+            { "value": "draft", "description": "Draft" }
+          ]
+        },
+        {
+          "name": "tags",
+          "values": [
+            { "value": "alpha", "description": "Alpha tag" },
+            { "value": "beta", "description": "Beta tag" },
+            { "value": "gamma", "description": "Gamma tag" }
+          ]
+        }
+      ]
+    }
+  ],
+  "token": {}
+}

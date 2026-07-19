@@ -1,9 +1,14 @@
 import { ref, computed } from 'vue'
+import type { RuntimeEditorConfig, EnumeratorVersionPayload } from '../../src/components/editors/types'
 
-interface ConfigResponse {
+/**
+ * Demo `/api/config` response. Extends the F026 runtime editor config shape so
+ * enum editors can resolve enumerators from the same startup payload.
+ */
+export interface ConfigResponse extends RuntimeEditorConfig {
   config_items?: Array<Record<string, unknown>>
   versions?: Array<Record<string, unknown>>
-  enumerators?: Array<Record<string, unknown>>
+  enumerators?: EnumeratorVersionPayload[]
   token?: Record<string, unknown>
 }
 
@@ -27,7 +32,7 @@ export function useConfig() {
         throw new Error(`Failed to load config: ${response.statusText}`)
       }
 
-      const result = await response.json()
+      const result = (await response.json()) as ConfigResponse
       config.value = result
       return result
     } catch (err) {

@@ -50,7 +50,7 @@ Configurator-type view/edit controls. Prefer these for new forms.
 
 **Shared props:** `field` (when inside `DataCard`), standalone `modelValue` + `onSave`, `editable` (default `true` except Identifier/Breadcrumb), optional `visible`, `automationId` → `data-automation-id`, plus `label` / `hint` / `rules`.
 
-**Save triggers:** blur for string / count / index / date-time / duration composites; **change** for boolean and rating.
+**Save triggers:** blur for string / count / index / date-time / duration composites / **enum** / **enum_array** (array saves when focus leaves the whole control); **change** for boolean and rating.
 
 | Type | Component | Notes |
 |------|-----------|-------|
@@ -67,7 +67,41 @@ Configurator-type view/edit controls. Prefer these for new forms.
 | `rating` | `RatingEditor` | `v-rating` 1–4; save on change |
 | `date-time` | `DateTimeEditor` | picker UX → ISO-8601 string |
 | `duration` | `DurationEditor` | human units → ISO-8601 duration (not raw `P…T…` typing) |
+| `enum` | `EnumEditor` | scalar string; options from runtime `/api/config` via `enums` name |
+| `enum_array` | `EnumArrayEditor` | `string[]`; autocomplete + closable pills; same runtime enumerators |
 | `breadcrumb` | `BreadcrumbDisplay` | display-only audit trail |
+
+**Runtime enumerators (required for enum editors):** Allowed values come from **`/api/config`**, not OpenAPI and not hard-coded `items` arrays. Each SPA fetches config once at authenticated startup and provides it near the app root:
+
+```typescript
+import { provideEditorConfig } from '@mentor-forge/mentorhub_spa_utils'
+import { useConfig } from './composables/useConfig' // app-owned startup fetch
+
+const { config, loadConfig } = useConfig()
+provideEditorConfig(config) // reactive Ref / ComputedRef / getter — editors update when load completes
+
+onMounted(async () => {
+  if (isAuthenticated.value) {
+    try {
+      await loadConfig() // GET /api/config once
+    } catch (e) {
+      console.warn('Failed to load config on mount:', e)
+    }
+  }
+})
+```
+
+Declarative usage inside a `DataCard` (no option lists on the component):
+
+```vue
+<EnumEditor field="status" enums="status" label="Status" automation-id="profile-status" />
+<EnumArrayEditor field="tags" enums="tags" label="Tags" automation-id="profile-tags" />
+```
+
+- **`enums`**: case-sensitive enumerator name matching the dictionary property key; resolved against `config.enumerators[].enumerators[]`.
+- **Wire values:** `enum` → `string`; `enum_array` → `string[]` (ordered as selected). Option **labels** use each value’s `description` when present, otherwise the wire `value`.
+- **UX:** `EnumEditor` is a `v-select` (AutoSave on blur). `EnumArrayEditor` is a multi `v-autocomplete` with closable chips/pills; AutoSave when focus leaves the whole control. Missing/loading/unknown enumerators yield an empty option list without throwing.
+- **Helpers:** `provideEditorConfig`, `useEditorConfig`, `resolveEnumeratorOptions` — see [useEditorConfig.ts](./src/composables/useEditorConfig.ts).
 
 **Demo:** `/demo/editors`  
 **Folder:** [src/components/editors/](./src/components/editors/)  
@@ -81,6 +115,9 @@ import {
   DataCard,
   WordEditor,
   MarkdownEditor,
+  EnumEditor,
+  EnumArrayEditor,
+  provideEditorConfig,
 } from '@mentor-forge/mentorhub_spa_utils'
 ```
 
@@ -203,6 +240,8 @@ Role-based access control with dependency injection pattern.
 
 ### Legacy AutoSave components
 
+> **Legacy / deprecated for new development.** Prefer configurator-type editors (`WordEditor`, `EnumEditor`, …) with `DataCard`. These components remain exported with unchanged public APIs for existing pages — do not remove them from consumers until those pages migrate.
+
 #### AutoSaveField
 
 Text input or textarea with auto-save on blur. **Compatibility wrapper** around `StringEditor` — export and props remain non-breaking. Prefer typed editors (`WordEditor`, `SentenceEditor`, …) for new forms.
@@ -224,7 +263,7 @@ Text input or textarea with auto-save on blur. **Compatibility wrapper** around 
 
 #### AutoSaveSelect
 
-Select dropdown with auto-save on blur. No generic enum/enumerator editor yet — keep using `AutoSaveSelect` for discrete option lists (or a harvestable local control when a second SPA needs the same pattern).
+Select dropdown with auto-save on blur and a caller-supplied `items` list. **Legacy** — for new enum / discrete option fields prefer **`EnumEditor`** / **`EnumArrayEditor`** with runtime `/api/config` enumerators (`enums` prop + `provideEditorConfig`). Keep using `AutoSaveSelect` only on existing pages that already pass hard-coded `items`.
 
 **Source:** [src/components/AutoSaveSelect.vue](./src/components/AutoSaveSelect.vue)  
 **Tests:** [tests/components/AutoSaveSelect.test.ts](./tests/components/AutoSaveSelect.test.ts)  

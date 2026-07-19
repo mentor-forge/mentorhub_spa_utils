@@ -1,6 +1,6 @@
 # F027 – Demonstrate and document runtime-configured enum editors
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F026  
 **Description**: Wire the Enum and EnumArray editors into the type-editor demo using the config fetched at application startup, add browser coverage for select and tag interactions, and document migration from legacy AutoSave components.
@@ -97,4 +97,32 @@ The agent must not remove or rename legacy components, modify their public APIs,
 
 ## Execution Notes
 
-Reserved for implementation plan, commands, test results, decisions, and follow-ups.
+### Plan
+
+1. Type demo `useConfig` with F026 `RuntimeEditorConfig` / `EnumeratorVersionPayload` (`ConfigResponse extends RuntimeEditorConfig`).
+2. In `demo/App.vue`, call `provideEditorConfig(config)` once with the same reactive startup config; keep the single authenticated `loadConfig()` on mount (failures still `console.warn`).
+3. Add an **Enums** `DataCard` on `EditorsPage` with `EnumEditor` (`enums="status"`) and `EnumArrayEditor` (`enums="tags"`) — no hard-coded items; editable toggle for read-only display + pill automation IDs.
+4. Add Cypress fixture `editor-config.json` with `status` + `tags` enumerators; extend `editors.cy.ts` for scalar select save, array pills add/remove/save, display mode, and empty-enumerator safety; leave `AutoSaveSelect.cy.ts` unchanged.
+5. Update README catalog + `provideEditorConfig` usage + mark AutoSave* legacy; CONTRIBUTING guidance for runtime enums / fixture stubbing.
+6. No demo unit tests (provider wiring stays in App.vue; no extracted logic). No package version bump.
+
+### Commands
+
+- `npm run test` — **380/380 passed** (36 files)
+- `npm run build` — succeeded (`vite build` + `tsc --emitDeclarationOnly`)
+- Demo already running on `:8386` (Vite); IdP on `:8080` — no backing API required because Cypress stubs `/api/config`
+- `npm run cypress:run -- --spec cypress/e2e/pages/editors.cy.ts,cypress/e2e/components/AutoSaveSelect.cy.ts` — **14/14 passed** (editors 12, AutoSaveSelect 2)
+
+### Decisions
+
+- Fixture enumerator names `status` / `tags` match F026 unit-test conventions and the declarative `enums` props on the demo editors.
+- Empty-enumerator Cypress asserts Vuetify’s single “No data available” placeholder (not zero `.v-list-item` nodes) so we prove no invented Active/Archived/Draft options.
+- `CONTRIBUTING.md` updated for enum contribution + Cypress fixture guidance.
+
+### Blockers
+
+None.
+
+### Follow-ups
+
+- F028: patch version bump
