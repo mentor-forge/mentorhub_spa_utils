@@ -1,6 +1,6 @@
 {
   "name": "@mentor-forge/mentorhub_spa_utils",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "type": "module",
   "engines": {
     "node": ">=24.0.0"
@@ -26,6 +26,7 @@
       "import": "./dist/utils/index.js",
       "types": "./dist/utils/index.d.ts"
     },
+    "./style.css": "./dist/index.css",
     "./cypress/commands": {
       "types": "./cypress/support/commands.ts",
       "default": "./cypress/support/commands.ts"
@@ -34,6 +35,11 @@
     "./cypress/registerJwtSignTask": "./cypress/plugins/registerJwtSignTask.ts",
     "./cypress/registerAuthCommands": "./cypress/support/registerAuthCommands.ts"
   },
+  "sideEffects": [
+    "**/*.css",
+    "./dist/index.js",
+    "./cypress/support/**/*.ts"
+  ],
   "files": [
     "dist",
     "cypress",
