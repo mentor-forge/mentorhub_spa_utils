@@ -11,7 +11,7 @@ Reusable Vue 3 + Vuetify components, composables, and utilities for Mentor Hub j
 Install from CodeArtifact (run `mh` first for credentials):
 
 ```bash
-npm install @mentor-forge/mentorhub_spa_utils@0.5.2
+npm install @mentor-forge/mentorhub_spa_utils@0.5.3
 ```
 
 Working examples live in the [demo app](./demo/): IdP auth, navigation drawer, **type editor gallery** (`/demo/editors`), **cards dashboard** (`/demo/dashboard`), legacy component demos (`/demo`), and admin config (`/admin`).
@@ -28,18 +28,43 @@ Adaptive card chrome for list dashboards and declarative edit forms. Defaults us
 
 | Component | Role |
 |-----------|------|
-| `MhCard` | Solid-color title bar (title + optional `name`), white body, `#actions` slot, optional collapse (`collapsible`; uncontrolled or `v-model:collapsed`; **no persistence**). Collapsed cards shrink to the title bar (do not stretch to sibling row height). |
-| `CardGrid` | Responsive `VRow`/`VCol` grid. **Defaults:** `cols="12" sm="6" md="4" lg="3"`. Override via props. |
+| `MhCard` | Solid-color title bar (title + optional `name`), white body, `#actions` slot, optional collapse (`collapsible`; uncontrolled or `v-model:collapsed`; **no persistence**). A standalone `MhCard` keeps its intrinsic height. |
+| `CardGrid` | Fixed responsive CSS Grid with equal-width tracks and a 16px gap. Expanded `MhCard` siblings stretch to equal height within each visual row; this override is scoped to cards inside `CardGrid`. |
 | `DataCard` | Form section: composes `MhCard`, takes `model` + optional `nameField` + `onSave`, and `provide`s context so child editors bind by `field` |
 
+`CardGrid` has a fixed, container-width-based column contract:
+
+- 1 column from 0px
+- 2 columns from 600px (`sm`)
+- 3 columns from 960px (`md`)
+- 4 columns from 1280px (`lg`)
+- 5 columns from 1600px
+- 6 columns from 1920px (`xl`)
+- 7 columns from 2240px
+- 8 columns from 2560px (`xxl`), permanently capped at eight
+
+Consumers control the width available to the grid through their page or container. For example, use a fluid/wide container when 5–8 columns should be visible; `CardGrid` does not make the page wider.
+
+Height behavior is deliberate:
+
+- Expanded `MhCard` instances in a `CardGrid` stretch to the tallest expanded card in their visual row.
+- Stretching is scoped to `CardGrid`; an `MhCard` rendered elsewhere remains intrinsic height.
+- A collapsed `.mh-card--collapsed` inside a grid remains at its intrinsic title-bar height and does not stretch to expanded row siblings.
+
+The default slot is structural: `CardGrid` recursively flattens Fragment content (including `v-for` templates), creates one grid item per meaningful VNode, preserves each VNode key (falling back to its flattened index), and skips null, comment, and text nodes. The optional `automationId` prop is applied as `data-automation-id` on the `.mh-card-grid` root.
+
 ```vue
-<CardGrid>
+<CardGrid automation-id="profile-grid">
   <DataCard title="Identity" name-field="word" :model="doc" :on-save="saveField">
     <WordEditor field="word" label="Name" automation-id="profile-name" />
     <MarkdownEditor field="description" label="Description" automation-id="profile-description" />
   </DataCard>
 </CardGrid>
 ```
+
+**Migration in `0.5.3`:** The fixed CSS Grid behavior was released as a patch by an explicit early-development maintainer decision. Existing `CardGrid` consumers automatically receive the new layout and equal-height expanded cards. The former `cols`, `sm`, `md`, `lg`, and `xl` props are removed; consumers now control available page/container width instead of column counts. Consumers that require intrinsic-height expanded cards must adjust their design or render those cards without `CardGrid`. In-repo consumers such as `/demo/editors` inherit the fixed layout after removing the old breakpoint props.
+
+To verify wide layouts, run the demo and open [`/demo/dashboard`](./demo/pages/DashboardPage.vue). Give the browser viewport approximately 1600, 1920, 2240, and 2560px of width and confirm 5, 6, 7, and 8 columns; widen beyond 2560px and confirm the grid remains capped at 8. The dashboard also demonstrates equal-height expanded siblings and a collapsed card that stays at title-bar height.
 
 **Sources:** [MhCard.vue](./src/components/MhCard.vue), [CardGrid.vue](./src/components/CardGrid.vue), [DataCard.vue](./src/components/DataCard.vue)  
 **Context helpers:** [useDataCardContext.ts](./src/composables/useDataCardContext.ts)
@@ -135,11 +160,10 @@ import {
 3. **Validate and AutoSave** like existing editors (blur vs change as appropriate); reuse or mirror `validationRules` patterns.
 4. **Unit-test** the local control (Vitest / Vue Test Utils) with the same coverage targets as spa_utils components.
 5. **When a second SPA needs it (or it is clearly shared), harvest:**
-   - Move the component into `mentorhub_spa_utils` under `src/components/editors/` (or `src/components/` for layout)
-   - Export from `src/components/index.ts` / package `./components`
-   - Add demo coverage on `/demo/editors` (or dashboard) and Cypress where interactive
-   - Document the type → component mapping in this README
-   - Bump spa_utils (minor for additive surface), publish, then bump consumers and delete the local copy
+   - First, move the shared implementation into `mentorhub_spa_utils` under `src/components/editors/` (or `src/components/` for layout), export it from `src/components/index.ts` / package `./components`, and add shared unit tests.
+   - Next, add demo coverage on `/demo/editors` (or `/demo/dashboard`) and Cypress where interactive, then document the shared contract in this README.
+   - Then bump the appropriate spa_utils version and publish the release.
+   - Finally, update downstream consumers to the released package and delete each local prototype only after adoption is verified.
 
 Until harvest ships, keep the local control as a thin, contract-compatible duplicate — do not invent a parallel prop API that will block promotion.
 
