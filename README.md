@@ -11,7 +11,7 @@ Reusable Vue 3 + Vuetify components, composables, and utilities for Mentor Hub j
 Install from CodeArtifact (run `mh` first for credentials):
 
 ```bash
-npm install @mentor-forge/mentorhub_spa_utils@0.5.1
+npm install @mentor-forge/mentorhub_spa_utils@0.5.2
 ```
 
 Working examples live in the [demo app](./demo/): IdP auth, navigation drawer, **type editor gallery** (`/demo/editors`), **cards dashboard** (`/demo/dashboard`), legacy component demos (`/demo`), and admin config (`/admin`).

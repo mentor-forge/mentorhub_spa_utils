@@ -1,6 +1,6 @@
 # F028 – Patch release for Enum and EnumArray type editors
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F027  
 **Description**: Apply the requested patch version bump for the runtime-configured Enum and EnumArray Type Editors and verify the distributable package.
@@ -68,4 +68,26 @@ The agent must not modify editor implementation, tests, demo files, legacy compo
 
 ## Execution Notes
 
-Reserved for version command, verification results, and release follow-ups.
+### Commands
+
+- `mh` — CodeArtifact auth refreshed
+- Starting version in `package.json` was **0.5.1**
+- `npm run patch` → **v0.5.2** (`package.json`, `package-lock.json` root, and `packages[""].version` all **0.5.2**)
+- README install example updated: `@mentor-forge/mentorhub_spa_utils@0.5.2`
+- `npm install --include=dev` — not required (lockfile already synchronized by `npm version patch`)
+- `npm run test` — **380/380 passed** (36 files)
+- `npm run test:coverage` — tests passed; overall `src/utils/**` threshold failures are **pre-existing** (untested `admin.ts`, `urlAuthBootstrap.ts`) — same caveat as F017/F019/F026. Exit code 1 from thresholds only.
+- `npm run lint` — **blocked in this environment**: `eslint` binary not present (`eslint: command not found`). Same tooling gap as F026.
+- `npm run build` — succeeded (`vite build` + `tsc --emitDeclarationOnly`)
+
+### Export verification (dist)
+
+- `dist/components/index.d.ts` / `dist/components/editors/index.d.ts`: `EnumEditor`, `EnumArrayEditor`, related enum types
+- `dist/composables/index.d.ts` / `useEditorConfig.d.ts`: `provideEditorConfig`, `useEditorConfig`, `resolveEnumeratorOptions`, …
+- `dist/index.js` re-exports: `EnumEditor`, `EnumArrayEditor`, `provideEditorConfig`, `resolveEnumeratorOptions`, `useEditorConfig`
+- Legacy non-breaking: `AutoSaveField` and `AutoSaveSelect` still in `dist/components/index.d.ts` and `dist/index.js`
+
+### Decisions / follow-ups
+
+- No publish, tag, push, or downstream SPA dependency changes (per task).
+- Orchestrator may re-run `npm run lint` after a full `npm ci` if eslint is restored to the toolchain.
