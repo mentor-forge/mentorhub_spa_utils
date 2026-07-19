@@ -36,7 +36,9 @@
     "./cypress/registerAuthCommands": "./cypress/support/registerAuthCommands.ts"
   },
   "sideEffects": [
-    "**/*.css"
+    "**/*.css",
+    "./dist/index.js",
+    "./cypress/support/**/*.ts"
   ],
   "files": [
     "dist",

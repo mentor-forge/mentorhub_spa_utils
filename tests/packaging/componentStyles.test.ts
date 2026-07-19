@@ -21,7 +21,15 @@ describe('component style packaging', () => {
     }
 
     expect(pkg.exports?.['./style.css']).toBe('./dist/index.css')
-    expect(pkg.sideEffects).toEqual(expect.arrayContaining(['**/*.css']))
+    // CSS alone is not enough: dist/index.js must stay side-effectful (CSS import),
+    // and Cypress support files register commands via bare side-effect imports.
+    expect(pkg.sideEffects).toEqual(
+      expect.arrayContaining([
+        '**/*.css',
+        './dist/index.js',
+        './cypress/support/**/*.ts',
+      ])
+    )
   })
 
   it('links dist CSS from the package-root JS entry and keeps CardGrid layout rules', () => {

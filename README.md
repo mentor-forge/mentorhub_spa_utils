@@ -14,7 +14,7 @@ Install from CodeArtifact (run `mh` first for credentials):
 npm install @mentor-forge/mentorhub_spa_utils@0.5.4
 ```
 
-**Component styles:** Prefer the package root import so Vite consumers receive component CSS automatically (the built `dist/index.js` side-effect-imports `./index.css`; `package.json` marks `**/*.css` as `sideEffects`). Optionally import the stylesheet once at app bootstrap:
+**Component styles:** Prefer the package root import so Vite consumers receive component CSS automatically (the built `dist/index.js` side-effect-imports `./index.css`; `package.json` marks `**/*.css` and `./dist/index.js` as `sideEffects` so bundlers keep that import). Optionally import the stylesheet once at app bootstrap:
 
 ```typescript
 import '@mentor-forge/mentorhub_spa_utils/style.css'
