@@ -26,6 +26,7 @@
       "import": "./dist/utils/index.js",
       "types": "./dist/utils/index.d.ts"
     },
+    "./style.css": "./dist/index.css",
     "./cypress/commands": {
       "types": "./cypress/support/commands.ts",
       "default": "./cypress/support/commands.ts"
@@ -34,6 +35,9 @@
     "./cypress/registerJwtSignTask": "./cypress/plugins/registerJwtSignTask.ts",
     "./cypress/registerAuthCommands": "./cypress/support/registerAuthCommands.ts"
   },
+  "sideEffects": [
+    "**/*.css"
+  ],
   "files": [
     "dist",
     "cypress",

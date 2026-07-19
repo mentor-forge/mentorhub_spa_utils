@@ -1,6 +1,6 @@
 # D034 – Package component styles for CardGrid consumers
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Defect  
 **Depends On**: none  
 **Description**: Fix library packaging so domain SPAs that import `{ CardGrid }` (and other styled components) from `@mentor-forge/mentorhub_spa_utils` receive the CSS Grid / equal-height rules that currently exist only as an unlinked `dist/index.css` artifact.
@@ -89,3 +89,27 @@ Run all commands from this repository root.
 The agent must not edit CardGrid layout CSS rules for behavior changes, README consumer docs (D035), package semver (D036), release scripts/tags, or any journey SPA.
 
 ## Execution Notes
+
+### Plan
+
+1. Prefer automatic style delivery without a new npm dependency: extend `vite.config.ts` with a small lib-build plugin (equivalent to `vite-plugin-lib-inject-css`) that prepends `import './index.css'` into `dist/index.js` when `dist/index.css` exists after the Vite lib build.
+2. Update `package.json`:
+   - `sideEffects: ["**/*.css"]` so consumer bundlers keep the CSS side-effect import
+   - `exports["./style.css"]` → `./dist/index.css` as an explicit/resolvable style entry (fallback + documentation hook for D035)
+3. Note: `./components` export currently has types only (no bundled JS chunk); CSS injection targets the real package-root entry `dist/index.js`.
+4. Add a durable packaging test under `tests/` asserting package `exports`/`sideEffects` and that built `dist/index.js` imports CSS while `dist/index.css` contains CardGrid grid rules.
+5. Run `npm run test`, `npm run build`, verify CSS content, and `npm run lint` if available.
+6. Do not bump version, publish, edit README, journey SPAs, or CardGrid layout CSS/props.
+
+### Results
+
+- **Approach**: Custom Vite `closeBundle` plugin `injectLibCssImport` (equivalent to vite-plugin-lib-inject-css; no new dependency). Prepends `import './index.css';` to `dist/index.js`. Also added `package.json` `sideEffects` and `./style.css` export.
+- **Files changed**:
+  - `vite.config.ts` — `injectLibCssImport` plugin
+  - `package.json` — `sideEffects: ["**/*.css"]`, `exports["./style.css"]` → `./dist/index.css`
+  - `tests/packaging/componentStyles.test.ts` — packaging contract (exports/sideEffects + dist JS↔CSS + CardGrid rules)
+- **Tests**: `npm run test` — **385 passed** (37 files), including packaging suite.
+- **Build**: `npm run build` — succeeded; `dist/index.js` starts with `import './index.css';`; `dist/index.css` includes `.mh-card-grid`, 1→8 `repeat(N,minmax(0,1fr))`, equal-height stretch, and collapsed non-stretch rules; MhCard/editor styles remain in the same CSS bundle.
+- **Lint**: `npm run lint` — pre-existing gap: `eslint: command not found` (eslint not on PATH / not installed in this env).
+- **Version/publish**: not bumped; still `0.5.3`.
+- **Blockers**: none for this task. D035 should document automatic delivery + optional `import '@mentor-forge/mentorhub_spa_utils/style.css'`.

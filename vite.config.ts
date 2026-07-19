@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
@@ -26,8 +26,26 @@ function preserveImportMetaEnv(): Plugin {
   }
 }
 
+/**
+ * Vite lib mode extracts SFC CSS to dist/index.css but does not link it from the JS entry.
+ * Prepend a side-effect import so consumers get component styles with the package root import.
+ */
+function injectLibCssImport(): Plugin {
+  return {
+    name: 'inject-lib-css-import',
+    closeBundle() {
+      const jsFile = resolve(__dirname, 'dist/index.js')
+      const cssFile = resolve(__dirname, 'dist/index.css')
+      if (!existsSync(jsFile) || !existsSync(cssFile)) return
+      const code = readFileSync(jsFile, 'utf8')
+      if (/import\s+['"]\.\/index\.css['"]/.test(code)) return
+      writeFileSync(jsFile, `import './index.css';\n${code}`)
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [vue(), preserveImportMetaEnv()],
+  plugins: [vue(), preserveImportMetaEnv(), injectLibCssImport()],
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
