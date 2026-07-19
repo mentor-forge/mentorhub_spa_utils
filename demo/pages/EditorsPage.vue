@@ -33,7 +33,7 @@
       </v-col>
     </v-row>
 
-    <CardGrid automation-id="editors-demo-grid" cols="12" md="6" lg="4">
+    <CardGrid automation-id="editors-demo-grid">
       <DataCard
         title="Identity"
         color="primary"

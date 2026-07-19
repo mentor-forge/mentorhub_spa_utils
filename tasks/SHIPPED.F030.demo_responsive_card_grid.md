@@ -1,6 +1,6 @@
 # F030 – Demonstrate responsive equal-height CardGrid
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F029  
 **Description**: Update the cards dashboard and its Cypress coverage to demonstrate varied-content equal-height rows, collapsed-card intrinsic height, and responsive growth through eight columns. Also remove obsolete `CardGrid` breakpoint props from other in-repo demo consumers so the demo app builds cleanly after F029.
@@ -66,4 +66,37 @@ Run all commands from this repository root.
 The agent must not edit shared component implementation, README, package versions, publishing workflows, or any journey SPA in this task.
 
 ## Execution Notes
+
+### Plan
+
+1. **`demo/pages/DashboardPage.vue`**
+   - Switch to `v-container fluid` so the page provides enough width for 5–8 columns.
+   - Replace obsolete VRow/VCol breakpoint copy with the fixed CSS Grid contract: 1→8 columns at 0/600/960/1280/1600/1920/2240/2560px; note that consumers must provide width; document how to verify 5–8 columns manually.
+   - Keep existing entity automation IDs and action buttons; vary body lengths deliberately so equal-height rows are obvious.
+   - Add a collapsible `MhCard` that starts collapsed (`v-model:collapsed`) with a distinct generic demo automation ID so Cypress can assert intrinsic (non-stretched) height.
+   - Ensure ≥8 fixture cards so an 8-column row is fully populated at 2560px.
+
+2. **`demo/pages/EditorsPage.vue`**
+   - Remove only obsolete `cols`/`md`/`lg` props from `CardGrid`; leave editors content, DataCards, and `editors-demo-grid` unchanged.
+
+3. **`cypress/e2e/pages/dashboard.cy.ts`**
+   - Drop Vuetify `v-col-*` / `.mh-card-grid__col` assertions.
+   - Assert column counts via computed `grid-template-columns` at representative viewports (incl. 8 at 2560 and still 8 wider).
+   - Assert equal heights for expanded cards sharing a visual row despite varied body lengths.
+   - Assert the collapsed demo card is shorter than expanded siblings in the same row.
+   - Keep existing heading / grid / card / action smoke coverage.
+
+4. Run `npm run test`, `npm run build`, start `npm run dev` if needed, run dashboard Cypress spec, kill dev server if started; record results; Status Shipped; rename to `SHIPPED.F030...`.
+
+### Results
+
+- **`demo/pages/DashboardPage.vue`**: fluid container; documents 1→8 breakpoints and consumer-width requirement for verifying 5–8 columns; varied body lengths; collapsed `MhCard` (`dashboard-card-collapsed-demo`) inserted after the first entity so it shares a multi-column row; existing entity/action automation IDs preserved.
+- **`demo/pages/EditorsPage.vue`**: removed obsolete `cols`/`md`/`lg` from `CardGrid` only; `editors-demo-grid` and editor content unchanged.
+- **`cypress/e2e/pages/dashboard.cy.ts`**: replaced Vuetify `v-col-*` assertions with computed `grid-template-columns` checks (1/2/3/4/5/6/7/8 at 500/600/960/1280/1600/1920/2240/2560, still 8 at 3000); equal-height expanded row; collapsed shorter than same-row expanded siblings; existing smoke tests kept.
+- `npm run test`: **383/383 passed** (36 files).
+- `npm run build`: **succeeded**.
+- `npm run cypress:run -- --spec cypress/e2e/pages/dashboard.cy.ts` (dev server on :8386): **8/8 passed**.
+- Column counts verified via Cypress at 1600→5, 1920→6, 2240→7, 2560→8, 3000→8 (still capped). Equal heights and collapsed intrinsic height asserted at 1280px.
+- Outputs only as listed; no CardGrid/README/package/journey SPA edits. No commit/push.
+- **Blockers**: none.
 

@@ -1,3 +1,10 @@
+/** Count CSS Grid tracks from computed `grid-template-columns` (handles `minmax(...)` tokens). */
+function countGridColumns($grid: JQuery<HTMLElement>): number {
+  const template = window.getComputedStyle($grid[0]).gridTemplateColumns.trim()
+  if (!template || template === 'none') return 0
+  return template.split(/ (?![^(]*\))/).filter(Boolean).length
+}
+
 describe('Dashboard Demo Page', () => {
   beforeEach(() => {
     cy.clearLocalStorage()
@@ -43,13 +50,59 @@ describe('Dashboard Demo Page', () => {
       .and('contain', 'edit clicked for "Alex Johnson"')
   })
 
-  it('should apply F015 default CardGrid breakpoint classes', () => {
-    // Prefer class assertions over pixel measurements (nested containers make widths flaky).
-    cy.get('[data-automation-id="dashboard-grid"] .mh-card-grid__col')
-      .first()
-      .should('have.class', 'v-col-12')
-      .and('have.class', 'v-col-sm-6')
-      .and('have.class', 'v-col-md-4')
-      .and('have.class', 'v-col-lg-3')
+  it('should use responsive CSS Grid column counts through eight', () => {
+    const cases: Array<{ width: number; columns: number }> = [
+      { width: 500, columns: 1 },
+      { width: 600, columns: 2 },
+      { width: 960, columns: 3 },
+      { width: 1280, columns: 4 },
+      { width: 1600, columns: 5 },
+      { width: 1920, columns: 6 },
+      { width: 2240, columns: 7 },
+      { width: 2560, columns: 8 },
+      { width: 3000, columns: 8 }, // capped — no growth beyond eight
+    ]
+
+    cases.forEach(({ width, columns }) => {
+      cy.viewport(width, 900)
+      cy.get('[data-automation-id="dashboard-grid"]').should(($grid) => {
+        expect(countGridColumns($grid), `columns at ${width}px`).to.eq(columns)
+      })
+    })
+  })
+
+  it('should stretch expanded cards in a row to equal height despite varied body lengths', () => {
+    cy.viewport(1280, 900)
+    cy.get('[data-automation-id="dashboard-grid"] .mh-card-grid__item .mh-card:not(.mh-card--collapsed)')
+      .should('have.length.greaterThan', 1)
+      .then(($cards) => {
+        const firstTop = $cards[0].getBoundingClientRect().top
+        const rowHeights = [...$cards]
+          .filter((el) => Math.abs(el.getBoundingClientRect().top - firstTop) < 2)
+          .map((el) => el.getBoundingClientRect().height)
+
+        expect(rowHeights.length).to.be.greaterThan(1)
+        const firstHeight = rowHeights[0]
+        rowHeights.forEach((h) => expect(h).to.be.closeTo(firstHeight, 2))
+      })
+  })
+
+  it('should keep the collapsed demo card shorter than expanded siblings', () => {
+    cy.viewport(1280, 900)
+    cy.get('[data-automation-id="dashboard-card-collapsed-demo"]')
+      .should('have.class', 'mh-card--collapsed')
+      .then(($collapsed) => {
+        const collapsedHeight = $collapsed[0].getBoundingClientRect().height
+        const collapsedTop = $collapsed[0].getBoundingClientRect().top
+
+        cy.get('[data-automation-id="dashboard-grid"] .mh-card:not(.mh-card--collapsed)').then(($expanded) => {
+          const sameRowExpanded = [...$expanded].filter(
+            (el) => Math.abs(el.getBoundingClientRect().top - collapsedTop) < 2
+          )
+          expect(sameRowExpanded.length, 'expanded sibling in same visual row').to.be.greaterThan(0)
+          const expandedHeight = sameRowExpanded[0].getBoundingClientRect().height
+          expect(collapsedHeight).to.be.lessThan(expandedHeight - 8)
+        })
+      })
   })
 })

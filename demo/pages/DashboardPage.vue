@@ -1,62 +1,90 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <v-row>
       <v-col cols="12">
         <h1 class="text-h4 mb-2">Dashboard</h1>
-        <p class="mb-4">
-          List-style adaptive card dashboard built from <code>CardGrid</code> + <code>MhCard</code> (F016). The
-          grid uses the F015 default breakpoints — <code>cols="12" sm="6" md="4" lg="3"</code> — so it collapses to
-          a single column on mobile, 2 columns at <code>sm</code>, 3 columns at <code>md</code>, and 4 columns at
-          <code>lg</code> and above. Resize the window to see the column count change.
+        <p class="mb-2">
+          List-style adaptive card dashboard built from <code>CardGrid</code> + <code>MhCard</code>. The grid uses a
+          fixed CSS Grid progression (not Vuetify breakpoint props):
+          <strong>1</strong> column from 0px,
+          <strong>2</strong> from 600px,
+          <strong>3</strong> from 960px,
+          <strong>4</strong> from 1280px,
+          <strong>5</strong> from 1600px,
+          <strong>6</strong> from 1920px,
+          <strong>7</strong> from 2240px, and
+          <strong>8</strong> from 2560px (permanent maximum).
+        </p>
+        <p class="mb-4 text-body-2 text-medium-emphasis">
+          Wide layouts (5–8 columns) need consumer-provided page width — this demo uses a fluid container so the grid
+          can fill the viewport. To verify manually, resize the browser to about 1600 / 1920 / 2240 / 2560px (and wider
+          than 2560) and confirm 5 / 6 / 7 / 8 / still-8 columns. Expanded cards in a row stretch to equal height;
+          the collapsed example stays title-bar height.
         </p>
       </v-col>
     </v-row>
 
     <CardGrid automation-id="dashboard-grid">
-      <MhCard
-        v-for="entity in entities"
-        :key="entity.id"
-        :title="entity.title"
-        :name="entity.name"
-        :color="entity.color"
-        :automation-id="`dashboard-card-${entity.id}`"
-      >
-        <template #actions>
-          <v-btn
-            icon
-            variant="text"
-            size="small"
-            :data-automation-id="`dashboard-card-${entity.id}-view-button`"
-            aria-label="View"
-            @click="logAction('view', entity)"
-          >
-            <v-icon>mdi-eye</v-icon>
-          </v-btn>
-          <v-btn
-            icon
-            variant="text"
-            size="small"
-            :data-automation-id="`dashboard-card-${entity.id}-edit-button`"
-            aria-label="Edit"
-            @click="logAction('edit', entity)"
-          >
-            <v-icon>mdi-pencil</v-icon>
-          </v-btn>
-          <v-btn
-            icon
-            variant="text"
-            size="small"
-            :data-automation-id="`dashboard-card-${entity.id}-delete-button`"
-            aria-label="Delete"
-            @click="logAction('delete', entity)"
-          >
-            <v-icon>mdi-delete</v-icon>
-          </v-btn>
-        </template>
+      <!-- Insert collapsed demo after the first card so it shares a multi-column row with expanded siblings. -->
+      <template v-for="(entity, index) in entities" :key="entity.id">
+        <MhCard
+          :title="entity.title"
+          :name="entity.name"
+          :color="entity.color"
+          :automation-id="`dashboard-card-${entity.id}`"
+        >
+          <template #actions>
+            <v-btn
+              icon
+              variant="text"
+              size="small"
+              :data-automation-id="`dashboard-card-${entity.id}-view-button`"
+              aria-label="View"
+              @click="logAction('view', entity)"
+            >
+              <v-icon>mdi-eye</v-icon>
+            </v-btn>
+            <v-btn
+              icon
+              variant="text"
+              size="small"
+              :data-automation-id="`dashboard-card-${entity.id}-edit-button`"
+              aria-label="Edit"
+              @click="logAction('edit', entity)"
+            >
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn
+              icon
+              variant="text"
+              size="small"
+              :data-automation-id="`dashboard-card-${entity.id}-delete-button`"
+              aria-label="Delete"
+              @click="logAction('delete', entity)"
+            >
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+          </template>
 
-        <p class="text-body-2 mb-2">{{ entity.summary }}</p>
-        <v-chip size="small" variant="tonal" :color="entity.color">{{ entity.status }}</v-chip>
-      </MhCard>
+          <p class="text-body-2 mb-2">{{ entity.summary }}</p>
+          <v-chip size="small" variant="tonal" :color="entity.color">{{ entity.status }}</v-chip>
+        </MhCard>
+
+        <MhCard
+          v-if="index === 0"
+          title="Note"
+          name="Collapsed example"
+          color="secondary"
+          collapsible
+          v-model:collapsed="collapsedDemo"
+          automation-id="dashboard-card-collapsed-demo"
+        >
+          <p class="text-body-2">
+            This card starts collapsed so it keeps intrinsic title-bar height while expanded siblings in the same row
+            stretch to match the tallest body.
+          </p>
+        </MhCard>
+      </template>
     </CardGrid>
 
     <v-row v-if="actionLog.length" class="mt-2">
@@ -73,9 +101,9 @@
 </template>
 
 <script setup lang="ts">
-// Demo: places a set of sample entity summaries into MhCards (F016) inside a CardGrid,
-// showcasing the list-style adaptive dashboard layout with title-bar view/edit/delete
-// actions. Static fixture data only — not wired to a backing API.
+// Demo: places sample entity summaries into MhCards inside a CardGrid, showcasing the
+// responsive 1→8 CSS Grid layout, equal-height expanded rows, and collapsed intrinsic
+// height. Static fixture data only — not wired to a backing API.
 import { ref } from 'vue'
 import { CardGrid, MhCard } from '../../src/index'
 
@@ -88,13 +116,14 @@ interface DashboardEntity {
   status: string
 }
 
+// Deliberately varied body lengths so equal-height stretch is obvious within a row.
 const entities = ref<DashboardEntity[]>([
   {
     id: 'mentee-1',
     title: 'Mentee',
     name: 'Alex Johnson',
     color: 'primary',
-    summary: 'Enrolled in the Frontend Engineering track, 3 sessions completed this month.',
+    summary: 'Short summary.',
     status: 'Active',
   },
   {
@@ -102,7 +131,8 @@ const entities = ref<DashboardEntity[]>([
     title: 'Mentor',
     name: 'Priya Shah',
     color: 'secondary',
-    summary: 'Leads 5 active mentees across Backend and DevOps tracks.',
+    summary:
+      'Leads five active mentees across Backend and DevOps tracks. Weekly office hours cover career planning, system design reviews, and pairing on production incidents. Medium-length body for equal-height comparison.',
     status: 'Active',
   },
   {
@@ -110,7 +140,8 @@ const entities = ref<DashboardEntity[]>([
     title: 'Session',
     name: 'Career Planning Review',
     color: 'primary',
-    summary: 'Scheduled for next Tuesday at 3:00 PM with 2 attendees confirmed.',
+    summary:
+      'Scheduled for next Tuesday at 3:00 PM with two attendees confirmed. Agenda covers goals, blockers, and next-quarter milestones. Extra paragraph intentionally lengthens this card so sibling expanded cards in the same row stretch to match its height when the grid has multiple columns.',
     status: 'Scheduled',
   },
   {
@@ -118,7 +149,7 @@ const entities = ref<DashboardEntity[]>([
     title: 'Mentee',
     name: 'Sam Rivera',
     color: 'primary',
-    summary: 'Paused pending schedule availability; last session 6 weeks ago.',
+    summary: 'Paused pending schedule availability.',
     status: 'Paused',
   },
   {
@@ -126,7 +157,8 @@ const entities = ref<DashboardEntity[]>([
     title: 'Mentor',
     name: 'Diego Fernandez',
     color: 'secondary',
-    summary: 'Newly onboarded, awaiting first mentee assignment.',
+    summary:
+      'Newly onboarded, awaiting first mentee assignment. Orientation checklist includes platform walkthrough, pairing norms, and first-session prep notes that stretch this body beyond a single line.',
     status: 'Pending',
   },
   {
@@ -134,7 +166,7 @@ const entities = ref<DashboardEntity[]>([
     title: 'Session',
     name: 'Mock Interview Practice',
     color: 'primary',
-    summary: 'Completed with feedback submitted; recording archived.',
+    summary: 'Completed with feedback submitted.',
     status: 'Completed',
   },
   {
@@ -142,7 +174,8 @@ const entities = ref<DashboardEntity[]>([
     title: 'Coordinator',
     name: 'Jamie Lee',
     color: 'secondary',
-    summary: 'Manages 12 active mentor/mentee pairings across the program.',
+    summary:
+      'Manages twelve active mentor/mentee pairings across the program. Coordinates matching, escalations, and quarterly health checks. Longer copy here helps demonstrate equal-height rows when five or more columns are visible on a wide viewport.',
     status: 'Active',
   },
   {
@@ -150,11 +183,12 @@ const entities = ref<DashboardEntity[]>([
     title: 'Session',
     name: 'Resume Deep Dive',
     color: 'primary',
-    summary: 'Cancelled by mentee; awaiting reschedule request.',
+    summary: 'Cancelled by mentee; awaiting reschedule.',
     status: 'Cancelled',
   },
 ])
 
+const collapsedDemo = ref(true)
 const actionLog = ref<string[]>([])
 
 function logAction(action: string, entity: DashboardEntity) {
