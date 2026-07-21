@@ -18,6 +18,14 @@
         <span v-if="name" class="mh-card__name">{{ name }}</span>
       </v-toolbar-title>
 
+      <div
+        v-if="$slots.actions"
+        class="mh-card__actions"
+        :data-automation-id="actionsAutomationId"
+      >
+        <slot name="actions" />
+      </div>
+
       <v-btn
         v-if="collapsible"
         icon
@@ -28,10 +36,6 @@
       >
         <v-icon>{{ isCollapsed ? 'mdi-chevron-down' : 'mdi-chevron-up' }}</v-icon>
       </v-btn>
-
-      <div class="mh-card__actions" :data-automation-id="actionsAutomationId">
-        <slot name="actions" />
-      </div>
     </v-toolbar>
 
     <v-card-text v-show="!isCollapsed" class="mh-card__body">

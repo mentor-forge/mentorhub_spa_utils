@@ -87,15 +87,30 @@ describe('MhCard', () => {
     expect(vm.isCollapsed).toBe(true)
   })
 
+  it('should not render the actions container when the actions slot is absent', () => {
+    const wrapper = shallowMount(MhCard, { props: { title: 'Widget' } })
+
+    expect(wrapper.find('.mh-card__actions').exists()).toBe(false)
+  })
+
   it('should apply the automationId to the card root and derived sub-element ids', () => {
     const wrapper = shallowMount(MhCard, {
       props: { title: 'Widget', automationId: 'widget-card', collapsible: true },
+      slots: { actions: '<button>Go</button>' },
     })
 
     expect(wrapper.attributes('data-automation-id')).toBe('widget-card')
     expect(wrapper.find('[data-automation-id="widget-card-title-display"]').exists()).toBe(true)
     expect(wrapper.find('[data-automation-id="widget-card-collapse-button"]').exists()).toBe(true)
     expect(wrapper.find('[data-automation-id="widget-card-actions-display"]').exists()).toBe(true)
+  })
+
+  it('should omit actions automation id when the actions slot is absent', () => {
+    const wrapper = shallowMount(MhCard, {
+      props: { title: 'Widget', automationId: 'widget-card', collapsible: true },
+    })
+
+    expect(wrapper.find('[data-automation-id="widget-card-actions-display"]').exists()).toBe(false)
   })
 
   it('should not render automation ids on sub-elements when automationId is unset', () => {
