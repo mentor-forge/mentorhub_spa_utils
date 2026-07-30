@@ -213,7 +213,7 @@ syncAuthFromStorage()
 
 **3. Logout** — clear auth via `logout()`, then **`redirectToIdpLogin(\`${window.location.origin}/\`)`**.
 
-**4. Build-time config** — set **`VITE_IDP_LOGIN_URI`** for production (Developer Edition: `http://127.0.0.1:8080/login.html`). When unset, **`redirectToIdpLogin()`** falls back to that Developer Edition URL and uses **`location.replace`**.
+**4. Build-time config** — set **`VITE_IDP_LOGIN_URI`** for production (Developer Edition: `http://127.0.0.1:8080/login.html`). When unset, **`redirectToIdpLogin()`** falls back to that Developer Edition URL and uses **`location.replace`**. When the configured (or fallback) URI uses a loopback host (`127.0.0.1` / `localhost`) and the SPA was opened via another hostname (e.g. Tailscale MagicDNS), the login base host is rewritten to **`window.location.hostname`** so cross-device VPN login works. Non-loopback (production) IdP URLs are left unchanged.
 
 See [demo/router.ts](./demo/router.ts) and [demo/bootstrap-auth.ts](./demo/bootstrap-auth.ts) for a working reference.
 

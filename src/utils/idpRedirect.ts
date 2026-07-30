@@ -2,7 +2,10 @@
  * Redirect unauthenticated SPA users to the configured IdP / dev login page.
  *
  * Developer Edition: `VITE_IDP_LOGIN_URI` → `http://127.0.0.1:8080/login.html`
- * Production: commercial IdP authorize/login URL.
+ * When that URI (or the Developer Edition fallback) uses a loopback host and the
+ * SPA was opened via another hostname (e.g. Tailscale MagicDNS), the login base
+ * host is rewritten to `window.location.hostname` so cross-device VPN login works.
+ * Production: commercial IdP authorize/login URL (left unchanged).
  */
 
 /** Developer Edition welcome-page login when `VITE_IDP_LOGIN_URI` is unset at build time. */
@@ -20,11 +23,42 @@ function readConfiguredIdpLoginUri(): string | undefined {
   return undefined
 }
 
-function resolveIdpLoginUri(override?: string): string {
-  if (override?.trim()) {
-    return override.trim()
+function isLocalDevIdpHost(hostname: string): boolean {
+  return hostname === '127.0.0.1' || hostname === 'localhost'
+}
+
+/**
+ * Rewrite loopback IdP hosts to the hostname the SPA was opened with.
+ * Leaves non-loopback (production) IdP URLs unchanged.
+ */
+function adaptIdpLoginUriToCurrentHost(idpLoginUri: string): string {
+  if (typeof window === 'undefined') {
+    return idpLoginUri
   }
-  return readConfiguredIdpLoginUri() ?? DEVELOPER_EDITION_IDP_LOGIN_URI
+
+  try {
+    const url = new URL(idpLoginUri)
+    if (!isLocalDevIdpHost(url.hostname)) {
+      return idpLoginUri
+    }
+
+    const currentHost = window.location.hostname
+    if (!currentHost || currentHost === url.hostname) {
+      return idpLoginUri
+    }
+
+    url.hostname = currentHost
+    return url.toString()
+  } catch {
+    return idpLoginUri
+  }
+}
+
+function resolveIdpLoginUri(override?: string): string {
+  const resolved = override?.trim()
+    ? override.trim()
+    : (readConfiguredIdpLoginUri() ?? DEVELOPER_EDITION_IDP_LOGIN_URI)
+  return adaptIdpLoginUriToCurrentHost(resolved)
 }
 
 function defaultReturnTo(): string {
@@ -36,6 +70,7 @@ function defaultReturnTo(): string {
 
 /**
  * Resolved IdP login page URL from build-time env (`VITE_IDP_LOGIN_URI`) or Developer Edition fallback.
+ * Loopback hosts are adapted to the current browser hostname when available.
  */
 export function getIdpLoginBaseUrl(override?: string): string {
   return resolveIdpLoginUri(override)
