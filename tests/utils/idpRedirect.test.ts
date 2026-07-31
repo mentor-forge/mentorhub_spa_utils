@@ -4,10 +4,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import {
   DEVELOPER_EDITION_IDP_LOGIN_URI,
+  MENTORHUB_RUNTIME_CONFIG_KEY,
   getIdpLoginBaseUrl,
   buildIdpLoginRedirectUrl,
   redirectToIdpLogin,
 } from '../../src/utils/idpRedirect'
+
+const MAGIC_IDP = 'http://m5max.tailb0d293.ts.net:8080/login.html'
 
 function installWindowLocation(location: Record<string, unknown>) {
   Object.defineProperty(globalThis, 'window', {
@@ -15,6 +18,13 @@ function installWindowLocation(location: Record<string, unknown>) {
     writable: true,
     value: { location },
   })
+}
+
+function installRuntimeIdpLoginUri(idpLoginUri: string, location: Record<string, unknown> = {}) {
+  installWindowLocation(location)
+  ;(globalThis.window as Record<string, unknown>)[MENTORHUB_RUNTIME_CONFIG_KEY] = {
+    IDP_LOGIN_URI: idpLoginUri,
+  }
 }
 
 describe('idpRedirect', () => {
@@ -34,57 +44,40 @@ describe('idpRedirect', () => {
       expect(getIdpLoginBaseUrl()).toBe(DEVELOPER_EDITION_IDP_LOGIN_URI)
     })
 
-    it('rewrites loopback IdP host to the current MagicDNS hostname', () => {
-      installWindowLocation({
-        hostname: 'm5max.tailb0d293.ts.net',
-        origin: 'http://m5max.tailb0d293.ts.net:8392',
-        pathname: '/',
-        search: '',
-      })
+    it('uses runtime IDP_LOGIN_URI when injected on window', () => {
+      installRuntimeIdpLoginUri(MAGIC_IDP)
 
-      expect(getIdpLoginBaseUrl('http://127.0.0.1:8080/login.html')).toBe(
-        'http://m5max.tailb0d293.ts.net:8080/login.html'
-      )
-      expect(getIdpLoginBaseUrl()).toBe('http://m5max.tailb0d293.ts.net:8080/login.html')
+      expect(getIdpLoginBaseUrl()).toBe(MAGIC_IDP)
     })
 
-    it('rewrites localhost IdP host to the current hostname', () => {
-      installWindowLocation({
-        hostname: 'curttuff.tailb0d293.ts.net',
-        origin: 'http://curttuff.tailb0d293.ts.net:8392',
-        pathname: '/',
-        search: '',
-      })
+    it('prefers runtime IDP_LOGIN_URI over build-time VITE_IDP_LOGIN_URI', () => {
+      installRuntimeIdpLoginUri(MAGIC_IDP)
 
-      expect(getIdpLoginBaseUrl('http://localhost:8080/login.html')).toBe(
-        'http://curttuff.tailb0d293.ts.net:8080/login.html'
+      expect(getIdpLoginBaseUrl()).toBe(MAGIC_IDP)
+      expect(getIdpLoginBaseUrl()).not.toBe(DEVELOPER_EDITION_IDP_LOGIN_URI)
+    })
+
+    it('prefers explicit override over runtime config', () => {
+      installRuntimeIdpLoginUri(MAGIC_IDP)
+
+      expect(getIdpLoginBaseUrl('https://auth.example.com/login')).toBe(
+        'https://auth.example.com/login'
       )
     })
 
-    it('leaves non-loopback (production) IdP URLs unchanged', () => {
-      installWindowLocation({
-        hostname: 'm5max.tailb0d293.ts.net',
-        origin: 'http://m5max.tailb0d293.ts.net:8392',
-        pathname: '/',
-        search: '',
-      })
-
+    it('leaves production IdP URLs unchanged when passed as override', () => {
       const cognito =
         'https://auth.example.com/oauth2/authorize?client_id=abc&response_type=code'
       expect(getIdpLoginBaseUrl(cognito)).toBe(cognito)
     })
 
-    it('does not rewrite when already on loopback', () => {
-      installWindowLocation({
-        hostname: '127.0.0.1',
-        origin: 'http://127.0.0.1:8392',
-        pathname: '/',
-        search: '',
-      })
+    it('ignores empty runtime IDP_LOGIN_URI', () => {
+      installWindowLocation({ hostname: '127.0.0.1' })
+      ;(globalThis.window as Record<string, unknown>)[MENTORHUB_RUNTIME_CONFIG_KEY] = {
+        IDP_LOGIN_URI: '   ',
+      }
 
-      expect(getIdpLoginBaseUrl('http://127.0.0.1:8080/login.html')).toBe(
-        'http://127.0.0.1:8080/login.html'
-      )
+      expect(getIdpLoginBaseUrl()).toBe(DEVELOPER_EDITION_IDP_LOGIN_URI)
     })
   })
 
@@ -120,8 +113,8 @@ describe('idpRedirect', () => {
       )
     })
 
-    it('builds MagicDNS IdP URL with matching return_to host', () => {
-      installWindowLocation({
+    it('uses runtime IDP_LOGIN_URI for redirect URL', () => {
+      installRuntimeIdpLoginUri(MAGIC_IDP, {
         hostname: 'm5max.tailb0d293.ts.net',
         origin: 'http://m5max.tailb0d293.ts.net:8392',
         pathname: '/profiles',
@@ -130,7 +123,7 @@ describe('idpRedirect', () => {
 
       const url = buildIdpLoginRedirectUrl()
       expect(url).toBe(
-        'http://m5max.tailb0d293.ts.net:8080/login.html?return_to=http%3A%2F%2Fm5max.tailb0d293.ts.net%3A8392%2Fprofiles'
+        `${MAGIC_IDP}?return_to=http%3A%2F%2Fm5max.tailb0d293.ts.net%3A8392%2Fprofiles`
       )
     })
   })
@@ -168,9 +161,9 @@ describe('idpRedirect', () => {
       )
     })
 
-    it('redirects to MagicDNS IdP when SPA is opened via Tailscale hostname', () => {
+    it('redirects to runtime IdP when container injects IDP_LOGIN_URI', () => {
       replaceTarget = ''
-      installWindowLocation({
+      installRuntimeIdpLoginUri(MAGIC_IDP, {
         hostname: 'm5max.tailb0d293.ts.net',
         origin: 'http://m5max.tailb0d293.ts.net:8392',
         pathname: '/',
@@ -182,7 +175,7 @@ describe('idpRedirect', () => {
 
       redirectToIdpLogin('http://m5max.tailb0d293.ts.net:8392/')
       expect(replaceTarget).toBe(
-        'http://m5max.tailb0d293.ts.net:8080/login.html?return_to=http%3A%2F%2Fm5max.tailb0d293.ts.net%3A8392%2F'
+        `${MAGIC_IDP}?return_to=http%3A%2F%2Fm5max.tailb0d293.ts.net%3A8392%2F`
       )
     })
   })

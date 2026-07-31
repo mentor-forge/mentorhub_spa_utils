@@ -213,7 +213,14 @@ syncAuthFromStorage()
 
 **3. Logout** — clear auth via `logout()`, then **`redirectToIdpLogin(\`${window.location.origin}/\`)`**.
 
-**4. Build-time config** — set **`VITE_IDP_LOGIN_URI`** for production (Developer Edition: `http://127.0.0.1:8080/login.html`). When unset, **`redirectToIdpLogin()`** falls back to that Developer Edition URL and uses **`location.replace`**. When the configured (or fallback) URI uses a loopback host (`127.0.0.1` / `localhost`) and the SPA was opened via another hostname (e.g. Tailscale MagicDNS), the login base host is rewritten to **`window.location.hostname`** so cross-device VPN login works. Non-loopback (production) IdP URLs are left unchanged.
+**4. IdP login URL** — resolution order in **`getIdpLoginBaseUrl()`** / **`redirectToIdpLogin()`**:
+
+1. Explicit function override (tests / special cases)
+2. **Runtime** `window.__MENTORHUB_RUNTIME__.IDP_LOGIN_URI` — journey SPA containers inject this at startup from the compose `IDP_LOGIN_URI` env (Developer Edition: `mh` sets it from `~/.mentorhub/HOST_NAME`; production: Cognito or gateway URL). Same image, every environment.
+3. **Build-time** **`VITE_IDP_LOGIN_URI`** — `npm run dev` and legacy builds (Developer Edition default: `http://127.0.0.1:8080/login.html`)
+4. Developer Edition fallback (`http://127.0.0.1:8080/login.html`) when unset
+
+Journey SPA maintainers: generate a small script at container startup (e.g. `runtime-config.js` via `envsubst`) that sets `window.__MENTORHUB_RUNTIME__ = { IDP_LOGIN_URI: '...' }` and load it from `index.html` before the app bundle. Uses **`location.replace`** for navigation.
 
 See [demo/router.ts](./demo/router.ts) and [demo/bootstrap-auth.ts](./demo/bootstrap-auth.ts) for a working reference.
 

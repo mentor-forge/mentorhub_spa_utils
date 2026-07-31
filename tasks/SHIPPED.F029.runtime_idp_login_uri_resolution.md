@@ -1,6 +1,6 @@
 # F029 – Honor runtime `IDP_LOGIN_URI` in IdP redirect helpers
 
-Status: Pending
+Status: Shipped
 Type: Defect
 Depends On: none
 Description: Make `getIdpLoginBaseUrl()` / `redirectToIdpLogin()` read container-injected runtime `IDP_LOGIN_URI` so the same SPA image honors compose / cloud env in every environment. Remove the 0.5.6 loopback-host rewrite workaround where runtime config makes it unnecessary (issue F-W08).
@@ -62,7 +62,23 @@ The agent must not update files outside this list.
 
 ## Execution Notes
 
-**Branch:** `0.5.8-IDP-Login` in `mentorhub_spa_utils` (create from main if it does not exist).
+**Plan**
+- Read `window.__MENTORHUB_RUNTIME__.IDP_LOGIN_URI` before build-time env; remove 0.5.6 hostname rewrite.
+- Export `MENTORHUB_RUNTIME_CONFIG_KEY` and `MentorHubRuntimeConfig` for SPA container wiring (L122).
 
-**External prerequisites:** mentorhub S44 may land in parallel; no hard dependency.
+**Summary of changes**
+- `idpRedirect.ts`: added runtime config read via `__MENTORHUB_RUNTIME__`; resolution order override → runtime → Vite → fallback; removed `adaptIdpLoginUriToCurrentHost`.
+- `idpRedirect.test.ts`: replaced MagicDNS rewrite cases with runtime injection / precedence tests (14 cases).
+- `README.md`: documented resolution order and container injection contract.
 
+**Verification results**
+- `npm install --include=dev` → OK
+- `npm run test` → 394/394 passed
+- `npm run lint` → `eslint` not on PATH in this environment; `src/` reviewed manually
+- `npm run build` → OK
+
+**Branch:** `0.5.8-IDP-Login`
+
+**Follow-up tasks**
+- mentee_spa L122 — inject `window.__MENTORHUB_RUNTIME__` at container startup
+- F030 — bump patch release after S45 manual approval

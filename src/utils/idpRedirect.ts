@@ -1,15 +1,43 @@
 /**
  * Redirect unauthenticated SPA users to the configured IdP / dev login page.
  *
- * Developer Edition: `VITE_IDP_LOGIN_URI` → `http://127.0.0.1:8080/login.html`
- * When that URI (or the Developer Edition fallback) uses a loopback host and the
- * SPA was opened via another hostname (e.g. Tailscale MagicDNS), the login base
- * host is rewritten to `window.location.hostname` so cross-device VPN login works.
- * Production: commercial IdP authorize/login URL (left unchanged).
+ * Resolution order: explicit override → runtime `IDP_LOGIN_URI` (container env) →
+ * build-time `VITE_IDP_LOGIN_URI` (dev server) → Developer Edition fallback.
+ * Production: commercial IdP authorize/login URL (passed via runtime or build-time env).
  */
 
-/** Developer Edition welcome-page login when `VITE_IDP_LOGIN_URI` is unset at build time. */
+/** Developer Edition welcome-page login when no env is configured. */
 export const DEVELOPER_EDITION_IDP_LOGIN_URI = 'http://127.0.0.1:8080/login.html'
+
+/** Global key journey SPA containers use for runtime config injected at startup. */
+export const MENTORHUB_RUNTIME_CONFIG_KEY = '__MENTORHUB_RUNTIME__' as const
+
+/** Runtime config shape populated from container `IDP_LOGIN_URI` (see README). */
+export interface MentorHubRuntimeConfig {
+  IDP_LOGIN_URI?: string
+}
+
+type WindowWithRuntime = Window & {
+  [MENTORHUB_RUNTIME_CONFIG_KEY]?: MentorHubRuntimeConfig
+}
+
+function readRuntimeIdpLoginUri(): string | undefined {
+  if (typeof window === 'undefined') {
+    return undefined
+  }
+
+  try {
+    const runtime = (window as WindowWithRuntime)[MENTORHUB_RUNTIME_CONFIG_KEY]
+    const url = runtime?.IDP_LOGIN_URI
+    if (typeof url === 'string' && url.trim()) {
+      return url.trim()
+    }
+  } catch {
+    // Ignore malformed runtime config.
+  }
+
+  return undefined
+}
 
 function readConfiguredIdpLoginUri(): string | undefined {
   try {
@@ -23,42 +51,16 @@ function readConfiguredIdpLoginUri(): string | undefined {
   return undefined
 }
 
-function isLocalDevIdpHost(hostname: string): boolean {
-  return hostname === '127.0.0.1' || hostname === 'localhost'
-}
-
-/**
- * Rewrite loopback IdP hosts to the hostname the SPA was opened with.
- * Leaves non-loopback (production) IdP URLs unchanged.
- */
-function adaptIdpLoginUriToCurrentHost(idpLoginUri: string): string {
-  if (typeof window === 'undefined') {
-    return idpLoginUri
-  }
-
-  try {
-    const url = new URL(idpLoginUri)
-    if (!isLocalDevIdpHost(url.hostname)) {
-      return idpLoginUri
-    }
-
-    const currentHost = window.location.hostname
-    if (!currentHost || currentHost === url.hostname) {
-      return idpLoginUri
-    }
-
-    url.hostname = currentHost
-    return url.toString()
-  } catch {
-    return idpLoginUri
-  }
-}
-
 function resolveIdpLoginUri(override?: string): string {
-  const resolved = override?.trim()
-    ? override.trim()
-    : (readConfiguredIdpLoginUri() ?? DEVELOPER_EDITION_IDP_LOGIN_URI)
-  return adaptIdpLoginUriToCurrentHost(resolved)
+  if (override?.trim()) {
+    return override.trim()
+  }
+
+  return (
+    readRuntimeIdpLoginUri() ??
+    readConfiguredIdpLoginUri() ??
+    DEVELOPER_EDITION_IDP_LOGIN_URI
+  )
 }
 
 function defaultReturnTo(): string {
@@ -69,8 +71,7 @@ function defaultReturnTo(): string {
 }
 
 /**
- * Resolved IdP login page URL from build-time env (`VITE_IDP_LOGIN_URI`) or Developer Edition fallback.
- * Loopback hosts are adapted to the current browser hostname when available.
+ * Resolved IdP login page URL from runtime env, build-time env, or Developer Edition fallback.
  */
 export function getIdpLoginBaseUrl(override?: string): string {
   return resolveIdpLoginUri(override)
