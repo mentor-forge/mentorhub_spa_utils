@@ -11,7 +11,7 @@ Reusable Vue 3 + Vuetify components, composables, and utilities for Mentor Hub j
 Install from CodeArtifact (run `mh` first for credentials):
 
 ```bash
-npm install @mentor-forge/mentorhub_spa_utils@0.5.5
+npm install @mentor-forge/mentorhub_spa_utils@0.5.7
 ```
 
 **Component styles:** Prefer the package root import so Vite consumers receive component CSS automatically (the built `dist/index.js` side-effect-imports `./index.css`; `package.json` marks `**/*.css` and `./dist/index.js` as `sideEffects` so bundlers keep that import). Optionally import the stylesheet once at app bootstrap:
@@ -219,6 +219,8 @@ syncAuthFromStorage()
 2. **Runtime** `window.__MENTORHUB_RUNTIME__.IDP_LOGIN_URI` — journey SPA containers inject this at startup from the compose `IDP_LOGIN_URI` env (Developer Edition: `mh` sets it from `~/.mentorhub/HOST_NAME`; production: Cognito or gateway URL). Same image, every environment.
 3. **Build-time** **`VITE_IDP_LOGIN_URI`** — `npm run dev` and legacy builds (Developer Edition default: `http://127.0.0.1:8080/login.html`)
 4. Developer Edition fallback (`http://127.0.0.1:8080/login.html`) when unset
+
+**Release `0.5.7`:** `getIdpLoginBaseUrl()` / `redirectToIdpLogin()` read runtime `window.__MENTORHUB_RUNTIME__.IDP_LOGIN_URI` (container-injected from compose `IDP_LOGIN_URI`). Removes the 0.5.6 loopback-hostname rewrite — journey SPAs inject the IdP URL at startup so the same image works in local dev, Tailscale MagicDNS, and production.
 
 Journey SPA maintainers: generate a small script at container startup (e.g. `runtime-config.js` via `envsubst`) that sets `window.__MENTORHUB_RUNTIME__ = { IDP_LOGIN_URI: '...' }` and load it from `index.html` before the app bundle. Uses **`location.replace`** for navigation.
 
