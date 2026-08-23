@@ -1,115 +1,140 @@
 describe('Navigation & Routing', () => {
+  const catalogIds = {
+    home: 'nav-home-link',
+    notifications: 'nav-notifications-link',
+    products: 'nav-products-link',
+    settings: 'nav-settings-link',
+    customer: 'nav-customer-link',
+    customerMembers: 'nav-customer-members-link',
+    resources: 'nav-resources-link',
+    paths: 'nav-paths-link',
+    plans: 'nav-plans-link',
+  } as const
+
+  function openDrawer() {
+    cy.get('[data-automation-id="nav-drawer-toggle"]')
+      .should('be.visible')
+      .click({ force: true })
+    cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
+  }
+
+  function assertVisible(automationId: string) {
+    cy.get(`[data-automation-id="${automationId}"]`, { timeout: 5000 })
+      .should('exist')
+      .should('be.visible')
+  }
+
+  function assertAbsent(automationId: string) {
+    cy.get(`[data-automation-id="${automationId}"]`).should('not.exist')
+  }
+
   describe('Navigation Drawer', () => {
-    beforeEach(() => {
-      cy.clearLocalStorage()
-      cy.login(['admin']) // Use admin role to access admin features
-      cy.url({ timeout: 5000 }).should('include', '/demo')
-      cy.get('body', { timeout: 10000 }).should('be.visible')
-      cy.wait(1000)
-    })
-    
     it('should show hamburger when authenticated', () => {
+      cy.clearLocalStorage()
+      cy.login(['user'])
+      cy.url({ timeout: 5000 }).should('include', '/demo')
       cy.get('[data-automation-id="nav-drawer-toggle"]').should('be.visible')
     })
-    
-    it('should open drawer and show demo link', () => {
-      cy.get('[data-automation-id="nav-drawer-toggle"]')
-        .should('be.visible')
-        .click({ force: true })
-      
-      // Wait for drawer to open
-      cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
-      cy.get('[data-automation-id="nav-demo-link"]', { timeout: 5000 })
-        .should('exist')
-        .should('be.visible')
-    })
 
-    it('should show and navigate to the type editors link', () => {
-      cy.get('[data-automation-id="nav-drawer-toggle"]').click()
-      cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
-      cy.get('[data-automation-id="nav-editors-link"]', { timeout: 5000 })
-        .should('be.visible')
-        .click()
-      cy.url({ timeout: 5000 }).should('include', '/demo/editors')
-      cy.contains('Type Editor Gallery', { timeout: 10000 }).should('be.visible')
-    })
-
-    it('should show and navigate to the dashboard link', () => {
-      cy.get('[data-automation-id="nav-drawer-toggle"]').click()
-      cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
-      cy.get('[data-automation-id="nav-dashboard-link"]', { timeout: 5000 })
-        .scrollIntoView()
-        .should('exist')
-        .click({ force: true })
-      cy.url({ timeout: 5000 }).should('include', '/demo/dashboard')
-      cy.contains('h1', 'Dashboard', { timeout: 10000 }).should('be.visible')
-    })
-    
-    it('should show admin link when user has admin role', () => {
-      cy.get('[data-automation-id="nav-drawer-toggle"]').click()
-      cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
-      cy.get('[data-automation-id="nav-admin-link"]', { timeout: 5000 })
-        .should('be.visible')
-    })
-    
-    it('should close drawer when clicking toggle again', () => {
-      cy.get('[data-automation-id="nav-drawer-toggle"]').click()
-      cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
-      cy.get('[data-automation-id="nav-demo-link"]', { timeout: 5000 })
-        .should('be.visible')
-      
-      // Click toggle again to close drawer
-      cy.get('[data-automation-id="nav-drawer-toggle"]').click()
-      cy.wait(500) // Wait for drawer close animation
-      
-      // Drawer should close
-      cy.get('.v-navigation-drawer', { timeout: 2000 }).should('not.be.visible')
-    })
-    
-    it('should close drawer when navigating to a link', () => {
-      cy.get('[data-automation-id="nav-drawer-toggle"]').click()
-      cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
-      cy.get('[data-automation-id="nav-demo-link"]', { timeout: 5000 })
-        .should('be.visible')
-      
-      // Navigate via drawer link
-      cy.get('[data-automation-id="nav-admin-link"]', { timeout: 5000 })
-        .should('be.visible')
-        .click()
-      cy.url({ timeout: 5000 }).should('include', '/admin')
-      
-      // Drawer should close after navigation (temporary drawer)
-      cy.get('.v-navigation-drawer', { timeout: 2000 }).should('not.be.visible')
-    })
-    
-    it('should navigate to admin via drawer', () => {
-      cy.get('[data-automation-id="nav-drawer-toggle"]').click()
-      cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
-      cy.get('[data-automation-id="nav-admin-link"]', { timeout: 5000 })
-        .should('be.visible')
-        .click()
-      cy.url({ timeout: 5000 }).should('include', '/admin')
-      cy.contains('Admin - Configuration', { timeout: 10000 }).should('be.visible')
-    })
-    
-    it('should navigate to demo via drawer', () => {
-      // Start on admin page
-      cy.visit('/admin')
-      cy.contains('Admin - Configuration', { timeout: 10000 }).should('be.visible')
-      
-      // Open drawer and navigate to demo
-      cy.get('[data-automation-id="nav-drawer-toggle"]').click()
-      cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
-      cy.get('[data-automation-id="nav-demo-link"]', { timeout: 5000 })
-        .should('be.visible')
-        .click()
+    it('should show Home and Notifications only for a non-admin/non-mentor/non-customer role', () => {
+      cy.clearLocalStorage()
+      // registerAuthCommands treats cy.login([]) as admin; use a non-catalog role instead.
+      cy.login(['user'])
       cy.url({ timeout: 5000 }).should('include', '/demo')
-      cy.contains('spa_utils Component Testing', { timeout: 10000 }).should('be.visible')
+      openDrawer()
+      assertVisible(catalogIds.home)
+      assertVisible(catalogIds.notifications)
+      assertAbsent(catalogIds.products)
+      assertAbsent(catalogIds.settings)
+      assertAbsent(catalogIds.customer)
+      assertAbsent(catalogIds.customerMembers)
+      assertAbsent(catalogIds.resources)
+      assertAbsent(catalogIds.paths)
+      assertAbsent(catalogIds.plans)
     })
-    
-    it('should logout and redirect to IdP login', () => {
+
+    it('should show Products and Settings for admin and hide customer/mentor links', () => {
+      cy.clearLocalStorage()
+      cy.login(['admin'])
+      cy.url({ timeout: 5000 }).should('include', '/demo')
+      openDrawer()
+      assertVisible(catalogIds.home)
+      assertVisible(catalogIds.notifications)
+      assertVisible(catalogIds.products)
+      assertVisible(catalogIds.settings)
+      assertAbsent(catalogIds.customer)
+      assertAbsent(catalogIds.customerMembers)
+      assertAbsent(catalogIds.resources)
+      assertAbsent(catalogIds.paths)
+      assertAbsent(catalogIds.plans)
+    })
+
+    it('should show customer org and members links for customer role', () => {
+      cy.clearLocalStorage()
+      cy.login(['customer'])
+      cy.url({ timeout: 5000 }).should('include', '/demo')
+      openDrawer()
+      assertVisible(catalogIds.customer)
+      assertVisible(catalogIds.customerMembers)
+      assertAbsent(catalogIds.products)
+      assertAbsent(catalogIds.settings)
+      assertAbsent(catalogIds.resources)
+      assertAbsent(catalogIds.paths)
+      assertAbsent(catalogIds.plans)
+    })
+
+    it('should show Resources, Paths, and Plans for mentor role', () => {
+      cy.clearLocalStorage()
+      cy.login(['mentor'])
+      cy.url({ timeout: 5000 }).should('include', '/demo')
+      openDrawer()
+      assertVisible(catalogIds.resources)
+      assertVisible(catalogIds.paths)
+      assertVisible(catalogIds.plans)
+      assertAbsent(catalogIds.products)
+      assertAbsent(catalogIds.settings)
+      assertAbsent(catalogIds.customer)
+      assertAbsent(catalogIds.customerMembers)
+    })
+
+    it('should show profile control with customer profile href', () => {
+      cy.clearLocalStorage()
+      cy.login(['user'])
+      cy.url({ timeout: 5000 }).should('include', '/demo')
+      cy.get('[data-automation-id="nav-profile-link"]')
+        .should('be.visible')
+        .and('have.attr', 'href')
+        .and('include', '/customer/profile/')
+    })
+
+    it('should build Home href to discovery on welcome :8080 from the Vite debug port', () => {
+      cy.clearLocalStorage()
+      cy.login(['user'])
+      cy.url({ timeout: 5000 }).should('include', '/demo')
+      openDrawer()
+      cy.get(`[data-automation-id="${catalogIds.home}"]`)
+        .should('have.attr', 'href')
+        .and('include', '/discovery/')
+        .and('include', ':8080')
+    })
+
+    it('should close drawer when clicking toggle again', () => {
+      cy.clearLocalStorage()
+      cy.login(['admin'])
+      cy.url({ timeout: 5000 }).should('include', '/demo')
+      openDrawer()
+      assertVisible(catalogIds.home)
+
       cy.get('[data-automation-id="nav-drawer-toggle"]').click()
-      cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
+      cy.wait(500)
+      cy.get('.v-navigation-drawer', { timeout: 2000 }).should('not.be.visible')
+    })
+
+    it('should logout and redirect to IdP login', () => {
+      cy.clearLocalStorage()
+      cy.login(['admin'])
+      cy.url({ timeout: 5000 }).should('include', '/demo')
+      openDrawer()
       cy.get('[data-automation-id="nav-logout-link"]', { timeout: 5000 })
         .should('be.visible')
         .click()
@@ -120,7 +145,49 @@ describe('Navigation & Routing', () => {
       })
     })
   })
-  
+
+  describe('In-package DemoPage links', () => {
+    beforeEach(() => {
+      cy.clearLocalStorage()
+      cy.login(['admin'])
+      cy.url({ timeout: 5000 }).should('include', '/demo')
+      cy.get('body', { timeout: 10000 }).should('be.visible')
+      cy.contains('spa_utils Component Testing', { timeout: 10000 }).should('be.visible')
+    })
+
+    it('should navigate to the type editors page from DemoPage', () => {
+      cy.get('[data-automation-id="demo-page-editors-link"]', { timeout: 5000 })
+        .should('be.visible')
+        .click()
+      cy.url({ timeout: 5000 }).should('include', '/demo/editors')
+      cy.contains('Type Editor Gallery', { timeout: 10000 }).should('be.visible')
+    })
+
+    it('should navigate to the dashboard page from DemoPage', () => {
+      cy.get('[data-automation-id="demo-page-dashboard-link"]', { timeout: 5000 })
+        .should('be.visible')
+        .click()
+      cy.url({ timeout: 5000 }).should('include', '/demo/dashboard')
+      cy.contains('h1', 'Dashboard', { timeout: 10000 }).should('be.visible')
+    })
+
+    it('should navigate to the admin config page from DemoPage', () => {
+      cy.get('[data-automation-id="demo-page-admin-link"]', { timeout: 5000 })
+        .should('be.visible')
+        .click()
+      cy.url({ timeout: 5000 }).should('include', '/admin')
+      cy.contains('Admin - Configuration', { timeout: 10000 }).should('be.visible')
+    })
+
+    it('should return to the component demo from another in-package page', () => {
+      cy.visit('/admin')
+      cy.contains('Admin - Configuration', { timeout: 10000 }).should('be.visible')
+      cy.visit('/demo')
+      cy.contains('spa_utils Component Testing', { timeout: 10000 }).should('be.visible')
+      cy.get('[data-automation-id="demo-page-demo-link"]').should('be.visible')
+    })
+  })
+
   describe('Unauthenticated access', () => {
     it('should redirect to IdP login when visiting a protected route', () => {
       cy.visit('/demo')

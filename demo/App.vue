@@ -1,84 +1,25 @@
 <template>
   <v-app>
-    <v-app-bar color="primary" prominent>
-      <v-app-bar-nav-icon
-        v-if="isAuthenticated"
-        @click="drawer = !drawer"
-        data-automation-id="nav-drawer-toggle"
-        aria-label="Open navigation drawer"
-      />
-      <v-app-bar-title>spa_utils Demo</v-app-bar-title>
-    </v-app-bar>
-
-    <v-navigation-drawer
-      v-if="isAuthenticated"
-      v-model="drawer"
-      temporary
-    >
-      <v-list density="compact" nav>
-        <v-list-item
-          to="/demo"
-          prepend-icon="mdi-view-dashboard"
-          title="Component Demo"
-          data-automation-id="nav-demo-link"
-        />
-        <v-list-item
-          to="/demo/editors"
-          prepend-icon="mdi-form-textbox"
-          title="Type Editors"
-          data-automation-id="nav-editors-link"
-        />
-        <v-list-item
-          to="/demo/dashboard"
-          prepend-icon="mdi-view-dashboard-outline"
-          title="Dashboard"
-          data-automation-id="nav-dashboard-link"
-        />
-        <v-list-item
-          v-if="hasAdminRole"
-          to="/admin"
-          prepend-icon="mdi-cog"
-          title="Admin (Config)"
-          data-automation-id="nav-admin-link"
-        />
-      </v-list>
-
-      <template v-slot:append>
-        <v-divider />
-        <v-list density="compact" nav>
-          <v-list-item
-            @click="handleLogout"
-            prepend-icon="mdi-logout"
-            title="Logout"
-            data-automation-id="nav-logout-link"
-          />
-        </v-list>
-      </template>
-    </v-navigation-drawer>
-
-    <v-main>
+    <PageFrame page-title="spa_utils Demo">
       <v-container fluid>
         <router-view />
       </v-container>
-    </v-main>
+    </PageFrame>
   </v-app>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { onMounted } from 'vue'
+import { PageFrame } from '../src/index'
 import { useAuth } from '../src/composables/useAuth'
 import { provideEditorConfig } from '../src/composables/useEditorConfig'
-import { redirectToIdpLogin } from '../src/utils/idpRedirect'
 import { useConfig } from './composables/useConfig'
 
-const { isAuthenticated, logout, roles } = useAuth()
+const { isAuthenticated } = useAuth()
 const { config, loadConfig } = useConfig()
-const drawer = ref(false)
 
 // One startup `/api/config` fetch; enum editors resolve options from this reactive ref.
 provideEditorConfig(config)
-
-const hasAdminRole = computed(() => (roles.value || []).includes('admin'))
 
 onMounted(async () => {
   if (isAuthenticated.value) {
@@ -89,11 +30,4 @@ onMounted(async () => {
     }
   }
 })
-
-function handleLogout() {
-  const returnTo = `${window.location.origin}/`
-  logout()
-  drawer.value = false
-  redirectToIdpLogin(returnTo)
-}
 </script>

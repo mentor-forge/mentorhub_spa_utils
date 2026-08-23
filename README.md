@@ -11,7 +11,7 @@ Reusable Vue 3 + Vuetify components, composables, and utilities for Mentor Hub j
 Install from CodeArtifact (run `mh` first for credentials):
 
 ```bash
-npm install @mentor-forge/mentorhub_spa_utils@0.5.7
+npm install @mentor-forge/mentorhub_spa_utils@1.0.0
 ```
 
 **Component styles:** Prefer the package root import so Vite consumers receive component CSS automatically (the built `dist/index.js` side-effect-imports `./index.css`; `package.json` marks `**/*.css` and `./dist/index.js` as `sideEffects` so bundlers keep that import). Optionally import the stylesheet once at app bootstrap:
@@ -22,11 +22,11 @@ import '@mentor-forge/mentorhub_spa_utils/style.css'
 
 That entry maps to `dist/index.css` via `exports["./style.css"]`. In published `0.5.3`, a JS-only root import was insufficient: layout CSS existed only as an unlinked `dist/index.css`, so `CardGrid` rendered as a single column without equal-height rows.
 
-Working examples live in the [demo app](./demo/): IdP auth, navigation drawer, **type editor gallery** (`/demo/editors`), **cards dashboard** (`/demo/dashboard`), legacy component demos (`/demo`), and admin config (`/admin`).
+Working examples live in the [demo app](./demo/): IdP auth, **PageFrame** (product-catalog hamburger), **type editor gallery** (`/demo/editors`), **cards dashboard** (`/demo/dashboard`), legacy component demos (`/demo`), and admin config (`/admin`).
 
 ### Preferred UI: Cards + type-aligned field editors
 
-New list and view/edit pages should compose **`CardGrid` / `MhCard` / `DataCard`** with **configurator-type editors** under `src/components/editors/`. Prefer these over ad-hoc Vuetify fields or infinite-scroll list patterns.
+New list and view/edit pages should compose **`CardGrid` / `MhCard` / `DataCard`** with **configurator-type editors** under `src/components/editors/`. Prefer these over ad-hoc Vuetify fields.
 
 #### MhCard / CardGrid / DataCard
 
@@ -180,18 +180,11 @@ import {
 
 Until harvest ships, keep the local control as a thin, contract-compatible duplicate — do not invent a parallel prop API that will block promotion.
 
-### Deprecated: infinite-scroll list APIs
+### Removed: infinite-scroll list APIs (Removed in 1.0.0)
 
-APIs and SPAs are migrating to **header-based offset/size pagination** with plain array responses (see `api_utils` Get List pattern). The cursor / infinite-scroll SPA helpers below remain exported for older consumers but are **deprecated** — do not use them in new pages.
+The following public API was **removed** from this package: `useInfiniteScroll`, `InfiniteScrollResponse`, `InfiniteScrollParams`, and `UseInfiniteScrollOptions`. Cursor fields **`after_id`**, **`limit`**, **`has_more`**, and **`next_cursor`** must not appear in SPA ↔ API contracts.
 
-| Deprecated export | Location | Replacement |
-|-------------------|----------|-------------|
-| `useInfiniteScroll` | [useInfiniteScroll.ts](./src/composables/useInfiniteScroll.ts) | List UIs: `CardGrid` + `MhCard` (or tables) driven by offset/size header pagination from the API. Prefer `useResourceList` only for simple non-cursor lists until a shared offset/size list composable exists. |
-| `InfiniteScrollResponse` | same | Plain JSON array body + pagination response headers |
-| `InfiniteScrollParams` | same | `offset` / `size` **request headers**; `sort_by` / `order` and filters as **query params** |
-| `UseInfiniteScrollOptions` | same | — |
-
-Cursor fields **`after_id`**, **`limit`**, **`has_more`**, and **`next_cursor`** must not appear in new SPA ↔ API contracts.
+**Replacements:** List UIs use **`CardGrid` + `MhCard`** (or tables) driven by **offset/size request headers** and a **plain JSON array body** (see `api_utils` Get List pattern). `useResourceList` remains only for simple non-cursor lists.
 
 ### Authentication integration
 
@@ -226,6 +219,76 @@ Journey SPA maintainers: generate a small script at container startup (e.g. `run
 
 See [demo/router.ts](./demo/router.ts) and [demo/bootstrap-auth.ts](./demo/bootstrap-auth.ts) for a working reference.
 
+### Universal PageFrame (1.0.0)
+
+**1.0.0** replaces per-SPA layout chrome with shared **`PageFrame`** navigation: app bar, role-gated hamburger drawer, profile link, and logout. Journey SPAs should adopt `@mentor-forge/mentorhub_spa_utils@1.0.0` and remove local nav shells.
+
+Journey SPAs share compiled-in layout chrome: app bar (title, hamburger, profile), a role-gated navigation drawer, and logout. Import `{ PageFrame }` from the package root and wrap page content inside the host SPA’s single `v-app`:
+
+```vue
+<template>
+  <v-app>
+    <PageFrame page-title="Customer">
+      <router-view />
+    </PageFrame>
+  </v-app>
+</template>
+
+<script setup lang="ts">
+import { PageFrame } from '@mentor-forge/mentorhub_spa_utils'
+</script>
+```
+
+**Allowed props:** `pageTitle` (required string) and optional display-only `customerName` for the two customer-role drawer labels. When `customerName` is omitted, spa_utils reads JWT `customer_name` / `custom:customer_name`, else the literal **`Customer`**. The default slot is page body (typically `router-view`).
+
+**Local nav config is disallowed.** Do not pass `navItems`, URL maps, ALB origin props, or extra drawer slots. The hamburger catalog, role gates, and cross-SPA hrefs are compiled into spa_utils — add or change links in this package, not in a journey SPA.
+
+#### Role-gated hamburger catalog
+
+Drawer links are full ALB URLs from `buildJourneyUrl` (not Vue Router `to` — targets may be other SPAs). Combined JWT roles are a union. Empty or missing roles show **Home** and **Notifications** only.
+
+| Link | Roles | ALB path |
+|------|-------|----------|
+| Home | authenticated (any) | `/discovery/` |
+| `[Customer Name]` | `customer` | `/customer/` |
+| `[Customer Name] Members` | `customer` | `/discovery/members/` |
+| Learning Resources | `mentor` | `/discovery/resources` |
+| Learning Paths | `mentor` | `/discovery/paths` |
+| Encounter Plans | `mentor` | `/discovery/plans` |
+| Products | `admin` | `/discovery/products` |
+| Notifications | authenticated (any) | `/discovery/notifications` |
+| Settings | `admin` | `/admin/settings` |
+
+The profile avatar (OIDC `picture` claim when present, else `mdi-account`) links to **`/customer/profile/`** via the same helper. **Logout** is built into the drawer footer: `logout()` then `redirectToIdpLogin` to the IdP.
+
+**Sources:** [PageFrame.vue](./src/components/PageFrame.vue), [universalNav.ts](./src/composables/universalNav.ts), [journeyUrls.ts](./src/utils/journeyUrls.ts)  
+**Demo:** [demo/App.vue](./demo/App.vue) — product-catalog hamburger; in-package demo routes are linked from [DemoPage.vue](./demo/pages/DemoPage.vue).
+
+#### Cross-SPA URLs (welcome nginx / ALB) — added in 1.0.0
+
+Cross-repo hrefs use L022 journey path prefixes on the welcome **:8080** host (local Developer Edition) or the current page origin when the port is **8080**, **80**, **443**, or empty (cloud ALB). Do **not** link to direct SPA debug ports (**8386**, **8388**, **8390**, **8392**, **8394**, **8398**, etc.) — those remain for Cypress, OpenAPI, and debugging only.
+
+`resolveAlbOrigin()` implements the origin rules (optional `location` argument for unit tests only — not a Vue prop). On Vite/dev ports it returns `{protocol}//{hostname}:8080` so Tailscale MagicDNS matches welcome nginx.
+
+Use **`buildJourneyUrl(journey, path)`** for Discovery **card** deep links to detail pages in other SPAs — the same helper the hamburger uses (breaking chrome replacement ships with **1.0.0** `PageFrame`):
+
+```typescript
+import {
+  buildJourneyUrl,
+  resolveAlbOrigin,
+  JOURNEY_APP_PATHS,
+} from '@mentor-forge/mentorhub_spa_utils'
+
+// Customer profile (same target as the app-bar avatar)
+const profileHref = buildJourneyUrl('customer', 'profile/')
+
+// Or use locked catalog paths
+const { journey, path } = JOURNEY_APP_PATHS.settings
+const settingsHref = buildJourneyUrl(journey, path)
+```
+
+**List cards:** **Discovery** is the only journey SPA that hosts CardGrid list dashboards (home, members, resources, paths, plans, products, notifications). Other journey SPAs keep detail, edit, and create pages that Discovery cards and universal nav target; downstream adoption is tracked in spa_utils F039 ISSUE seeds.
+
 #### URL bootstrap (`urlAuthBootstrap`)
 
 **Source:** [src/utils/urlAuthBootstrap.ts](./src/utils/urlAuthBootstrap.ts)
@@ -252,7 +315,7 @@ Handle errors from queries/mutations with reactive error state. Returns `showErr
 
 #### useResourceList
 
-Generic list page pattern with search support, data fetching, error handling, and navigation. Still useful for simple lists; for card dashboards prefer **`CardGrid` + `MhCard`**.
+Generic list page pattern with search support, data fetching, error handling, and navigation. Still useful for simple lists; for card dashboards prefer **`CardGrid` + `MhCard`**. It is not a cursor or infinite-scroll helper and is not a substitute for offset/size card dashboards.
 
 **Source:** [src/composables/useResourceList.ts](./src/composables/useResourceList.ts)  
 **Tests:** [tests/composables/useResourceList.test.ts](./tests/composables/useResourceList.test.ts)  
@@ -266,13 +329,6 @@ Generic list page pattern with search support, data fetching, error handling, an
 - Configurable search functionality
 
 **Returns:** `items`, `isLoading`, `showError`, `errorMessage`, `searchQuery`, `debouncedSearch`, `navigateToItem`
-
-#### useInfiniteScroll (deprecated)
-
-> **Deprecated.** Cursor-based infinite scroll (`after_id` / `has_more` / `next_cursor`) is superseded by offset/size header pagination and card grids. Kept temporarily for older journey pages. See [Deprecated: infinite-scroll list APIs](#deprecated-infinite-scroll-list-apis).
-
-**Source:** [src/composables/useInfiniteScroll.ts](./src/composables/useInfiniteScroll.ts)  
-**Tests:** [tests/composables/useInfiniteScroll.test.ts](./tests/composables/useInfiniteScroll.test.ts)
 
 #### useRoles
 
@@ -356,7 +412,7 @@ ISO-8601 duration parse/format used by `DurationEditor`.
 
 ## Demo App
 
-For complete working examples, see the [demo app](./demo/) — standard IdP auth redirect, **navigation drawer**, **component demo** (`/demo`), **type editor gallery** (`/demo/editors`), **cards dashboard** (`/demo/dashboard`), and **admin (config)** page. See [Authentication integration](#authentication-integration) above.
+For complete working examples, see the [demo app](./demo/) — standard IdP auth redirect, **PageFrame** (product-catalog hamburger + logout), **component demo** (`/demo`), **type editor gallery** (`/demo/editors`), **cards dashboard** (`/demo/dashboard`), and **admin (config)** page. In-package demo links live on DemoPage; the hamburger mirrors journey SPAs. See [Authentication integration](#authentication-integration) and [Universal PageFrame](#universal-pageframe) above.
 
 ## Contributing
 

@@ -52,14 +52,14 @@ npm run cypress:run
 ```
 mentorhub_spa_utils/
 ├── src/
-│   ├── composables/     # Reusable composables (useAuth, useDataCardContext, …)
-│   ├── components/      # Vue components (MhCard, CardGrid, DataCard, AutoSave*, …)
+│   ├── composables/     # Reusable composables (useAuth, useDataCardContext, universalNav, …)
+│   ├── components/      # Vue components (PageFrame, MhCard, CardGrid, DataCard, AutoSave*, …)
 │   │   ├── editors/     # Configurator-type editors (WordEditor, DurationEditor, …)
 │   │   └── admin/       # Admin/config display components
-│   ├── utils/           # Utility functions (validation, duration, urlAuthBootstrap, …)
+│   ├── utils/           # Utility functions (journeyUrls, validation, duration, urlAuthBootstrap, …)
 │   └── index.ts         # Main export
 ├── demo/                # Demo app for testing components
-│   ├── App.vue          # Layout: app bar, nav drawer, router-view; provideEditorConfig(startup config)
+│   ├── App.vue          # Layout: v-app + PageFrame (product hamburger) + router-view; provideEditorConfig(startup config)
 │   ├── main.ts          # Entry point
 │   ├── bootstrap-auth.ts    # bootstrapAuthFromUrl + syncAuthFromStorage before app
 │   ├── router.ts        # Routes: /demo, /demo/editors, /demo/dashboard, /admin
@@ -98,7 +98,7 @@ When adding new utilities, components, or composables:
 4. **Add examples to the demo app:**
    - Typed editors / cards → [demo/pages/EditorsPage.vue](./demo/pages/EditorsPage.vue) or [DashboardPage.vue](./demo/pages/DashboardPage.vue)
    - Legacy / misc components → [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) (or AdminPage as appropriate)
-   - Register routes in [demo/router.ts](./demo/router.ts) and drawer links in [demo/App.vue](./demo/App.vue) when adding pages
+   - Register routes in [demo/router.ts](./demo/router.ts) and in-package demo links on [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) when adding pages
    - This helps users understand how to use your utility
    - **Enum-like / discrete option controls:** use `EnumEditor` / `EnumArrayEditor` with a declarative `enums` name and app-root `provideEditorConfig` from the startup `/api/config` fetch — do not hard-code option arrays or derive them from OpenAPI. Do not add new pages on `AutoSaveSelect` (legacy).
 
@@ -153,13 +153,13 @@ npm run major   # 0.1.0 → 1.0.0
 
 ## Demo App
 
-The demo app provides a full flow: **IdP login redirect** → **component demos** (navigation drawer) → **admin page** (config) when the user has the `admin` role. The dev server may proxy `/api` to an [api_utils](https://github.com/mentor-forge/mentorhub_api_utils) demo for config; SPAs do not use APIs as a credential-issuing login surface.
+The demo app provides a full flow: **IdP login redirect** → **component demos** (DemoPage links) → **admin page** (config) when the user has the `admin` role. The hamburger is the product catalog (ALB `/discovery/`, `/customer/`, `/admin/` hrefs), not in-package demo routes. The dev server may proxy `/api` to an [api_utils](https://github.com/mentor-forge/mentorhub_api_utils) demo for config; SPAs do not use APIs as a credential-issuing login surface.
 
 - **Shared auth:** [src/composables/useAuth.ts](./src/composables/useAuth.ts) — exported for journey SPAs; demo imports from `../src/composables/useAuth`
 - **Auth bootstrap:** [demo/bootstrap-auth.ts](./demo/bootstrap-auth.ts) — `bootstrapAuthFromUrl` + `syncAuthFromStorage`; router/logout use `redirectToIdpLogin`
-- **Layout & nav:** [demo/App.vue](./demo/App.vue) — app bar, hamburger, drawer (demo / admin / logout)
+- **Layout & nav:** [demo/App.vue](./demo/App.vue) — `PageFrame` (product-catalog hamburger + logout). In-package demo / editors / dashboard / admin links live on [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue)
 - **Router:** [demo/router.ts](./demo/router.ts) — `/` → `/demo`; unauthenticated routes redirect to `:8080/login.html`
-- **Component demos:** [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) — AutoSaveField, AutoSaveSelect, ListPageSearch, formatDate, validationRules
+- **Component demos:** [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) — AutoSaveField, AutoSaveSelect, ListPageSearch, formatDate, validationRules; links to editors, dashboard, and admin config
 - **Admin (config):** [demo/pages/AdminPage.vue](./demo/pages/AdminPage.vue) — config items, versions, enumerators, token (requires `admin` role)
 
 Use the demo app to test your changes and provide examples for users.

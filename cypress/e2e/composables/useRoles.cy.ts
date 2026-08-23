@@ -13,10 +13,11 @@ describe('useRoles Composable', () => {
       cy.logout()
     })
     
-    it('should show admin link in navigation drawer for admin users', () => {
+    it('should show Products and Settings in the product catalog for admin users', () => {
       cy.get('[data-automation-id="nav-drawer-toggle"]').click()
-      cy.get('[data-automation-id="nav-admin-link"]')
-        .should('be.visible')
+      cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
+      cy.get('[data-automation-id="nav-products-link"]').should('be.visible')
+      cy.get('[data-automation-id="nav-settings-link"]').should('be.visible')
     })
     
     it('should allow access to admin page', () => {
@@ -40,10 +41,11 @@ describe('useRoles Composable', () => {
       cy.logout()
     })
     
-    it('should not show admin link in navigation drawer for non-admin users', () => {
+    it('should not show Products or Settings in the product catalog for non-admin users', () => {
       cy.get('[data-automation-id="nav-drawer-toggle"]').click()
-      cy.get('[data-automation-id="nav-admin-link"]')
-        .should('not.exist')
+      cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
+      cy.get('[data-automation-id="nav-products-link"]').should('not.exist')
+      cy.get('[data-automation-id="nav-settings-link"]').should('not.exist')
     })
     
     it('should redirect non-admin users from admin page', () => {
