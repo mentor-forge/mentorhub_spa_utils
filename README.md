@@ -22,7 +22,7 @@ import '@mentor-forge/mentorhub_spa_utils/style.css'
 
 That entry maps to `dist/index.css` via `exports["./style.css"]`. In published `0.5.3`, a JS-only root import was insufficient: layout CSS existed only as an unlinked `dist/index.css`, so `CardGrid` rendered as a single column without equal-height rows.
 
-Working examples live in the [demo app](./demo/): IdP auth, navigation drawer, **type editor gallery** (`/demo/editors`), **cards dashboard** (`/demo/dashboard`), legacy component demos (`/demo`), and admin config (`/admin`).
+Working examples live in the [demo app](./demo/): IdP auth, **PageFrame** (product-catalog hamburger), **type editor gallery** (`/demo/editors`), **cards dashboard** (`/demo/dashboard`), legacy component demos (`/demo`), and admin config (`/admin`).
 
 ### Preferred UI: Cards + type-aligned field editors
 
@@ -219,6 +219,74 @@ Journey SPA maintainers: generate a small script at container startup (e.g. `run
 
 See [demo/router.ts](./demo/router.ts) and [demo/bootstrap-auth.ts](./demo/bootstrap-auth.ts) for a working reference.
 
+### Universal PageFrame
+
+Journey SPAs share compiled-in layout chrome: app bar (title, hamburger, profile), a role-gated navigation drawer, and logout. Import `{ PageFrame }` from the package root and wrap page content inside the host SPA’s single `v-app`:
+
+```vue
+<template>
+  <v-app>
+    <PageFrame page-title="Customer">
+      <router-view />
+    </PageFrame>
+  </v-app>
+</template>
+
+<script setup lang="ts">
+import { PageFrame } from '@mentor-forge/mentorhub_spa_utils'
+</script>
+```
+
+**Allowed props:** `pageTitle` (required string) and optional display-only `customerName` for the two customer-role drawer labels. When `customerName` is omitted, spa_utils reads JWT `customer_name` / `custom:customer_name`, else the literal **`Customer`**. The default slot is page body (typically `router-view`).
+
+**Local nav config is disallowed.** Do not pass `navItems`, URL maps, ALB origin props, or extra drawer slots. The hamburger catalog, role gates, and cross-SPA hrefs are compiled into spa_utils — add or change links in this package, not in a journey SPA.
+
+#### Role-gated hamburger catalog
+
+Drawer links are full ALB URLs from `buildJourneyUrl` (not Vue Router `to` — targets may be other SPAs). Combined JWT roles are a union. Empty or missing roles show **Home** and **Notifications** only.
+
+| Link | Roles | ALB path |
+|------|-------|----------|
+| Home | authenticated (any) | `/discovery/` |
+| `[Customer Name]` | `customer` | `/customer/` |
+| `[Customer Name] Members` | `customer` | `/discovery/members/` |
+| Learning Resources | `mentor` | `/discovery/resources` |
+| Learning Paths | `mentor` | `/discovery/paths` |
+| Encounter Plans | `mentor` | `/discovery/plans` |
+| Products | `admin` | `/discovery/products` |
+| Notifications | authenticated (any) | `/discovery/notifications` |
+| Settings | `admin` | `/admin/settings` |
+
+The profile avatar (OIDC `picture` claim when present, else `mdi-account`) links to **`/customer/profile/`** via the same helper. **Logout** is built into the drawer footer: `logout()` then `redirectToIdpLogin` to the IdP.
+
+**Sources:** [PageFrame.vue](./src/components/PageFrame.vue), [universalNav.ts](./src/composables/universalNav.ts), [journeyUrls.ts](./src/utils/journeyUrls.ts)  
+**Demo:** [demo/App.vue](./demo/App.vue) — product-catalog hamburger; in-package demo routes are linked from [DemoPage.vue](./demo/pages/DemoPage.vue).
+
+#### Cross-SPA URLs (welcome nginx / ALB)
+
+Cross-repo hrefs use L022 journey path prefixes on the welcome **:8080** host (local Developer Edition) or the current page origin when the port is **8080**, **80**, **443**, or empty (cloud ALB). Do **not** link to direct SPA debug ports (**8386**, **8388**, **8390**, **8392**, **8394**, **8398**, etc.) — those remain for Cypress, OpenAPI, and debugging only.
+
+`resolveAlbOrigin()` implements the origin rules (optional `location` argument for unit tests only — not a Vue prop). On Vite/dev ports it returns `{protocol}//{hostname}:8080` so Tailscale MagicDNS matches welcome nginx.
+
+Use **`buildJourneyUrl(journey, path)`** for Discovery **card** deep links to detail pages in other SPAs — the same helper the hamburger uses:
+
+```typescript
+import {
+  buildJourneyUrl,
+  resolveAlbOrigin,
+  JOURNEY_APP_PATHS,
+} from '@mentor-forge/mentorhub_spa_utils'
+
+// Customer profile (same target as the app-bar avatar)
+const profileHref = buildJourneyUrl('customer', 'profile/')
+
+// Or use locked catalog paths
+const { journey, path } = JOURNEY_APP_PATHS.settings
+const settingsHref = buildJourneyUrl(journey, path)
+```
+
+**List cards:** **Discovery** is the only journey SPA that hosts CardGrid list dashboards (home, members, resources, paths, plans, products, notifications). Other journey SPAs keep detail, edit, and create pages that Discovery cards and universal nav target; downstream adoption is tracked in spa_utils F039 ISSUE seeds.
+
 #### URL bootstrap (`urlAuthBootstrap`)
 
 **Source:** [src/utils/urlAuthBootstrap.ts](./src/utils/urlAuthBootstrap.ts)
@@ -342,7 +410,7 @@ ISO-8601 duration parse/format used by `DurationEditor`.
 
 ## Demo App
 
-For complete working examples, see the [demo app](./demo/) — standard IdP auth redirect, **navigation drawer**, **component demo** (`/demo`), **type editor gallery** (`/demo/editors`), **cards dashboard** (`/demo/dashboard`), and **admin (config)** page. See [Authentication integration](#authentication-integration) above.
+For complete working examples, see the [demo app](./demo/) — standard IdP auth redirect, **PageFrame** (product-catalog hamburger + logout), **component demo** (`/demo`), **type editor gallery** (`/demo/editors`), **cards dashboard** (`/demo/dashboard`), and **admin (config)** page. In-package demo links live on DemoPage; the hamburger mirrors journey SPAs. See [Authentication integration](#authentication-integration) and [Universal PageFrame](#universal-pageframe) above.
 
 ## Contributing
 

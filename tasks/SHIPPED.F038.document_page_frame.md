@@ -1,6 +1,6 @@
 # F038 – Document PageFrame and ALB cross-repo links
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F037  
 **Description**: Document `PageFrame`, the baked-in nav catalog, ALB/welcome URL rules, and the rule that journey SPAs must not supply local nav configuration.
@@ -62,4 +62,20 @@ The agent must not update files outside this list.
 
 ## Execution Notes
 
-Reserved for the task execution agent.
+### Plan
+
+1. Add README section **Universal PageFrame** after Authentication integration: import/wrap pattern (`v-app` + `PageFrame` + slot), allowed props only, disallowed local nav config, role table + profile href, L022/F035 origin rules, `buildJourneyUrl` / `resolveAlbOrigin` for Discovery card deep links, logout built-in, Discovery-only list-card note.
+2. Review CONTRIBUTING (F037 baseline): ensure project structure lists `PageFrame`, `universalNav`, `journeyUrls`; Demo App wording matches hamburger = product catalog vs DemoPage in-package links.
+3. Manual review against `PageFrame.vue`, `journeyUrls.ts`, `universalNav.ts`, demo `App.vue`.
+4. Run `npm run test` and `npm run build`; record results here.
+
+### Results
+
+- **README.md** — added **Universal PageFrame** section (import/wrap pattern, allowed props, disallowed local nav, role table, profile → `/customer/profile/`, L022/F035 origin rules, `buildJourneyUrl` / `resolveAlbOrigin` / `JOURNEY_APP_PATHS` for Discovery card deep links, logout built-in, Discovery-only list-card note). Updated Usage and Demo App blurbs to reference PageFrame instead of generic navigation drawer.
+- **CONTRIBUTING.md** — F037 already documented Demo App hamburger vs DemoPage links; added `PageFrame`, `universalNav`, and `journeyUrls` to project structure comments.
+- **Manual review:** docs match exported APIs (`pageTitle`, optional `customerName`, default slot; no nav/ALB props), F035 origin rules (`8080`/`80`/`443`/empty → current origin; debug ports → `:8080`), and F036 role catalog.
+- **`npm run test`:** 39 files, **418 tests passed**.
+- **`npm run build`:** succeeded.
+- **Blockers:** none. Working tree left uncommitted.
+
+**Orchestrator confirmation:** Re-ran `npm run test` and `npm run build`. README Universal PageFrame matches F035 origin rules and F036 catalog; install example still `0.5.7` (no 1.0.0 pin).
