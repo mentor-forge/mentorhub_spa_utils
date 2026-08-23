@@ -11,7 +11,7 @@ Reusable Vue 3 + Vuetify components, composables, and utilities for Mentor Hub j
 Install from CodeArtifact (run `mh` first for credentials):
 
 ```bash
-npm install @mentor-forge/mentorhub_spa_utils@0.5.7
+npm install @mentor-forge/mentorhub_spa_utils@1.0.0
 ```
 
 **Component styles:** Prefer the package root import so Vite consumers receive component CSS automatically (the built `dist/index.js` side-effect-imports `./index.css`; `package.json` marks `**/*.css` and `./dist/index.js` as `sideEffects` so bundlers keep that import). Optionally import the stylesheet once at app bootstrap:
@@ -180,7 +180,7 @@ import {
 
 Until harvest ships, keep the local control as a thin, contract-compatible duplicate — do not invent a parallel prop API that will block promotion.
 
-### Removed: infinite-scroll list APIs
+### Removed: infinite-scroll list APIs (Removed in 1.0.0)
 
 The following public API was **removed** from this package: `useInfiniteScroll`, `InfiniteScrollResponse`, `InfiniteScrollParams`, and `UseInfiniteScrollOptions`. Cursor fields **`after_id`**, **`limit`**, **`has_more`**, and **`next_cursor`** must not appear in SPA ↔ API contracts.
 
@@ -219,7 +219,9 @@ Journey SPA maintainers: generate a small script at container startup (e.g. `run
 
 See [demo/router.ts](./demo/router.ts) and [demo/bootstrap-auth.ts](./demo/bootstrap-auth.ts) for a working reference.
 
-### Universal PageFrame
+### Universal PageFrame (1.0.0)
+
+**1.0.0** replaces per-SPA layout chrome with shared **`PageFrame`** navigation: app bar, role-gated hamburger drawer, profile link, and logout. Journey SPAs should adopt `@mentor-forge/mentorhub_spa_utils@1.0.0` and remove local nav shells.
 
 Journey SPAs share compiled-in layout chrome: app bar (title, hamburger, profile), a role-gated navigation drawer, and logout. Import `{ PageFrame }` from the package root and wrap page content inside the host SPA’s single `v-app`:
 
@@ -262,13 +264,13 @@ The profile avatar (OIDC `picture` claim when present, else `mdi-account`) links
 **Sources:** [PageFrame.vue](./src/components/PageFrame.vue), [universalNav.ts](./src/composables/universalNav.ts), [journeyUrls.ts](./src/utils/journeyUrls.ts)  
 **Demo:** [demo/App.vue](./demo/App.vue) — product-catalog hamburger; in-package demo routes are linked from [DemoPage.vue](./demo/pages/DemoPage.vue).
 
-#### Cross-SPA URLs (welcome nginx / ALB)
+#### Cross-SPA URLs (welcome nginx / ALB) — added in 1.0.0
 
 Cross-repo hrefs use L022 journey path prefixes on the welcome **:8080** host (local Developer Edition) or the current page origin when the port is **8080**, **80**, **443**, or empty (cloud ALB). Do **not** link to direct SPA debug ports (**8386**, **8388**, **8390**, **8392**, **8394**, **8398**, etc.) — those remain for Cypress, OpenAPI, and debugging only.
 
 `resolveAlbOrigin()` implements the origin rules (optional `location` argument for unit tests only — not a Vue prop). On Vite/dev ports it returns `{protocol}//{hostname}:8080` so Tailscale MagicDNS matches welcome nginx.
 
-Use **`buildJourneyUrl(journey, path)`** for Discovery **card** deep links to detail pages in other SPAs — the same helper the hamburger uses:
+Use **`buildJourneyUrl(journey, path)`** for Discovery **card** deep links to detail pages in other SPAs — the same helper the hamburger uses (breaking chrome replacement ships with **1.0.0** `PageFrame`):
 
 ```typescript
 import {

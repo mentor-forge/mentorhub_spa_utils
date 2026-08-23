@@ -1,6 +1,6 @@
 # F040 – Major version 1.0.0
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F039  
 **Description**: Bump `@mentor-forge/mentorhub_spa_utils` to **1.0.0** (major: infinite-scroll API removed; universal `PageFrame` / ALB nav added), sync lockfile and README install examples, and verify the distributable before release.
@@ -67,4 +67,48 @@ The agent must not edit implementation, tests, demo/Cypress behavior, ISSUE seed
 
 ## Execution Notes
 
-Reserved for the task execution agent.
+### Plan
+
+1. Confirmed F033–F039 are `SHIPPED.*`; starting version in `package.json` / lockfile root is **0.5.7** (major → **1.0.0**).
+2. Run `mh` if needed, then `npm run major`; abort if result ≠ `1.0.0`.
+3. Update README: install example `@1.0.0`; label infinite-scroll section **Removed in 1.0.0**; note **1.0.0** on PageFrame / `buildJourneyUrl` (breaking chrome replacement). Leave historical **Release 0.5.7** IdP note unchanged.
+4. Verify: `npm run test`, `test:coverage`, `lint`, `build`; inspect dist exports for PageFrame/buildJourneyUrl/resolveAlbOrigin and absence of infinite-scroll names.
+5. No publish/tag/push/downstream changes.
+
+### Commands
+
+- `mh` — not required (no CodeArtifact install during this task)
+- Starting version in `package.json` / lockfile root: **0.5.7**
+- `npm run major` → **v1.0.0** (`package.json`, `package-lock.json` root, and `packages[""].version` all **1.0.0**)
+- README updates:
+  - install example: `@mentor-forge/mentorhub_spa_utils@1.0.0`
+  - infinite-scroll heading: **Removed in 1.0.0**
+  - Universal PageFrame section: **1.0.0** breaking chrome replacement note
+  - Cross-SPA URLs / `buildJourneyUrl`: **added in 1.0.0** + breaking chrome note
+  - **Release 0.5.7** IdP note left unchanged
+- `npm install --include=dev` — not required (lockfile synchronized by `npm version major`)
+- `npm run test` — **418/418 passed** (39 files)
+- `npm run test:coverage` — tests passed; **pre-existing** `src/utils/**` threshold failures only (`admin.ts` 16% lines, `urlAuthBootstrap.ts` 12% lines — untested modules). Exit code 1 from thresholds only.
+- `npm run lint` — **blocked**: `eslint: command not found` (same tooling gap as F026/F028/F032)
+- `npm run build` — succeeded (`vite build` + `tsc --emitDeclarationOnly`)
+
+### Export verification (dist)
+
+- `dist/components/index.d.ts`: exports `PageFrame`
+- `dist/utils/journeyUrls.d.ts`: exports `buildJourneyUrl`, `resolveAlbOrigin`
+- `dist/utils/index.d.ts`: re-exports `./journeyUrls`
+- `dist/index.d.ts`: re-exports `./components` and `./utils` (package-root consumers get all three)
+- `dist/index.js`: exports `PageFrame`, `buildJourneyUrl`, `resolveAlbOrigin`
+- No `useInfiniteScroll`, `InfiniteScrollResponse`, `InfiniteScrollParams`, or `UseInfiniteScrollOptions` in dist
+
+### Version confirmation
+
+- `package.json`: **1.0.0**
+- `package-lock.json` root + `packages[""].version`: **1.0.0**
+- README install example: **1.0.0**
+
+### Blockers
+
+None for version bump / README / verification. Lint blocked by missing eslint binary (pre-existing environment gap).
+
+**Orchestrator confirmation:** Re-ran `npm run test` (39 files, 418 tests) and `npm run build` as `@mentor-forge/mentorhub_spa_utils@1.0.0`. Dist exports `PageFrame`, `buildJourneyUrl`, `resolveAlbOrigin`; infinite-scroll names absent. `package.json`, lockfile root, and README install example are **1.0.0**. `npx eslint` failed with CodeArtifact 401 (pre-existing lint gap).
