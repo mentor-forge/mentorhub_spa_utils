@@ -1,6 +1,6 @@
 # F039 – Downstream ISSUE.md seeds for PageFrame and list-page removal
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F038  
 **Description**: Author paste-ready `ISSUE.md` files under `tasks/` so each journey SPA can plan adoption of spa_utils `PageFrame` @ **1.0.0** and so non-Discovery SPAs remove local list-card pages (Discovery remains the only list CardGrid).
@@ -93,4 +93,17 @@ The agent must not update files outside this list.
 
 ## Execution Notes
 
-Reserved for the task execution agent.
+### Plan
+
+1. Follow F025 ISSUE seed pattern (H1 title, Summary, Prerequisite, Planning prompts, Notes) using F039 task goals and README/F035/F036 PageFrame docs — no sibling SPA repo reads.
+2. Author five paste-ready files under `tasks/ISSUE.*`: Discovery keeps CardGrid lists + `buildJourneyUrl` wiring; Customer/Admin/Mentor/Mentee remove list-card pages and adopt `PageFrame` only (`pageTitle` + slot; no local nav).
+3. Manual review: all five pin **1.0.0**, forbid local nav config, external prerequisite (F033–F040 + L022) in every file.
+
+### Results
+
+- Created five ISSUE seeds (Discovery adopt PageFrame + keep lists; four SPAs adopt PageFrame + remove lists).
+- All files pin `@mentor-forge/mentorhub_spa_utils` **1.0.0**, forbid local nav/ALB/role props, and state F033–F040 + L022 external prerequisite.
+- Manual review passed: Discovery retains CardGrid list pages and `buildJourneyUrl` guidance; Customer/Admin/Mentor/Mentee each document list-page removal and retained detail/edit routes.
+- No code or test run (per task). No sibling repos modified. Changes left uncommitted for orchestrator.
+
+**Orchestrator confirmation:** Manual review — five ISSUE files present; Discovery keeps lists + `buildJourneyUrl`; Customer/Admin/Mentor/Mentee remove lists; all pin **1.0.0** and forbid local nav config.
