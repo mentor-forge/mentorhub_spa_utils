@@ -1,6 +1,6 @@
 # F034 – Document removal of infinite-scroll list APIs
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F033  
 **Description**: Update spa_utils consumer docs so infinite-scroll helpers are documented as **removed**, not deprecated, and list pages are directed to `CardGrid` / `MhCard` with offset/size header pagination.
@@ -66,4 +66,25 @@ The agent must not update files outside this list.
 
 ## Execution Notes
 
-Reserved for the task execution agent.
+### Plan
+
+1. Reword **Preferred UI** sentence: drop “or infinite-scroll list patterns”; keep cards + typed editors guidance.
+2. Replace **Deprecated: infinite-scroll list APIs** (table + dead source links) with a short **Removed** note naming the four dropped exports, forbidding cursor contract fields, and pointing to `CardGrid` + `MhCard` / tables with offset/size headers + plain array body; mention `useResourceList` for simple non-cursor lists only (no semver).
+3. Delete **useInfiniteScroll (deprecated)** composable subsection under **Composables**.
+4. Keep **useResourceList**; add one sentence that it is not a cursor/infinite-scroll helper or offset/size dashboard substitute.
+5. Grep `README.md` / `CONTRIBUTING.md` — remaining infinite-scroll identifiers only in the Removed note.
+6. Run `npm run test`, `npm run build`; confirm dist omits the four removed names and `useInfiniteScroll.ts` stays absent.
+
+### Results
+
+**Summary:** Updated `README.md` only — replaced deprecated infinite-scroll docs with a **Removed** migration note, deleted the `useInfiniteScroll` composable subsection, reworded Preferred UI guidance, and clarified `useResourceList` is not a cursor/infinite-scroll helper. `CONTRIBUTING.md` unchanged (no infinite-scroll mentions). Confirmed `src/composables/useInfiniteScroll.ts` remains absent (F033).
+
+**Commands run:**
+- `npm run test` — pass (36 files, 375 tests)
+- `npm run build` — pass
+- `rg 'useInfiniteScroll|InfiniteScrollResponse|InfiniteScrollParams|UseInfiniteScrollOptions' dist/` — no matches
+- `rg 'useInfiniteScroll|InfiniteScroll|after_id|has_more|next_cursor' README.md CONTRIBUTING.md` — matches only in README **Removed** note (line 185); `useResourceList` prose mentions “infinite-scroll” descriptively without those identifiers
+
+**Blockers:** None.
+
+**Orchestrator confirmation:** Re-ran `npm run test` (36 files, 375 tests) and `npm run build`. README Remaining mentions of dropped identifiers are only in the **Removed** note. `useInfiniteScroll.ts` still absent.

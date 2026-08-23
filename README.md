@@ -26,7 +26,7 @@ Working examples live in the [demo app](./demo/): IdP auth, navigation drawer, *
 
 ### Preferred UI: Cards + type-aligned field editors
 
-New list and view/edit pages should compose **`CardGrid` / `MhCard` / `DataCard`** with **configurator-type editors** under `src/components/editors/`. Prefer these over ad-hoc Vuetify fields or infinite-scroll list patterns.
+New list and view/edit pages should compose **`CardGrid` / `MhCard` / `DataCard`** with **configurator-type editors** under `src/components/editors/`. Prefer these over ad-hoc Vuetify fields.
 
 #### MhCard / CardGrid / DataCard
 
@@ -180,18 +180,11 @@ import {
 
 Until harvest ships, keep the local control as a thin, contract-compatible duplicate — do not invent a parallel prop API that will block promotion.
 
-### Deprecated: infinite-scroll list APIs
+### Removed: infinite-scroll list APIs
 
-APIs and SPAs are migrating to **header-based offset/size pagination** with plain array responses (see `api_utils` Get List pattern). The cursor / infinite-scroll SPA helpers below remain exported for older consumers but are **deprecated** — do not use them in new pages.
+The following public API was **removed** from this package: `useInfiniteScroll`, `InfiniteScrollResponse`, `InfiniteScrollParams`, and `UseInfiniteScrollOptions`. Cursor fields **`after_id`**, **`limit`**, **`has_more`**, and **`next_cursor`** must not appear in SPA ↔ API contracts.
 
-| Deprecated export | Location | Replacement |
-|-------------------|----------|-------------|
-| `useInfiniteScroll` | [useInfiniteScroll.ts](./src/composables/useInfiniteScroll.ts) | List UIs: `CardGrid` + `MhCard` (or tables) driven by offset/size header pagination from the API. Prefer `useResourceList` only for simple non-cursor lists until a shared offset/size list composable exists. |
-| `InfiniteScrollResponse` | same | Plain JSON array body + pagination response headers |
-| `InfiniteScrollParams` | same | `offset` / `size` **request headers**; `sort_by` / `order` and filters as **query params** |
-| `UseInfiniteScrollOptions` | same | — |
-
-Cursor fields **`after_id`**, **`limit`**, **`has_more`**, and **`next_cursor`** must not appear in new SPA ↔ API contracts.
+**Replacements:** List UIs use **`CardGrid` + `MhCard`** (or tables) driven by **offset/size request headers** and a **plain JSON array body** (see `api_utils` Get List pattern). `useResourceList` remains only for simple non-cursor lists.
 
 ### Authentication integration
 
@@ -252,7 +245,7 @@ Handle errors from queries/mutations with reactive error state. Returns `showErr
 
 #### useResourceList
 
-Generic list page pattern with search support, data fetching, error handling, and navigation. Still useful for simple lists; for card dashboards prefer **`CardGrid` + `MhCard`**.
+Generic list page pattern with search support, data fetching, error handling, and navigation. Still useful for simple lists; for card dashboards prefer **`CardGrid` + `MhCard`**. It is not a cursor or infinite-scroll helper and is not a substitute for offset/size card dashboards.
 
 **Source:** [src/composables/useResourceList.ts](./src/composables/useResourceList.ts)  
 **Tests:** [tests/composables/useResourceList.test.ts](./tests/composables/useResourceList.test.ts)  
@@ -266,13 +259,6 @@ Generic list page pattern with search support, data fetching, error handling, an
 - Configurable search functionality
 
 **Returns:** `items`, `isLoading`, `showError`, `errorMessage`, `searchQuery`, `debouncedSearch`, `navigateToItem`
-
-#### useInfiniteScroll (deprecated)
-
-> **Deprecated.** Cursor-based infinite scroll (`after_id` / `has_more` / `next_cursor`) is superseded by offset/size header pagination and card grids. Kept temporarily for older journey pages. See [Deprecated: infinite-scroll list APIs](#deprecated-infinite-scroll-list-apis).
-
-**Source:** [src/composables/useInfiniteScroll.ts](./src/composables/useInfiniteScroll.ts)  
-**Tests:** [tests/composables/useInfiniteScroll.test.ts](./tests/composables/useInfiniteScroll.test.ts)
 
 #### useRoles
 
