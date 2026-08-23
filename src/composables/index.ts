@@ -1,3 +1,15 @@
+export {
+  UNIVERSAL_NAV_CATALOG,
+  visibleUniversalNavItems,
+  resolveCustomerDisplayName,
+  readProfilePicture,
+} from './universalNav'
+export type {
+  UniversalNavItem,
+  UniversalNavCatalogEntry,
+  UniversalNavItemId,
+  UniversalNavPathKey,
+} from './universalNav'
 export { useErrorHandler } from './useErrorHandler'
 export { useAuth, syncAuthFromStorage, getStoredRoles, hasStoredRole } from './useAuth'
 export { useResourceList } from './useResourceList'

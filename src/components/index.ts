@@ -36,6 +36,7 @@ export type {
   EnumEditorProps,
   EnumArrayEditorProps,
 } from './editors'
+export { default as PageFrame } from './PageFrame.vue'
 export { default as AdminPage } from './AdminPage.vue'
 export { default as ConfigItemsTable } from './admin/ConfigItemsTable.vue'
 export { default as VersionsTable } from './admin/VersionsTable.vue'

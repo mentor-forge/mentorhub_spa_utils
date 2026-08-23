@@ -1,6 +1,6 @@
 # F036 – Universal PageFrame and role-gated nav catalog
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F035  
 **Description**: Ship a compiled-in `PageFrame` (title, hamburger, profile-pic) whose nav catalog is baked into spa_utils and filtered by JWT roles — journey SPAs import the component and **must not** supply nav or ALB configuration.
@@ -96,4 +96,23 @@ The agent must not update files outside this list (except a tiny barrel export a
 
 ## Execution Notes
 
-Reserved for the task execution agent.
+### Plan
+
+1. Add compiled catalog `src/composables/universalNav.ts`: `UNIVERSAL_NAV_CATALOG` (all table rows), `visibleUniversalNavItems(roles, customerName)` (role union filter + `JOURNEY_APP_PATHS`/`buildJourneyUrl` hrefs), and a small local JWT payload decode for `customer_name` / `custom:customer_name` / `picture`.
+2. Add `src/components/PageFrame.vue` with allowed props only (`pageTitle`, optional display-only `customerName`). App bar + temporary drawer + `v-main` slot; no `v-app`. Logout calls `logout()` then `redirectToIdpLogin` (demo pattern).
+3. Export `PageFrame` from `src/components/index.ts` and catalog helper/types from `src/composables/index.ts`.
+4. Tests: catalog completeness + role matrix; PageFrame shallow-mount (title, hamburger, profile href, no disallowed props, role-hidden items, logout mocks).
+5. `npm run test`, `npm run test:coverage` (90% new files), `npm run build`; confirm dist exports `PageFrame`.
+
+### Results
+
+- **Created** `src/composables/universalNav.ts` — compiled `UNIVERSAL_NAV_CATALOG` (9 table rows), `visibleUniversalNavItems(roles, customerName)` (empty roles → Home + Notifications; role gates unioned), local JWT decode for `customer_name` / `custom:customer_name` / `picture` (no Customer API). Hrefs via `JOURNEY_APP_PATHS` + `buildJourneyUrl`.
+- **Created** `src/components/PageFrame.vue` — allowed props `pageTitle` + optional display-only `customerName`. App bar (hamburger, title, profile → `/customer/profile/`), temporary drawer of allowed catalog rows + logout footer (`logout()` then `redirectToIdpLogin`), `v-main` slot. No `v-app`, no nav/ALB props.
+- **Updated** `src/components/index.ts` (export `PageFrame`) and `src/composables/index.ts` (catalog helper/types).
+- **Created** `tests/composables/universalNav.test.ts` (14) and `tests/components/PageFrame.test.ts` (10).
+- **`npm run test`**: 39 files, **418 tests passed**.
+- **Coverage (new files, full suite)**: `universalNav.ts` 100% lines/funcs/branches; `PageFrame.vue` 100% lines/stmts/branches, 66.66% functions (Vue SFC compiler split; same pattern as other SFCs). Package composables 99.16% / 100% funcs; components funcs 92.3%. Full `npm run test:coverage` still fails **pre-existing** `src/utils/**` 100% thresholds (`admin.ts`, `urlAuthBootstrap.ts`) — not introduced here.
+- **`npm run build`**: succeeded. `dist/components/index.d.ts` exports `PageFrame`; `dist/index.js` includes `PageFrame` and `visibleUniversalNavItems`.
+- **Blockers**: none. Working tree left uncommitted.
+
+**Orchestrator confirmation:** Re-ran `npm run test` (39 files, 418 tests) and `npm run build`. Dist `components/index.d.ts` exports `PageFrame`. Catalog, role matrix, allowed props, profile href, and logout order match the task. Demo `App.vue` was not modified.
