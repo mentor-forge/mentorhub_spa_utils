@@ -1,6 +1,6 @@
 # F033 – Remove deprecated useInfiniteScroll composable
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: none  
 **Description**: Delete the deprecated cursor-based infinite-scroll composable and its tests from this package so `useInfiniteScroll`, `InfiniteScrollResponse`, `InfiniteScrollParams`, and `UseInfiniteScrollOptions` are no longer part of the public API.
@@ -74,4 +74,24 @@ The agent must not update files outside this list.
 
 ## Execution Notes
 
-Reserved for the task execution agent.
+### Plan
+
+1. Delete `src/composables/useInfiniteScroll.ts`, `tests/composables/useInfiniteScroll.test.ts`, and `cypress/e2e/composables/useInfiniteScroll.cy.ts`.
+2. Remove `useInfiniteScroll` value export and `InfiniteScrollResponse` / `InfiniteScrollParams` / `UseInfiniteScrollOptions` type exports from `src/composables/index.ts`.
+3. Run `npm run test`, `npm run build`, inspect `dist/composables/index.d.ts` and `dist/index.d.ts`, repo-wide search in `src/`, `tests/`, `cypress/`.
+4. Attempt Cypress specs for `useResourceList` and `ListPageSearch`; record outcome.
+
+### Results
+
+**Summary:** Removed deprecated `useInfiniteScroll` composable, its unit/Cypress tests, and all public re-exports from `src/composables/index.ts`. `useResourceList`, `ListPageSearch`, and all other composables unchanged.
+
+**Commands run:**
+- `npm run test` — pass (36 files, 375 tests)
+- `npm run build` — pass
+- `rg 'useInfiniteScroll|InfiniteScroll' src/ tests/ cypress/` — no matches
+- Inspected `dist/composables/index.d.ts` and `dist/index.d.ts` — four removed names absent
+- `npm run dev` (background) + `npx cypress run --spec cypress/e2e/composables/useResourceList.cy.ts,cypress/e2e/components/ListPageSearch.cy.ts` — pass (4/4)
+
+**Blockers:** None.
+
+**Orchestrator confirmation:** Re-ran `npm run test` (36 files, 375 tests) and `npm run build`; dist declarations still omit the four removed names; `src/`/`tests/`/`cypress/` search has no remaining identifiers.
