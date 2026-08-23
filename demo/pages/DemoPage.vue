@@ -3,7 +3,33 @@
     <v-row>
       <v-col cols="12">
         <h1 class="text-h4 mb-4">spa_utils Component Testing</h1>
-        <p class="mb-6">This demo app showcases spa_utils components with api_utils backing service.</p>
+        <p class="mb-4">This demo app showcases spa_utils components with api_utils backing service.</p>
+        <v-list density="compact" class="mb-6">
+          <v-list-item
+            to="/demo"
+            title="Component Demo"
+            prepend-icon="mdi-view-dashboard"
+            data-automation-id="demo-page-demo-link"
+          />
+          <v-list-item
+            to="/demo/editors"
+            title="Type Editors"
+            prepend-icon="mdi-form-textbox"
+            data-automation-id="demo-page-editors-link"
+          />
+          <v-list-item
+            to="/demo/dashboard"
+            title="Dashboard"
+            prepend-icon="mdi-view-dashboard-outline"
+            data-automation-id="demo-page-dashboard-link"
+          />
+          <v-list-item
+            to="/admin"
+            title="Admin (Config)"
+            prepend-icon="mdi-cog"
+            data-automation-id="demo-page-admin-link"
+          />
+        </v-list>
       </v-col>
     </v-row>
 

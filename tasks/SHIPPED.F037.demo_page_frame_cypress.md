@@ -1,6 +1,6 @@
 # F037 – Demo PageFrame and Cypress nav roles
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F036  
 **Description**: Replace the demo’s local app-bar/drawer with imported `PageFrame`, move in-package demo routes off the hamburger, and cover role-filtered ALB links in Cypress.
@@ -73,4 +73,25 @@ The agent must not update files outside this list.
 
 ## Execution Notes
 
-Reserved for the task execution agent.
+### Plan
+
+1. Replace demo `App.vue` local app-bar/drawer/logout with imported `PageFrame` (`pageTitle` only). Keep `v-app`, `provideEditorConfig`, and startup config load. Do not pass nav items or ALB config.
+2. Add in-package DemoPage links (`/demo`, `/demo/editors`, `/demo/dashboard`, `/admin`) with stable automation ids. Hamburger stays product catalog only.
+3. Rewrite `navigation.cy.ts` for role-filtered catalog hrefs (`:8080` Home, profile, logout, unauth/expiry). Reach editors/dashboard/admin via DemoPage links, not drawer ids.
+4. Update `useRoles.cy.ts` to assert `nav-settings-link` / `nav-products-link` instead of `nav-admin-link`. Keep `/admin` access and redirect tests.
+5. Update CONTRIBUTING.md so hamburger is product nav and demo/admin links live on DemoPage.
+6. Run `npm run test`, `npm run build`, and Cypress (`navigation.cy.ts`, `useRoles.cy.ts`). Reuse or start `:8386` / demo API; record whether welcome `:8080` is up.
+
+### Results
+
+- **`demo/App.vue`**: local app-bar / drawer / logout removed. Host keeps `v-app`; imported `PageFrame` with static `pageTitle="spa_utils Demo"` plus existing `provideEditorConfig` / `loadConfig`. No nav items or ALB config passed in.
+- **`demo/pages/DemoPage.vue`**: in-package links (`demo-page-demo-link`, `demo-page-editors-link`, `demo-page-dashboard-link`, `demo-page-admin-link`) to `/demo`, `/demo/editors`, `/demo/dashboard`, `/admin`. Hamburger is product catalog only.
+- **`cypress/e2e/navigation.cy.ts`**: role-filter catalog (Home/Notifications; admin Products+Settings; customer org+members; mentor Resources/Paths/Plans), profile `/customer/profile/`, Home href `/discovery/` + `:8080`, logout + unauth/expiry IdP. Editors/dashboard/admin reached via DemoPage ids, not drawer `nav-*-link` demo ids. Used `cy.login(['user'])` because `registerAuthCommands` treats `cy.login([])` as admin.
+- **`cypress/e2e/composables/useRoles.cy.ts`**: admin vs non-admin now asserts `nav-products-link` / `nav-settings-link`. `/admin` access and redirect tests kept.
+- **`CONTRIBUTING.md`**: hamburger is product nav; demo/editors/dashboard/admin links live on DemoPage.
+- **`npm run test`**: 39 files, **418 tests passed**.
+- **`npm run build`**: succeeded.
+- **Cypress** (`npx cypress run --spec cypress/e2e/navigation.cy.ts,cypress/e2e/composables/useRoles.cy.ts`): **19 passed** (navigation 15, useRoles 4). Dev server started on `:8386`; api_utils `pipenv run dev` on `:8385`; Mongo already up. **Welcome `:8080` was up** (`login.html` 200); logout/unauth/expiry IdP tests passed.
+- **Blockers**: none. Working tree left uncommitted. Task file not renamed.
+
+**Orchestrator confirmation:** Re-ran `npm run test` (39 files, 418 tests), `npm run build`, and Cypress `navigation.cy.ts` + `useRoles.cy.ts` (**19 passed**). Welcome `:8080` still up for IdP tests.
