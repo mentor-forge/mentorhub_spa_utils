@@ -1,6 +1,6 @@
 # F035 – Journey URLs through welcome nginx / ALB
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F034  
 **Description**: Add a compiled-in helper that builds cross-SPA URLs using L022 path prefixes on the mock ALB (local welcome **:8080**) or the cloud ALB (same-origin HTTPS), with **no** per-SPA URL configuration.
@@ -90,4 +90,25 @@ The agent must not update files outside this list.
 
 ## Execution Notes
 
-Reserved for the task execution agent.
+### Plan
+
+1. Add `src/utils/journeyUrls.ts` next to `idpRedirect.ts`:
+   - `JOURNEY_PREFIXES` — five L022 journey keys.
+   - `resolveAlbOrigin(location?)` — ALB/welcome ports (`8080`, `80`, `443`, empty) use `location.origin`; Vite/debug ports map to `{protocol}//{hostname}:8080`. Optional `location` for unit tests only.
+   - `buildJourneyUrl(journey, path)` — `{origin}/{journey}/{path}` with leading-slash strip and no duplicate journey segment.
+   - `JOURNEY_APP_PATHS` — locked link catalog for F036 (home, members, settings, etc.).
+2. Re-export from `src/utils/index.ts`.
+3. Add `tests/utils/journeyUrls.test.ts` mirroring `idpRedirect.test.ts` (node env, inject `window.location` / pass `location` to `resolveAlbOrigin`).
+4. Run `npm run test` and `npm run build`; verify `dist/utils` and root `.d.ts` export the new symbols.
+
+### Results
+
+- **Created** `src/utils/journeyUrls.ts` — `JOURNEY_PREFIXES`, `JOURNEY_APP_PATHS`, `resolveAlbOrigin(location?)`, `buildJourneyUrl(journey, path)`.
+- **Updated** `src/utils/index.ts` — re-export.
+- **Created** `tests/utils/journeyUrls.test.ts` — 19 tests (origin rules, slash normalization, all locked paths).
+- **`npm run test`**: 37 files, 394 tests passed (including `journeyUrls.test.ts` and existing `index.test.ts`).
+- **`npm run build`**: succeeded.
+- **Dist exports**: `dist/utils/journeyUrls.d.ts` declares symbols; `dist/utils/index.d.ts` and root `dist/index.d.ts` re-export via barrel; `dist/index.js` bundles `buildJourneyUrl`, `resolveAlbOrigin`, `JOURNEY_PREFIXES`, `JOURNEY_APP_PATHS`.
+- **Blockers**: none.
+
+**Orchestrator confirmation:** Re-ran `npm run test` (37 files, 394 tests) and `npm run build`. Dist declarations export `buildJourneyUrl` / `resolveAlbOrigin` via `dist/utils/journeyUrls.d.ts` and root `export * from './utils'`. Origin rules and locked `JOURNEY_APP_PATHS` match the task table.
