@@ -48,6 +48,14 @@ Each task file must contain the following sections under H1 and H2 headings.
   - A list of desired outcomes for the task.
   - Each item should describe the outcome (e.g. "OpenAPI `Profile` schema includes `full_name`").
 
+- Under a **Craftsmanship Expectations** H3 header:
+  - When defining Goals, prefer outcomes that preserve clear ownership and reduce duplicated knowledge:
+  - Reuse `mentorhub_spa_utils` for shared SPA behavior rather than creating local equivalents.
+  - Treat DRY as avoiding duplicated knowledge and ownership, not merely duplicated code. Derive deployment prefixes, navigation behavior, roles, and runtime configuration from their authoritative source where practical.
+  - Keep journey-specific behavior in this SPA; identify genuinely reusable behavior as a potential `spa_utils` harvest candidate rather than prematurely creating a shared abstraction.
+  - Prefer deleting obsolete local behavior when responsibility has moved to a shared utility or another domain.
+  - Do not introduce local workarounds for behavior properly owned by `spa_utils`; identify the upstream dependency instead.
+
 - Under a **Testing Expectations** H2 header:
   - Can include the creation of new tests for new features.
   - Can include changing existing tests because of modified features.
