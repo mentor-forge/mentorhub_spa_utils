@@ -11,7 +11,7 @@
       <v-row>
         <v-col cols="12" md="6">
           <v-text-field
-            :model-value="getTokenValueUtil(props.token, 'remote_ip') || 'N/A'"
+            :model-value="claimDisplay('remote_ip')"
             label="IP Address"
             readonly
             variant="outlined"
@@ -21,12 +21,35 @@
         </v-col>
         <v-col cols="12" md="6">
           <v-text-field
-            :model-value="getTokenValueUtil(props.token, 'user_id') || getTokenValueUtil(props.token, 'sub') || 'N/A'"
-            label="ID"
+            :model-value="claimDisplay('profile_id')"
+            label="profile_id"
             readonly
             variant="outlined"
             density="comfortable"
             prepend-inner-icon="mdi-identifier"
+            data-automation-id="admin-token-profile-id-display"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-text-field
+            :model-value="claimDisplay('customer_id')"
+            label="customer_id"
+            readonly
+            variant="outlined"
+            density="comfortable"
+            prepend-inner-icon="mdi-identifier"
+            data-automation-id="admin-token-customer-id-display"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-text-field
+            :model-value="claimDisplay('mentor_id')"
+            label="mentor_id"
+            readonly
+            variant="outlined"
+            density="comfortable"
+            prepend-inner-icon="mdi-identifier"
+            data-automation-id="admin-token-mentor-id-display"
           />
         </v-col>
         <v-col cols="12">
@@ -62,4 +85,8 @@ interface Props {
 const props = defineProps<Props>()
 
 const roles = computed(() => getTokenRoles(props.token))
+
+function claimDisplay(key: string): string {
+  return getTokenValueUtil(props.token, key) || 'N/A'
+}
 </script>
