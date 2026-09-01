@@ -62,14 +62,14 @@ mentorhub_spa_utils/
 │   ├── App.vue          # Layout: v-app + PageFrame (product hamburger) + router-view; provideEditorConfig(startup config)
 │   ├── main.ts          # Entry point
 │   ├── bootstrap-auth.ts    # bootstrapAuthFromUrl + syncAuthFromStorage before app
-│   ├── router.ts        # Routes: /demo, /demo/editors, /demo/dashboard, /admin
+│   ├── router.ts        # Routes: /demo, /demo/editors, /demo/dashboard, /config (/admin redirects here)
 │   ├── composables/     # useConfig (typed RuntimeEditorConfig; demo-only); useAuth from src/composables
 │   ├── pages/
 │   │   ├── DemoPage.vue       # Legacy AutoSave / utility demos
 │   │   ├── EditorsPage.vue    # Type-aligned editor gallery (DataCards), incl. Enum/EnumArray
 │   │   ├── DashboardPage.vue  # CardGrid + MhCard list dashboard
 │   │   └── AdminPage.vue      # Config (api_utils /api/config)
-│   ├── components/      # Admin UI (config tables, token card)
+│   ├── components/      # Admin UI (config tables; TokenClaimsCard is packaged)
 │   └── utils/           # Admin helpers
 ├── tests/               # Unit test files
 ├── cypress/             # E2E test files
@@ -153,13 +153,13 @@ npm run major   # 0.1.0 → 1.0.0
 
 ## Demo App
 
-The demo app provides a full flow: **IdP login redirect** → **component demos** (DemoPage links) → **admin page** (config) when the user has the `admin` role. The hamburger is the product catalog (ALB `/discovery/`, `/customer/`, `/admin/` hrefs), not in-package demo routes. The dev server may proxy `/api` to an [api_utils](https://github.com/mentor-forge/mentorhub_api_utils) demo for config; SPAs do not use APIs as a credential-issuing login surface.
+The demo app provides a full flow: **IdP login redirect** → **component demos** (DemoPage links) → **admin/config page** at `/config` when the user has the `admin` role (`/admin` redirects to `/config`). The hamburger is the product catalog (Home, Events, mentor Resources/Paths/Plans, admin Notifications + Settings at hosting `/config`), not in-package demo routes. Products, Customer, and Customer Members are not drawer items. Settings is `{demoOrigin}/config`, not `/admin/settings`. The dev server may proxy `/api` to an [api_utils](https://github.com/mentor-forge/mentorhub_api_utils) demo for config; SPAs do not use APIs as a credential-issuing login surface.
 
 - **Shared auth:** [src/composables/useAuth.ts](./src/composables/useAuth.ts) — exported for journey SPAs; demo imports from `../src/composables/useAuth`
 - **Auth bootstrap:** [demo/bootstrap-auth.ts](./demo/bootstrap-auth.ts) — `bootstrapAuthFromUrl` + `syncAuthFromStorage`; router/logout use `redirectToIdpLogin`
-- **Layout & nav:** [demo/App.vue](./demo/App.vue) — `PageFrame` (product-catalog hamburger + logout). In-package demo / editors / dashboard / admin links live on [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue)
-- **Router:** [demo/router.ts](./demo/router.ts) — `/` → `/demo`; unauthenticated routes redirect to `:8080/login.html`
-- **Component demos:** [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) — AutoSaveField, AutoSaveSelect, ListPageSearch, formatDate, validationRules; links to editors, dashboard, and admin config
-- **Admin (config):** [demo/pages/AdminPage.vue](./demo/pages/AdminPage.vue) — config items, versions, enumerators, token (requires `admin` role)
+- **Layout & nav:** [demo/App.vue](./demo/App.vue) — `PageFrame` (product-catalog hamburger + logout). In-package demo / editors / dashboard / config links live on [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue)
+- **Router:** [demo/router.ts](./demo/router.ts) — `/` → `/demo`; `/config` (admin role); `/admin` → `/config`; unauthenticated routes redirect to `:8080/login.html`
+- **Component demos:** [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) — AutoSaveField, AutoSaveSelect, ListPageSearch, formatDate, validationRules; links to editors, dashboard, and `/config`
+- **Admin (config):** [demo/pages/AdminPage.vue](./demo/pages/AdminPage.vue) — config items, versions, enumerators, token (requires `admin` role; packaged TokenClaimsCard)
 
 Use the demo app to test your changes and provide examples for users.

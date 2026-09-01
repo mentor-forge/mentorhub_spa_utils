@@ -24,7 +24,7 @@
             data-automation-id="demo-page-dashboard-link"
           />
           <v-list-item
-            to="/admin"
+            to="/config"
             title="Admin (Config)"
             prepend-icon="mdi-cog"
             data-automation-id="demo-page-admin-link"
