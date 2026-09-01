@@ -1,5 +1,7 @@
 Please create @_PLANNING.MD tasks to implement this issue. Only create tasks, do not edit any files outside of the @tasks folder.
 
+**GitHub**: https://github.com/mentor-forge/mentorhub_admin_spa/issues/6
+
 # F-AS03: Pin spa_utils 1.0.1 and host AdminPage at /admin/config
 
 This is the **first** `mentorhub_admin_spa` issue for the spa_utils **1.0.1** wave. It **owns this repo’s `@mentor-forge/mentorhub_spa_utils@1.0.1` pin bump**.
