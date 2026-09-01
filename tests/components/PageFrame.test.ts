@@ -4,7 +4,7 @@ import { shallowMount } from '@vue/test-utils'
 import PageFrame from '../../src/components/PageFrame.vue'
 import { useAuth } from '../../src/composables/useAuth'
 import { redirectToIdpLogin } from '../../src/utils/idpRedirect'
-import { JOURNEY_APP_PATHS, buildJourneyUrl } from '../../src/utils/journeyUrls'
+import { JOURNEY_APP_PATHS, buildJourneyUrl, hostingConfigHref } from '../../src/utils/journeyUrls'
 
 const mocks = vi.hoisted(() => ({
   logout: vi.fn(),
@@ -101,6 +101,7 @@ describe('PageFrame', () => {
     expect(profile.exists()).toBe(true)
     const { journey, path } = JOURNEY_APP_PATHS.profile
     expect(profile.attributes('href')).toBe(buildJourneyUrl(journey, path))
+    expect(profile.classes()).toContain('me-4')
     expect(wrapper.find('.v-icon-stub').exists()).toBe(true)
   })
 
@@ -125,30 +126,76 @@ describe('PageFrame', () => {
   it('hides role-gated drawer items when the token has no roles', () => {
     const wrapper = mountPageFrame()
     expect(wrapper.find('[data-automation-id="nav-home-link"]').exists()).toBe(true)
-    expect(wrapper.find('[data-automation-id="nav-notifications-link"]').exists()).toBe(true)
+    expect(wrapper.find('[data-automation-id="nav-events-link"]').exists()).toBe(true)
+    expect(wrapper.find('[data-automation-id="nav-notifications-link"]').exists()).toBe(false)
+    expect(wrapper.find('[data-automation-id="nav-settings-link"]').exists()).toBe(false)
     expect(wrapper.find('[data-automation-id="nav-customer-link"]').exists()).toBe(false)
     expect(wrapper.find('[data-automation-id="nav-customer-members-link"]').exists()).toBe(false)
     expect(wrapper.find('[data-automation-id="nav-resources-link"]').exists()).toBe(false)
     expect(wrapper.find('[data-automation-id="nav-paths-link"]').exists()).toBe(false)
     expect(wrapper.find('[data-automation-id="nav-plans-link"]').exists()).toBe(false)
     expect(wrapper.find('[data-automation-id="nav-products-link"]').exists()).toBe(false)
-    expect(wrapper.find('[data-automation-id="nav-settings-link"]').exists()).toBe(false)
     expect(wrapper.find('[data-automation-id="nav-logout-link"]').exists()).toBe(true)
   })
 
-  it('shows customer links with the display name and mentor/admin links by role', () => {
+  it('does not resurrect Customer links for the customer role', () => {
+    mocks.roles.value = ['customer']
+    const wrapper = mountPageFrame({ customerName: 'Acme' })
+
+    expect(wrapper.find('[data-automation-id="nav-home-link"]').exists()).toBe(true)
+    expect(wrapper.find('[data-automation-id="nav-events-link"]').exists()).toBe(true)
+    expect(wrapper.find('[data-automation-id="nav-customer-link"]').exists()).toBe(false)
+    expect(wrapper.find('[data-automation-id="nav-customer-members-link"]').exists()).toBe(false)
+    expect(wrapper.find('[data-automation-id="nav-products-link"]').exists()).toBe(false)
+    expect(wrapper.find('[data-automation-id="nav-notifications-link"]').exists()).toBe(false)
+    expect(wrapper.find('[data-automation-id="nav-settings-link"]').exists()).toBe(false)
+  })
+
+  it('shows mentor collections and admin Notifications/Settings without Products', () => {
     mocks.roles.value = ['customer', 'mentor', 'admin']
     const wrapper = mountPageFrame({ customerName: 'Acme' })
 
-    expect(wrapper.find('[data-automation-id="nav-customer-link"]').text()).toBe('Acme')
-    expect(wrapper.find('[data-automation-id="nav-customer-members-link"]').text()).toBe(
-      'Acme Members'
-    )
+    expect(wrapper.find('[data-automation-id="nav-events-link"]').exists()).toBe(true)
     expect(wrapper.find('[data-automation-id="nav-resources-link"]').exists()).toBe(true)
     expect(wrapper.find('[data-automation-id="nav-paths-link"]').exists()).toBe(true)
     expect(wrapper.find('[data-automation-id="nav-plans-link"]').exists()).toBe(true)
-    expect(wrapper.find('[data-automation-id="nav-products-link"]').exists()).toBe(true)
+    expect(wrapper.find('[data-automation-id="nav-notifications-link"]').exists()).toBe(true)
     expect(wrapper.find('[data-automation-id="nav-settings-link"]').exists()).toBe(true)
+    expect(wrapper.find('[data-automation-id="nav-products-link"]').exists()).toBe(false)
+    expect(wrapper.find('[data-automation-id="nav-customer-link"]').exists()).toBe(false)
+
+    const settings = wrapper.find('[data-automation-id="nav-settings-link"]')
+    expect(settings.attributes('href')).toBe(hostingConfigHref())
+    expect(settings.attributes('href')).not.toBe(buildJourneyUrl('admin', 'settings'))
+  })
+
+  it('keeps Settings on the hosting debug-port origin instead of welcome :8080', () => {
+    const originalLocation = window.location
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: {
+        protocol: 'http:',
+        hostname: 'dev.example.ts.net',
+        port: '8392',
+        origin: 'http://dev.example.ts.net:8392',
+        pathname: '/customer/profile/',
+        href: 'http://dev.example.ts.net:8392/customer/profile/',
+      },
+    })
+
+    try {
+      mocks.roles.value = ['admin']
+      const wrapper = mountPageFrame()
+      const href = wrapper.find('[data-automation-id="nav-settings-link"]').attributes('href')
+      expect(href).toBe('http://dev.example.ts.net:8392/customer/config')
+      expect(href).not.toContain(':8080')
+      expect(href).not.toContain('127.0.0.1')
+    } finally {
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: originalLocation,
+      })
+    }
   })
 
   it('uses the JWT picture claim on the profile avatar when present', () => {
@@ -183,7 +230,14 @@ describe('PageFrame', () => {
 
     expect(mocks.logout).toHaveBeenCalledTimes(1)
     expect(redirectToIdpLogin).toHaveBeenCalledTimes(1)
-    expect(redirectToIdpLogin).toHaveBeenCalledWith(`${window.location.origin}/`)
+    const expectedReturnTo = buildJourneyUrl('discovery')
+    expect(redirectToIdpLogin).toHaveBeenCalledWith(expectedReturnTo)
+    expect(expectedReturnTo).not.toBe(`${window.location.origin}/`)
+    const returnTo = vi.mocked(redirectToIdpLogin).mock.calls[0]?.[0]
+    expect(returnTo).toBe(expectedReturnTo)
+    if (!expectedReturnTo.includes('127.0.0.1')) {
+      expect(returnTo).not.toContain('127.0.0.1')
+    }
     expect(mocks.logout.mock.invocationCallOrder[0]).toBeLessThan(
       vi.mocked(redirectToIdpLogin).mock.invocationCallOrder[0]
     )

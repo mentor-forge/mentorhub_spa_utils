@@ -54,7 +54,7 @@ import { useConfig } from '../composables/useConfig'
 import ConfigItemsTable from '../components/ConfigItemsTable.vue'
 import VersionsTable from '../components/VersionsTable.vue'
 import EnumeratorsDisplay from '../components/EnumeratorsDisplay.vue'
-import TokenClaimsCard from '../components/TokenClaimsCard.vue'
+import TokenClaimsCard from '../../src/components/admin/TokenClaimsCard.vue'
 
 const tab = ref('config')
 const { config, isLoading, error, loadConfig } = useConfig()

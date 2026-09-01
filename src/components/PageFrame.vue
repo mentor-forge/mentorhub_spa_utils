@@ -13,6 +13,7 @@
     <a
       v-if="isAuthenticated"
       :href="profileHref"
+      class="me-4"
       data-automation-id="nav-profile-link"
     >
       <v-avatar>
@@ -86,7 +87,7 @@ function toggleDrawer() {
 }
 
 function handleLogout() {
-  const returnTo = `${window.location.origin}/`
+  const returnTo = buildJourneyUrl('discovery')
   logout()
   drawer.value = false
   redirectToIdpLogin(returnTo)

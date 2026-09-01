@@ -1,6 +1,7 @@
 describe('Navigation & Routing', () => {
   const catalogIds = {
     home: 'nav-home-link',
+    events: 'nav-events-link',
     notifications: 'nav-notifications-link',
     products: 'nav-products-link',
     settings: 'nav-settings-link',
@@ -28,6 +29,27 @@ describe('Navigation & Routing', () => {
     cy.get(`[data-automation-id="${automationId}"]`).should('not.exist')
   }
 
+  function assertIdpLoginPage() {
+    cy.origin('http://127.0.0.1:8080', () => {
+      cy.location('pathname', { timeout: 10000 }).should('eq', '/login.html')
+      cy.location('search').should('include', 'return_to=')
+    })
+  }
+
+  function assertIdpLoginReturnToDiscovery() {
+    cy.origin('http://127.0.0.1:8080', () => {
+      cy.location('pathname', { timeout: 10000 }).should('eq', '/login.html')
+      cy.location('search').should((search) => {
+        expect(search).to.include('return_to=')
+        const params = new URLSearchParams(search)
+        const returnTo = decodeURIComponent(params.get('return_to') || '')
+        expect(returnTo, 'return_to should land on ALB /discovery/').to.include('/discovery/')
+        expect(returnTo, 'return_to should use welcome :8080 from Vite debug').to.include(':8080')
+        expect(returnTo, 'return_to must not be the Vite demo origin').to.not.include(':8386')
+      })
+    })
+  }
+
   describe('Navigation Drawer', () => {
     it('should show hamburger when authenticated', () => {
       cy.clearLocalStorage()
@@ -36,16 +58,17 @@ describe('Navigation & Routing', () => {
       cy.get('[data-automation-id="nav-drawer-toggle"]').should('be.visible')
     })
 
-    it('should show Home and Notifications only for a non-admin/non-mentor/non-customer role', () => {
+    it('should show Home and Events only for a non-admin/non-mentor/non-customer role', () => {
       cy.clearLocalStorage()
       // registerAuthCommands treats cy.login([]) as admin; use a non-catalog role instead.
       cy.login(['user'])
       cy.url({ timeout: 5000 }).should('include', '/demo')
       openDrawer()
       assertVisible(catalogIds.home)
-      assertVisible(catalogIds.notifications)
-      assertAbsent(catalogIds.products)
+      assertVisible(catalogIds.events)
+      assertAbsent(catalogIds.notifications)
       assertAbsent(catalogIds.settings)
+      assertAbsent(catalogIds.products)
       assertAbsent(catalogIds.customer)
       assertAbsent(catalogIds.customerMembers)
       assertAbsent(catalogIds.resources)
@@ -53,15 +76,16 @@ describe('Navigation & Routing', () => {
       assertAbsent(catalogIds.plans)
     })
 
-    it('should show Products and Settings for admin and hide customer/mentor links', () => {
+    it('should show Notifications and Settings for admin and hide products/customer/mentor links', () => {
       cy.clearLocalStorage()
       cy.login(['admin'])
       cy.url({ timeout: 5000 }).should('include', '/demo')
       openDrawer()
       assertVisible(catalogIds.home)
+      assertVisible(catalogIds.events)
       assertVisible(catalogIds.notifications)
-      assertVisible(catalogIds.products)
       assertVisible(catalogIds.settings)
+      assertAbsent(catalogIds.products)
       assertAbsent(catalogIds.customer)
       assertAbsent(catalogIds.customerMembers)
       assertAbsent(catalogIds.resources)
@@ -69,15 +93,18 @@ describe('Navigation & Routing', () => {
       assertAbsent(catalogIds.plans)
     })
 
-    it('should show customer org and members links for customer role', () => {
+    it('should not show Customer or Customer Members for customer role', () => {
       cy.clearLocalStorage()
       cy.login(['customer'])
       cy.url({ timeout: 5000 }).should('include', '/demo')
       openDrawer()
-      assertVisible(catalogIds.customer)
-      assertVisible(catalogIds.customerMembers)
+      assertVisible(catalogIds.home)
+      assertVisible(catalogIds.events)
+      assertAbsent(catalogIds.customer)
+      assertAbsent(catalogIds.customerMembers)
       assertAbsent(catalogIds.products)
       assertAbsent(catalogIds.settings)
+      assertAbsent(catalogIds.notifications)
       assertAbsent(catalogIds.resources)
       assertAbsent(catalogIds.paths)
       assertAbsent(catalogIds.plans)
@@ -91,10 +118,37 @@ describe('Navigation & Routing', () => {
       assertVisible(catalogIds.resources)
       assertVisible(catalogIds.paths)
       assertVisible(catalogIds.plans)
-      assertAbsent(catalogIds.products)
+      assertAbsent(catalogIds.notifications)
       assertAbsent(catalogIds.settings)
+      assertAbsent(catalogIds.products)
       assertAbsent(catalogIds.customer)
       assertAbsent(catalogIds.customerMembers)
+    })
+
+    it('should point Settings at the current demo origin /config for admin', () => {
+      cy.clearLocalStorage()
+      cy.login(['admin'])
+      cy.url({ timeout: 5000 }).should('include', '/demo')
+      openDrawer()
+      cy.location('origin').then((origin) => {
+        cy.get(`[data-automation-id="${catalogIds.settings}"]`)
+          .should('have.attr', 'href', `${origin}/config`)
+        cy.get(`[data-automation-id="${catalogIds.settings}"]`)
+          .should('have.attr', 'href')
+          .and('not.include', ':8080')
+          .and('not.include', '/admin/')
+      })
+    })
+
+    it('should build Events href to discovery events on welcome :8080 from the Vite debug port', () => {
+      cy.clearLocalStorage()
+      cy.login(['user'])
+      cy.url({ timeout: 5000 }).should('include', '/demo')
+      openDrawer()
+      cy.get(`[data-automation-id="${catalogIds.events}"]`)
+        .should('have.attr', 'href')
+        .and('include', '/discovery/events')
+        .and('include', ':8080')
     })
 
     it('should show profile control with customer profile href', () => {
@@ -130,7 +184,7 @@ describe('Navigation & Routing', () => {
       cy.get('.v-navigation-drawer', { timeout: 2000 }).should('not.be.visible')
     })
 
-    it('should logout and redirect to IdP login', () => {
+    it('should logout and redirect to IdP login with discovery return_to', () => {
       cy.clearLocalStorage()
       cy.login(['admin'])
       cy.url({ timeout: 5000 }).should('include', '/demo')
@@ -139,10 +193,7 @@ describe('Navigation & Routing', () => {
         .should('be.visible')
         .click()
 
-      cy.origin('http://127.0.0.1:8080', () => {
-        cy.location('pathname', { timeout: 10000 }).should('eq', '/login.html')
-        cy.location('search').should('include', 'return_to=')
-      })
+      assertIdpLoginReturnToDiscovery()
     })
   })
 
@@ -175,12 +226,20 @@ describe('Navigation & Routing', () => {
       cy.get('[data-automation-id="demo-page-admin-link"]', { timeout: 5000 })
         .should('be.visible')
         .click()
-      cy.url({ timeout: 5000 }).should('include', '/admin')
+      cy.url({ timeout: 5000 }).should('include', '/config')
+      cy.url().should('not.include', '/admin')
+      cy.contains('Admin - Configuration', { timeout: 10000 }).should('be.visible')
+    })
+
+    it('should redirect /admin bookmarks to /config', () => {
+      cy.visit('/admin')
+      cy.url({ timeout: 5000 }).should('include', '/config')
+      cy.url().should('not.include', '/admin')
       cy.contains('Admin - Configuration', { timeout: 10000 }).should('be.visible')
     })
 
     it('should return to the component demo from another in-package page', () => {
-      cy.visit('/admin')
+      cy.visit('/config')
       cy.contains('Admin - Configuration', { timeout: 10000 }).should('be.visible')
       cy.visit('/demo')
       cy.contains('spa_utils Component Testing', { timeout: 10000 }).should('be.visible')
@@ -192,10 +251,7 @@ describe('Navigation & Routing', () => {
     it('should redirect to IdP login when visiting a protected route', () => {
       cy.visit('/demo')
 
-      cy.origin('http://127.0.0.1:8080', () => {
-        cy.location('pathname', { timeout: 10000 }).should('eq', '/login.html')
-        cy.location('search').should('include', 'return_to=')
-      })
+      assertIdpLoginPage()
     })
   })
 
@@ -207,10 +263,7 @@ describe('Navigation & Routing', () => {
         win.localStorage.setItem('token_expires_at', expiredTime)
       })
       cy.reload()
-      cy.origin('http://127.0.0.1:8080', () => {
-        cy.location('pathname', { timeout: 10000 }).should('eq', '/login.html')
-        cy.location('search').should('include', 'return_to=')
-      })
+      assertIdpLoginPage()
     })
   })
 })

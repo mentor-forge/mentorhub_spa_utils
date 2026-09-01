@@ -29,6 +29,10 @@ const router = createRouter({
     },
     {
       path: '/admin',
+      redirect: '/config',
+    },
+    {
+      path: '/config',
       name: 'Admin',
       component: () => import('./pages/AdminPage.vue'),
       meta: { requiresAuth: true, requiresRole: 'admin' },

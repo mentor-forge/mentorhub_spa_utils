@@ -13,15 +13,17 @@ describe('useRoles Composable', () => {
       cy.logout()
     })
     
-    it('should show Products and Settings in the product catalog for admin users', () => {
+    it('should show Notifications and Settings in the product catalog for admin users', () => {
       cy.get('[data-automation-id="nav-drawer-toggle"]').click()
       cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
-      cy.get('[data-automation-id="nav-products-link"]').should('be.visible')
+      cy.get('[data-automation-id="nav-notifications-link"]').should('be.visible')
       cy.get('[data-automation-id="nav-settings-link"]').should('be.visible')
+      cy.get('[data-automation-id="nav-products-link"]').should('not.exist')
     })
     
-    it('should allow access to admin page', () => {
-      cy.visit('/admin')
+    it('should allow access to the config page', () => {
+      cy.visit('/config')
+      cy.url({ timeout: 5000 }).should('include', '/config')
       cy.contains('Admin - Configuration', { timeout: 10000 })
         .should('be.visible')
     })
@@ -41,18 +43,28 @@ describe('useRoles Composable', () => {
       cy.logout()
     })
     
-    it('should not show Products or Settings in the product catalog for non-admin users', () => {
+    it('should not show Notifications, Settings, or Products for non-admin users', () => {
       cy.get('[data-automation-id="nav-drawer-toggle"]').click()
       cy.get('.v-navigation-drawer', { timeout: 5000 }).should('be.visible')
+      cy.get('[data-automation-id="nav-notifications-link"]').should('not.exist')
       cy.get('[data-automation-id="nav-products-link"]').should('not.exist')
       cy.get('[data-automation-id="nav-settings-link"]').should('not.exist')
     })
     
-    it('should redirect non-admin users from admin page', () => {
+    it('should redirect non-admin users away from /config', () => {
+      cy.visit('/config')
+      cy.url({ timeout: 5000 }).should((url) => {
+        expect(url).to.include('/demo')
+        expect(url).to.not.include('/config')
+      })
+    })
+
+    it('should redirect non-admin users from /admin to /demo, not /config', () => {
       cy.visit('/admin')
       cy.url({ timeout: 5000 }).should((url) => {
         expect(url).to.include('/demo')
         expect(url).to.not.include('/admin')
+        expect(url).to.not.include('/config')
       })
     })
   })

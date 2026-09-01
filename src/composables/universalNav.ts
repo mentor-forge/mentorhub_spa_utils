@@ -1,13 +1,11 @@
-import { JOURNEY_APP_PATHS, buildJourneyUrl } from '../utils/journeyUrls'
+import { JOURNEY_APP_PATHS, buildJourneyUrl, hostingConfigHref } from '../utils/journeyUrls'
 
 export type UniversalNavItemId =
   | 'home'
-  | 'customer'
-  | 'customerMembers'
+  | 'events'
   | 'resources'
   | 'paths'
   | 'plans'
-  | 'products'
   | 'notifications'
   | 'settings'
 
@@ -16,7 +14,7 @@ export type UniversalNavPathKey = keyof typeof JOURNEY_APP_PATHS
 export interface UniversalNavCatalogEntry {
   id: UniversalNavItemId
   automationId: string
-  pathKey: Exclude<UniversalNavPathKey, 'profile'>
+  pathKey?: Exclude<UniversalNavPathKey, 'profile'>
   requiredRoles: readonly string[]
   title: string
 }
@@ -38,58 +36,43 @@ export const UNIVERSAL_NAV_CATALOG: readonly UniversalNavCatalogEntry[] = [
     title: 'Home',
   },
   {
-    id: 'customer',
-    automationId: 'nav-customer-link',
-    pathKey: 'customerEdit',
-    requiredRoles: ['customer'],
-    title: '[Customer Name]',
-  },
-  {
-    id: 'customerMembers',
-    automationId: 'nav-customer-members-link',
-    pathKey: 'members',
-    requiredRoles: ['customer'],
-    title: '[Customer Name] Members',
+    id: 'events',
+    automationId: 'nav-events-link',
+    pathKey: 'events',
+    requiredRoles: [],
+    title: 'Events',
   },
   {
     id: 'resources',
     automationId: 'nav-resources-link',
     pathKey: 'resources',
     requiredRoles: ['mentor'],
-    title: 'Learning Resources',
+    title: 'Resources',
   },
   {
     id: 'paths',
     automationId: 'nav-paths-link',
     pathKey: 'paths',
     requiredRoles: ['mentor'],
-    title: 'Learning Paths',
+    title: 'Paths',
   },
   {
     id: 'plans',
     automationId: 'nav-plans-link',
     pathKey: 'plans',
     requiredRoles: ['mentor'],
-    title: 'Encounter Plans',
-  },
-  {
-    id: 'products',
-    automationId: 'nav-products-link',
-    pathKey: 'products',
-    requiredRoles: ['admin'],
-    title: 'Products',
+    title: 'Plans',
   },
   {
     id: 'notifications',
     automationId: 'nav-notifications-link',
     pathKey: 'notifications',
-    requiredRoles: [],
+    requiredRoles: ['admin'],
     title: 'Notifications',
   },
   {
     id: 'settings',
     automationId: 'nav-settings-link',
-    pathKey: 'settings',
     requiredRoles: ['admin'],
     title: 'Settings',
   },
@@ -152,14 +135,18 @@ export function readProfilePicture(): string | null {
   return claimString(readAccessTokenClaims(), 'picture')
 }
 
-function catalogHref(pathKey: Exclude<UniversalNavPathKey, 'profile'>): string {
-  const { journey, path } = JOURNEY_APP_PATHS[pathKey]
+function catalogHref(entry: UniversalNavCatalogEntry): string {
+  if (entry.id === 'settings') {
+    return hostingConfigHref()
+  }
+
+  const { journey, path } = JOURNEY_APP_PATHS[entry.pathKey!]
   return buildJourneyUrl(journey, path)
 }
 
 /**
  * Catalog rows the given JWT roles may see. Combined roles are a union.
- * Empty / missing roles → Home + Notifications only.
+ * Empty / missing roles → Home + Events only.
  */
 export function visibleUniversalNavItems(
   roles: readonly string[],
@@ -176,7 +163,7 @@ export function visibleUniversalNavItems(
   }).map((entry) => ({
     id: entry.id,
     automationId: entry.automationId,
-    href: catalogHref(entry.pathKey),
+    href: catalogHref(entry),
     title: entry.title.replace(/\[Customer Name\]/g, displayName),
   }))
 }

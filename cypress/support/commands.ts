@@ -39,7 +39,7 @@ Cypress.Commands.add('waitForDemoPage', () => {
 })
 
 Cypress.Commands.add('waitForAdminPage', () => {
-  cy.url({ timeout: 5000 }).should('include', '/admin')
+  cy.url({ timeout: 5000 }).should('include', '/config')
   cy.contains('Admin - Configuration', { timeout: 10000 })
     .should('be.visible')
 })
