@@ -15,12 +15,13 @@ export const JOURNEY_PREFIXES = [
 
 export type JourneyPrefix = (typeof JOURNEY_PREFIXES)[number]
 
-/** Minimal location shape for unit tests (optional `resolveAlbOrigin` argument). */
+/** Minimal location shape for unit tests (optional `resolveAlbOrigin` / `hostingConfigHref` argument). */
 export interface AlbOriginLocation {
   protocol: string
   hostname: string
   port: string
   origin: string
+  pathname?: string
 }
 
 const ALB_PORTS = new Set(['8080', '80', '443', ''])
@@ -28,6 +29,7 @@ const ALB_PORTS = new Set(['8080', '80', '443', ''])
 /** Locked in-app paths consumed by F036 PageFrame hamburger links. */
 export const JOURNEY_APP_PATHS = {
   home: { journey: 'discovery', path: '' },
+  events: { journey: 'discovery', path: 'events' },
   customerEdit: { journey: 'customer', path: '' },
   members: { journey: 'discovery', path: 'members/' },
   resources: { journey: 'discovery', path: 'resources' },
@@ -97,4 +99,35 @@ export function buildJourneyUrl(journey: JourneyPrefix, path = ''): string {
   }
 
   return `${origin}/${journey}/${normalizedPath}`
+}
+
+/**
+ * First L022 journey segment of `pathname`, or `null` when the path is not under a journey prefix.
+ */
+export function currentJourneyPrefix(pathname: string): JourneyPrefix | null {
+  const firstSegment = pathname.split('/').find((segment) => segment.length > 0)
+  if (!firstSegment) {
+    return null
+  }
+
+  return (JOURNEY_PREFIXES as readonly string[]).includes(firstSegment)
+    ? (firstSegment as JourneyPrefix)
+    : null
+}
+
+/**
+ * Settings href on the **hosting** SPA origin (no welcome `:8080` rewrite).
+ * Journey prefix from pathname → `{origin}/{prefix}/config`; otherwise `{origin}/config`.
+ */
+export function hostingConfigHref(location?: AlbOriginLocation): string {
+  const loc = readLocation(location)
+  const origin = loc.origin.replace(/\/+$/, '')
+  const pathname = loc.pathname ?? ''
+  const prefix = currentJourneyPrefix(pathname)
+
+  if (prefix) {
+    return `${origin}/${prefix}/config`
+  }
+
+  return `${origin}/config`
 }

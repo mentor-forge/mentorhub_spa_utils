@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { JOURNEY_APP_PATHS, buildJourneyUrl } from '../../src/utils/journeyUrls'
+import { JOURNEY_APP_PATHS, buildJourneyUrl, hostingConfigHref } from '../../src/utils/journeyUrls'
 import {
   UNIVERSAL_NAV_CATALOG,
   visibleUniversalNavItems,
@@ -24,19 +24,19 @@ function hrefFor(pathKey: keyof typeof JOURNEY_APP_PATHS): string {
   return buildJourneyUrl(journey, path)
 }
 
+const REMOVED_NAV_IDS = ['nav-products-link', 'nav-customer-link', 'nav-customer-members-link']
+
 describe('UNIVERSAL_NAV_CATALOG', () => {
   it('includes every locked table row with path keys and role gates', () => {
     const byId = Object.fromEntries(UNIVERSAL_NAV_CATALOG.map((row) => [row.id, row]))
 
-    expect(UNIVERSAL_NAV_CATALOG).toHaveLength(9)
+    expect(UNIVERSAL_NAV_CATALOG).toHaveLength(7)
     expect(Object.keys(byId)).toEqual([
       'home',
-      'customer',
-      'customerMembers',
+      'events',
       'resources',
       'paths',
       'plans',
-      'products',
       'notifications',
       'settings',
     ])
@@ -47,119 +47,120 @@ describe('UNIVERSAL_NAV_CATALOG', () => {
       pathKey: 'home',
       requiredRoles: [],
     })
-    expect(byId.customer).toMatchObject({
-      title: '[Customer Name]',
-      automationId: 'nav-customer-link',
-      pathKey: 'customerEdit',
-      requiredRoles: ['customer'],
-    })
-    expect(byId.customerMembers).toMatchObject({
-      title: '[Customer Name] Members',
-      automationId: 'nav-customer-members-link',
-      pathKey: 'members',
-      requiredRoles: ['customer'],
+    expect(byId.events).toMatchObject({
+      title: 'Events',
+      automationId: 'nav-events-link',
+      pathKey: 'events',
+      requiredRoles: [],
     })
     expect(byId.resources).toMatchObject({
-      title: 'Learning Resources',
+      title: 'Resources',
       automationId: 'nav-resources-link',
       pathKey: 'resources',
       requiredRoles: ['mentor'],
     })
     expect(byId.paths).toMatchObject({
-      title: 'Learning Paths',
+      title: 'Paths',
       automationId: 'nav-paths-link',
       pathKey: 'paths',
       requiredRoles: ['mentor'],
     })
     expect(byId.plans).toMatchObject({
-      title: 'Encounter Plans',
+      title: 'Plans',
       automationId: 'nav-plans-link',
       pathKey: 'plans',
       requiredRoles: ['mentor'],
-    })
-    expect(byId.products).toMatchObject({
-      title: 'Products',
-      automationId: 'nav-products-link',
-      pathKey: 'products',
-      requiredRoles: ['admin'],
     })
     expect(byId.notifications).toMatchObject({
       title: 'Notifications',
       automationId: 'nav-notifications-link',
       pathKey: 'notifications',
-      requiredRoles: [],
+      requiredRoles: ['admin'],
     })
     expect(byId.settings).toMatchObject({
       title: 'Settings',
       automationId: 'nav-settings-link',
-      pathKey: 'settings',
       requiredRoles: ['admin'],
     })
+    expect(byId.settings.pathKey).toBeUndefined()
+    expect(UNIVERSAL_NAV_CATALOG.map((row) => row.automationId)).not.toEqual(
+      expect.arrayContaining(REMOVED_NAV_IDS)
+    )
+    expect(UNIVERSAL_NAV_CATALOG.some((row) => row.id === 'products')).toBe(false)
+    expect(UNIVERSAL_NAV_CATALOG.some((row) => row.id === 'customer')).toBe(false)
+    expect(UNIVERSAL_NAV_CATALOG.some((row) => row.id === 'customerMembers')).toBe(false)
   })
 })
 
 describe('visibleUniversalNavItems', () => {
-  it('returns Home + Notifications only when the token has no roles', () => {
+  it('returns Home + Events only when the token has no roles', () => {
     const items = visibleUniversalNavItems([], 'Acme')
-    expect(items.map((item) => item.id)).toEqual(['home', 'notifications'])
-    expect(items.map((item) => item.automationId)).toEqual([
-      'nav-home-link',
-      'nav-notifications-link',
-    ])
+    expect(items.map((item) => item.id)).toEqual(['home', 'events'])
+    expect(items.map((item) => item.automationId)).toEqual(['nav-home-link', 'nav-events-link'])
     expect(items[0].href).toBe(hrefFor('home'))
-    expect(items[1].href).toBe(hrefFor('notifications'))
+    expect(items[1].href).toBe(hrefFor('events'))
+    expect(items.map((item) => item.automationId)).not.toEqual(
+      expect.arrayContaining(REMOVED_NAV_IDS)
+    )
+    expect(items.some((item) => item.id === 'notifications' || item.id === 'settings')).toBe(
+      false
+    )
   })
 
-  it('adds org + members links for the customer role', () => {
+  it('does not resurrect Customer or Products links for the customer role', () => {
     const items = visibleUniversalNavItems(['customer'], 'Acme')
-    expect(items.map((item) => item.id)).toEqual([
-      'home',
-      'customer',
-      'customerMembers',
-      'notifications',
-    ])
-    expect(items.find((item) => item.id === 'customer')?.title).toBe('Acme')
-    expect(items.find((item) => item.id === 'customerMembers')?.title).toBe('Acme Members')
-    expect(items.find((item) => item.id === 'customer')?.href).toBe(hrefFor('customerEdit'))
-    expect(items.find((item) => item.id === 'customerMembers')?.href).toBe(hrefFor('members'))
+    expect(items.map((item) => item.id)).toEqual(['home', 'events'])
+    expect(items.find((item) => item.id === 'customer')).toBeUndefined()
+    expect(items.find((item) => item.id === 'customerMembers')).toBeUndefined()
+    expect(items.find((item) => item.automationId === 'nav-customer-link')).toBeUndefined()
+    expect(items.find((item) => item.automationId === 'nav-customer-members-link')).toBeUndefined()
+    expect(items.find((item) => item.automationId === 'nav-products-link')).toBeUndefined()
+    expect(items.some((item) => item.id === 'notifications' || item.id === 'settings')).toBe(
+      false
+    )
   })
 
-  it('adds the three learning links for the mentor role', () => {
+  it('adds Resources / Paths / Plans for mentor and still hides Notifications and Settings', () => {
     const items = visibleUniversalNavItems(['mentor'])
-    expect(items.map((item) => item.id)).toEqual([
-      'home',
-      'resources',
-      'paths',
-      'plans',
-      'notifications',
-    ])
+    expect(items.map((item) => item.id)).toEqual(['home', 'events', 'resources', 'paths', 'plans'])
     expect(items.find((item) => item.id === 'resources')?.href).toBe(hrefFor('resources'))
     expect(items.find((item) => item.id === 'paths')?.href).toBe(hrefFor('paths'))
     expect(items.find((item) => item.id === 'plans')?.href).toBe(hrefFor('plans'))
+    expect(items.find((item) => item.id === 'notifications')).toBeUndefined()
+    expect(items.find((item) => item.id === 'settings')).toBeUndefined()
+    expect(items.find((item) => item.automationId === 'nav-products-link')).toBeUndefined()
   })
 
-  it('adds Products + Settings for the admin role', () => {
+  it('adds Notifications + Settings for admin and does not resurrect Products', () => {
     const items = visibleUniversalNavItems(['admin'])
     expect(items.map((item) => item.id)).toEqual([
       'home',
-      'products',
+      'events',
       'notifications',
       'settings',
     ])
-    expect(items.find((item) => item.id === 'products')?.href).toBe(hrefFor('products'))
-    expect(items.find((item) => item.id === 'settings')?.href).toBe(hrefFor('settings'))
+    expect(items.find((item) => item.id === 'notifications')?.href).toBe(hrefFor('notifications'))
+    expect(items.find((item) => item.id === 'settings')?.href).toBe(hostingConfigHref())
+    expect(items.find((item) => item.id === 'settings')?.href).not.toBe(hrefFor('settings'))
+    expect(items.find((item) => item.id === 'products')).toBeUndefined()
+    expect(items.find((item) => item.automationId === 'nav-products-link')).toBeUndefined()
   })
 
-  it('unions combined roles', () => {
+  it('unions combined roles without Customer or Products rows', () => {
     const items = visibleUniversalNavItems(['customer', 'mentor', 'admin'], 'Northwind')
     expect(items.map((item) => item.id)).toEqual(UNIVERSAL_NAV_CATALOG.map((row) => row.id))
-    expect(items).toHaveLength(9)
-    expect(items.find((item) => item.id === 'customer')?.title).toBe('Northwind')
+    expect(items).toHaveLength(7)
+    expect(items.find((item) => item.id === 'customer')).toBeUndefined()
+    expect(items.find((item) => item.id === 'products')).toBeUndefined()
+    expect(items.find((item) => item.id === 'settings')?.href).toBe(hostingConfigHref())
   })
 
   it('treats mentee-only as authenticated-without-gated-roles', () => {
     const items = visibleUniversalNavItems(['mentee'])
-    expect(items.map((item) => item.id)).toEqual(['home', 'notifications'])
+    expect(items.map((item) => item.id)).toEqual(['home', 'events'])
+    expect(items.some((item) => item.id === 'notifications' || item.id === 'settings')).toBe(
+      false
+    )
   })
 })
 
@@ -233,10 +234,13 @@ describe('resolveCustomerDisplayName / readProfilePicture', () => {
     expect(readProfilePicture()).toBeNull()
   })
 
-  it('uses JWT customer_name when visibleUniversalNavItems omits the label', () => {
+  it('still accepts customerName and resolves JWT customer_name without drawer labels', () => {
     localStorage.setItem('access_token', encodeJwt({ customer_name: 'Stored Org' }))
-    const items = visibleUniversalNavItems(['customer'])
-    expect(items.find((item) => item.id === 'customer')?.title).toBe('Stored Org')
+    expect(resolveCustomerDisplayName()).toBe('Stored Org')
+    const items = visibleUniversalNavItems(['customer'], 'Acme')
+    expect(items.map((item) => item.id)).toEqual(['home', 'events'])
+    expect(items.every((item) => !item.title.includes('Acme'))).toBe(true)
+    expect(items.every((item) => !item.title.includes('Stored Org'))).toBe(true)
   })
 
   it('falls back when localStorage cannot be read', () => {
