@@ -33,11 +33,11 @@ describe('UNIVERSAL_NAV_CATALOG', () => {
     expect(UNIVERSAL_NAV_CATALOG).toHaveLength(7)
     expect(Object.keys(byId)).toEqual([
       'home',
-      'events',
       'resources',
       'paths',
       'plans',
       'notifications',
+      'events',
       'settings',
     ])
 
@@ -47,23 +47,23 @@ describe('UNIVERSAL_NAV_CATALOG', () => {
       pathKey: 'home',
       requiredRoles: [],
     })
-    expect(byId.events).toMatchObject({
-      title: 'Events',
-      automationId: 'nav-events-link',
-      pathKey: 'events',
-      requiredRoles: [],
-    })
     expect(byId.resources).toMatchObject({
       title: 'Resources',
       automationId: 'nav-resources-link',
       pathKey: 'resources',
-      requiredRoles: ['mentor'],
+      requiredRoles: [],
     })
     expect(byId.paths).toMatchObject({
       title: 'Paths',
       automationId: 'nav-paths-link',
       pathKey: 'paths',
-      requiredRoles: ['mentor'],
+      requiredRoles: [],
+    })
+    expect(byId.events).toMatchObject({
+      title: 'Events',
+      automationId: 'nav-events-link',
+      pathKey: 'events',
+      requiredRoles: ['admin'],
     })
     expect(byId.plans).toMatchObject({
       title: 'Plans',
@@ -93,41 +93,47 @@ describe('UNIVERSAL_NAV_CATALOG', () => {
 })
 
 describe('visibleUniversalNavItems', () => {
-  it('returns Home + Events only when the token has no roles', () => {
+  it('returns Home + Resources + Paths when the token has no roles', () => {
     const items = visibleUniversalNavItems([], 'Acme')
-    expect(items.map((item) => item.id)).toEqual(['home', 'events'])
-    expect(items.map((item) => item.automationId)).toEqual(['nav-home-link', 'nav-events-link'])
+    expect(items.map((item) => item.id)).toEqual(['home', 'resources', 'paths'])
+    expect(items.map((item) => item.automationId)).toEqual([
+      'nav-home-link',
+      'nav-resources-link',
+      'nav-paths-link',
+    ])
     expect(items[0].href).toBe(hrefFor('home'))
-    expect(items[1].href).toBe(hrefFor('events'))
+    expect(items[1].href).toBe(hrefFor('resources'))
+    expect(items[2].href).toBe(hrefFor('paths'))
     expect(items.map((item) => item.automationId)).not.toEqual(
       expect.arrayContaining(REMOVED_NAV_IDS)
     )
-    expect(items.some((item) => item.id === 'notifications' || item.id === 'settings')).toBe(
+    expect(items.some((item) => item.id === 'events' || item.id === 'notifications' || item.id === 'settings')).toBe(
       false
     )
   })
 
   it('does not resurrect Customer or Products links for the customer role', () => {
     const items = visibleUniversalNavItems(['customer'], 'Acme')
-    expect(items.map((item) => item.id)).toEqual(['home', 'events'])
+    expect(items.map((item) => item.id)).toEqual(['home', 'resources', 'paths'])
     expect(items.find((item) => item.id === 'customer')).toBeUndefined()
     expect(items.find((item) => item.id === 'customerMembers')).toBeUndefined()
     expect(items.find((item) => item.automationId === 'nav-customer-link')).toBeUndefined()
     expect(items.find((item) => item.automationId === 'nav-customer-members-link')).toBeUndefined()
     expect(items.find((item) => item.automationId === 'nav-products-link')).toBeUndefined()
-    expect(items.some((item) => item.id === 'notifications' || item.id === 'settings')).toBe(
+    expect(items.some((item) => item.id === 'events' || item.id === 'notifications' || item.id === 'settings')).toBe(
       false
     )
   })
 
   it('adds Resources / Paths / Plans for mentor and still hides Notifications and Settings', () => {
     const items = visibleUniversalNavItems(['mentor'])
-    expect(items.map((item) => item.id)).toEqual(['home', 'events', 'resources', 'paths', 'plans'])
+    expect(items.map((item) => item.id)).toEqual(['home', 'resources', 'paths', 'plans'])
     expect(items.find((item) => item.id === 'resources')?.href).toBe(hrefFor('resources'))
     expect(items.find((item) => item.id === 'paths')?.href).toBe(hrefFor('paths'))
     expect(items.find((item) => item.id === 'plans')?.href).toBe(hrefFor('plans'))
     expect(items.find((item) => item.id === 'notifications')).toBeUndefined()
     expect(items.find((item) => item.id === 'settings')).toBeUndefined()
+    expect(items.find((item) => item.id === 'events')).toBeUndefined()
     expect(items.find((item) => item.automationId === 'nav-products-link')).toBeUndefined()
   })
 
@@ -135,8 +141,10 @@ describe('visibleUniversalNavItems', () => {
     const items = visibleUniversalNavItems(['admin'])
     expect(items.map((item) => item.id)).toEqual([
       'home',
-      'events',
+      'resources',
+      'paths',
       'notifications',
+      'events',
       'settings',
     ])
     expect(items.find((item) => item.id === 'notifications')?.href).toBe(hrefFor('notifications'))
@@ -157,8 +165,8 @@ describe('visibleUniversalNavItems', () => {
 
   it('treats mentee-only as authenticated-without-gated-roles', () => {
     const items = visibleUniversalNavItems(['mentee'])
-    expect(items.map((item) => item.id)).toEqual(['home', 'events'])
-    expect(items.some((item) => item.id === 'notifications' || item.id === 'settings')).toBe(
+    expect(items.map((item) => item.id)).toEqual(['home', 'resources', 'paths'])
+    expect(items.some((item) => item.id === 'events' || item.id === 'notifications' || item.id === 'settings')).toBe(
       false
     )
   })
@@ -238,7 +246,7 @@ describe('resolveCustomerDisplayName / readProfilePicture', () => {
     localStorage.setItem('access_token', encodeJwt({ customer_name: 'Stored Org' }))
     expect(resolveCustomerDisplayName()).toBe('Stored Org')
     const items = visibleUniversalNavItems(['customer'], 'Acme')
-    expect(items.map((item) => item.id)).toEqual(['home', 'events'])
+    expect(items.map((item) => item.id)).toEqual(['home', 'resources', 'paths'])
     expect(items.every((item) => !item.title.includes('Acme'))).toBe(true)
     expect(items.every((item) => !item.title.includes('Stored Org'))).toBe(true)
   })
