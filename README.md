@@ -241,7 +241,7 @@ import { PageFrame } from '@mentor-forge/mentorhub_spa_utils'
 
 **Allowed props:** `pageTitle` (required string) and optional `customerName`. `customerName` remains accepted for patch compatibility; it is no longer used for drawer labels (Customer / Customer Members were removed from the hamburger). The default slot is page body (typically `router-view`).
 
-**Local nav config is disallowed.** Do not pass `navItems`, URL maps, ALB origin props, or extra drawer slots. The hamburger catalog, role gates, and cross-SPA hrefs are compiled into spa_utils — add or change links in this package, not in a journey SPA.
+**Local nav config is disallowed.** Do not pass `navItems`, URL maps, ALB origin props, or extra drawer slots. The hamburger catalog, role gates, and cross-SPA hrefs are compiled into spa_utils — add or change links in this package, not in a journey SPA. Journey SPA Cypress should not re-assert the catalog matrix; cover host chrome, this SPA’s `/config`, and local routes instead.
 
 #### Role-gated hamburger catalog
 

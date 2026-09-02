@@ -143,7 +143,7 @@ describe('Navigation & Routing', () => {
 
     it('should build Events href to discovery events on welcome :8080 from the Vite debug port', () => {
       cy.clearLocalStorage()
-      cy.login(['user'])
+      cy.login(['admin'])
       cy.url({ timeout: 5000 }).should('include', '/demo')
       openDrawer()
       cy.get(`[data-automation-id="${catalogIds.events}"]`)
