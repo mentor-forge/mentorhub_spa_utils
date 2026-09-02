@@ -11,7 +11,7 @@ Reusable Vue 3 + Vuetify components, composables, and utilities for Mentor Hub j
 Install from CodeArtifact (run `mh` first for credentials):
 
 ```bash
-npm install @mentor-forge/mentorhub_spa_utils@1.0.1
+npm install @mentor-forge/mentorhub_spa_utils@1.0.2
 ```
 
 **Component styles:** Prefer the package root import so Vite consumers receive component CSS automatically (the built `dist/index.js` side-effect-imports `./index.css`; `package.json` marks `**/*.css` and `./dist/index.js` as `sideEffects` so bundlers keep that import). Optionally import the stylesheet once at app bootstrap:
@@ -221,7 +221,7 @@ See [demo/router.ts](./demo/router.ts) and [demo/bootstrap-auth.ts](./demo/boots
 
 ### Universal PageFrame (1.0.0)
 
-**1.0.0** replaces per-SPA layout chrome with shared **`PageFrame`** navigation: app bar, role-gated hamburger drawer, profile link, and logout. Journey SPAs should adopt `@mentor-forge/mentorhub_spa_utils@1.0.1` and remove local nav shells.
+**1.0.0** replaces per-SPA layout chrome with shared **`PageFrame`** navigation: app bar, role-gated hamburger drawer, profile link, and logout. Journey SPAs should adopt `@mentor-forge/mentorhub_spa_utils@1.0.2` and remove local nav shells.
 
 Journey SPAs share compiled-in layout chrome: app bar (title, hamburger, profile), a role-gated navigation drawer, and logout. Import `{ PageFrame }` from the package root and wrap page content inside the host SPA’s single `v-app`:
 
@@ -245,16 +245,16 @@ import { PageFrame } from '@mentor-forge/mentorhub_spa_utils'
 
 #### Role-gated hamburger catalog
 
-Drawer links to Discovery collections are full ALB URLs from `buildJourneyUrl` (not Vue Router `to` — targets may be other SPAs). **Settings** is the exception: it uses `hostingConfigHref()` so the href stays on the **current SPA** origin. Combined JWT roles are a union. Empty or missing roles show **Home** and **Events** only.
+Drawer links to Discovery collections are full ALB URLs from `buildJourneyUrl` (not Vue Router `to` — targets may be other SPAs). **Settings** is the exception: it uses `hostingConfigHref()` so the href stays on the **current SPA** origin. Combined JWT roles are a union. Empty or missing roles show **Home**, **Resources**, and **Paths**.
 
 | Link | Roles | Href |
 |------|-------|------|
 | Home | authenticated (any) | `buildJourneyUrl('discovery')` → `/discovery/` |
-| Events | authenticated (any) | `buildJourneyUrl('discovery', 'events')` → `/discovery/events` |
-| Resources | `mentor` | `/discovery/resources` |
-| Paths | `mentor` | `/discovery/paths` |
+| Resources | authenticated (any) | `/discovery/resources` |
+| Paths | authenticated (any) | `/discovery/paths` |
 | Plans | `mentor` | `/discovery/plans` |
 | Notifications | `admin` only | `/discovery/notifications` |
+| Events | `admin` only | `buildJourneyUrl('discovery', 'events')` → `/discovery/events` |
 | Settings | `admin` only | **hosting SPA** `{origin}/{journeyPrefix}/config` via `hostingConfigHref()` |
 
 **Settings** is admin-only. The href is `{currentOrigin}/{journeyPrefix}/config` from the pathname prefix (`currentJourneyPrefix`), or `{origin}/config` when there is no journey prefix (spa_utils demo at `/demo` or `/config`). It is **not** `/admin/settings`, **not** `/admin/config` for every app, and it does **not** rewrite Vite/debug ports to welcome `:8080` — the user must stay on the hosting SPA. Journey SPAs host `AdminPage` at that route (downstream ISSUEs in F045).

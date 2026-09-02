@@ -36,24 +36,17 @@ export const UNIVERSAL_NAV_CATALOG: readonly UniversalNavCatalogEntry[] = [
     title: 'Home',
   },
   {
-    id: 'events',
-    automationId: 'nav-events-link',
-    pathKey: 'events',
-    requiredRoles: [],
-    title: 'Events',
-  },
-  {
     id: 'resources',
     automationId: 'nav-resources-link',
     pathKey: 'resources',
-    requiredRoles: ['mentor'],
+    requiredRoles: [],
     title: 'Resources',
   },
   {
     id: 'paths',
     automationId: 'nav-paths-link',
     pathKey: 'paths',
-    requiredRoles: ['mentor'],
+    requiredRoles: [],
     title: 'Paths',
   },
   {
@@ -69,6 +62,13 @@ export const UNIVERSAL_NAV_CATALOG: readonly UniversalNavCatalogEntry[] = [
     pathKey: 'notifications',
     requiredRoles: ['admin'],
     title: 'Notifications',
+  },
+  {
+    id: 'events',
+    automationId: 'nav-events-link',
+    pathKey: 'events',
+    requiredRoles: ['admin'],
+    title: 'Events',
   },
   {
     id: 'settings',
@@ -146,7 +146,7 @@ function catalogHref(entry: UniversalNavCatalogEntry): string {
 
 /**
  * Catalog rows the given JWT roles may see. Combined roles are a union.
- * Empty / missing roles → Home + Events only.
+ * Empty / missing roles → Home + Resources + Paths.
  */
 export function visibleUniversalNavItems(
   roles: readonly string[],
