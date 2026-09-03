@@ -21,6 +21,17 @@
         </v-col>
         <v-col cols="12" md="6">
           <v-text-field
+            :model-value="claimDisplay('display_name')"
+            label="display_name"
+            readonly
+            variant="outlined"
+            density="comfortable"
+            prepend-inner-icon="mdi-account"
+            data-automation-id="admin-token-display-name-display"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-text-field
             :model-value="claimDisplay('profile_id')"
             label="profile_id"
             readonly

@@ -13,9 +13,14 @@
     <a
       v-if="isAuthenticated"
       :href="profileHref"
-      class="me-4"
+      class="me-4 d-inline-flex align-center"
       data-automation-id="nav-profile-link"
     >
+      <span
+        v-if="profileDisplayName"
+        class="me-2"
+        data-automation-id="nav-profile-name-display"
+      >{{ profileDisplayName }}</span>
       <v-avatar>
         <v-img v-if="profilePicture" :src="profilePicture" alt="" />
         <v-icon v-else>mdi-account</v-icon>
@@ -59,6 +64,7 @@ import { useAuth } from '../composables/useAuth'
 import { redirectToIdpLogin } from '../utils/idpRedirect'
 import { JOURNEY_APP_PATHS, buildJourneyUrl } from '../utils/journeyUrls'
 import {
+  readDisplayName,
   readProfilePicture,
   visibleUniversalNavItems,
 } from '../composables/universalNav'
@@ -81,6 +87,7 @@ const profileHref = computed(() => {
 })
 
 const profilePicture = computed(() => readProfilePicture())
+const profileDisplayName = computed(() => readDisplayName())
 
 function toggleDrawer() {
   drawer.value = !drawer.value

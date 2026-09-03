@@ -103,6 +103,7 @@ describe('PageFrame', () => {
     expect(profile.attributes('href')).toBe(buildJourneyUrl(journey, path))
     expect(profile.classes()).toContain('me-4')
     expect(wrapper.find('.v-icon-stub').exists()).toBe(true)
+    expect(wrapper.find('[data-automation-id="nav-profile-name-display"]').exists()).toBe(false)
   })
 
   it('hides hamburger, drawer, and profile when unauthenticated', () => {
@@ -208,6 +209,64 @@ describe('PageFrame', () => {
     const wrapper = mountPageFrame()
     expect(wrapper.find('img').attributes('src')).toBe('https://cdn.example/avatar.png')
     expect(wrapper.find('.v-icon-stub').exists()).toBe(false)
+  })
+
+  it('shows JWT display_name next to the avatar when the claim is present', () => {
+    localStorage.setItem(
+      'access_token',
+      encodeJwt({
+        display_name: '  Ada Lovelace  ',
+        picture: 'https://cdn.example/avatar.png',
+      })
+    )
+    const wrapper = mountPageFrame()
+    const name = wrapper.find('[data-automation-id="nav-profile-name-display"]')
+    expect(name.exists()).toBe(true)
+    expect(name.text()).toBe('Ada Lovelace')
+    expect(wrapper.find('[data-automation-id="nav-profile-link"]').text()).toContain('Ada Lovelace')
+    expect(wrapper.find('img').attributes('src')).toBe('https://cdn.example/avatar.png')
+  })
+
+  it('keeps compact avatar-only chrome when display_name is blank or missing', () => {
+    localStorage.setItem('access_token', encodeJwt({ display_name: '   ' }))
+    const blankWrapper = mountPageFrame()
+    expect(blankWrapper.find('[data-automation-id="nav-profile-name-display"]').exists()).toBe(false)
+    expect(blankWrapper.find('[data-automation-id="nav-profile-link"]').exists()).toBe(true)
+    expect(blankWrapper.find('.v-icon-stub').exists()).toBe(true)
+
+    localStorage.setItem('access_token', encodeJwt({ picture: 'https://cdn.example/me.png' }))
+    const missingWrapper = mountPageFrame()
+    expect(missingWrapper.find('[data-automation-id="nav-profile-name-display"]').exists()).toBe(false)
+    expect(missingWrapper.find('img').attributes('src')).toBe('https://cdn.example/me.png')
+  })
+
+  it('keeps compact avatar-only chrome when the JWT is malformed', () => {
+    localStorage.setItem('access_token', 'not-a-jwt')
+    const wrapper = mountPageFrame()
+    expect(wrapper.find('[data-automation-id="nav-profile-name-display"]').exists()).toBe(false)
+    expect(wrapper.find('[data-automation-id="nav-profile-link"]').exists()).toBe(true)
+    expect(wrapper.find('.v-icon-stub').exists()).toBe(true)
+  })
+
+  it('does not synthesize display_name from name, given_name, email, user_id, or sub', () => {
+    localStorage.setItem(
+      'access_token',
+      encodeJwt({
+        name: 'Full Name',
+        given_name: 'Given',
+        email: 'ada@example.com',
+        user_id: 'legacy-user-id',
+        sub: 'legacy-sub',
+      })
+    )
+    const wrapper = mountPageFrame()
+    expect(wrapper.find('[data-automation-id="nav-profile-name-display"]').exists()).toBe(false)
+    expect(wrapper.find('[data-automation-id="nav-profile-link"]').exists()).toBe(true)
+    expect(wrapper.text()).not.toContain('Full Name')
+    expect(wrapper.text()).not.toContain('Given')
+    expect(wrapper.text()).not.toContain('ada@example.com')
+    expect(wrapper.text()).not.toContain('legacy-user-id')
+    expect(wrapper.text()).not.toContain('legacy-sub')
   })
 
   it('renders the default slot inside v-main', () => {

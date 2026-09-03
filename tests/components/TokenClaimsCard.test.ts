@@ -4,6 +4,7 @@ import TokenClaimsCard from '../../src/components/admin/TokenClaimsCard.vue'
 
 const FULL_TOKEN = {
   remote_ip: '203.0.113.10',
+  display_name: 'Ada Lovelace',
   profile_id: 'A00000000000000000000001',
   customer_id: 'D00000000000000000000006',
   mentor_id: 'B00000000000000000000002',
@@ -62,6 +63,15 @@ describe('TokenClaimsCard', () => {
     expect(mentor.attributes('value')).toBe(FULL_TOKEN.mentor_id)
   })
 
+  it('renders display_name from token claims', () => {
+    const wrapper = mountCard(FULL_TOKEN)
+    const displayName = findField(wrapper, 'admin-token-display-name-display')
+
+    expect(displayName.exists()).toBe(true)
+    expect(displayName.attributes('aria-label')).toBe('display_name')
+    expect(displayName.attributes('value')).toBe(FULL_TOKEN.display_name)
+  })
+
   it('keeps IP Address and Roles presentation', () => {
     const wrapper = mountCard(FULL_TOKEN)
 
@@ -82,6 +92,7 @@ describe('TokenClaimsCard', () => {
     expect(findField(wrapper, 'admin-token-profile-id-display').exists()).toBe(false)
     expect(findField(wrapper, 'admin-token-customer-id-display').exists()).toBe(false)
     expect(findField(wrapper, 'admin-token-mentor-id-display').exists()).toBe(false)
+    expect(findField(wrapper, 'admin-token-display-name-display').exists()).toBe(false)
   })
 
   it('displays N/A when individual claim keys are missing', () => {
@@ -90,6 +101,7 @@ describe('TokenClaimsCard', () => {
     expect(findField(wrapper, 'admin-token-profile-id-display').attributes('value')).toBe('N/A')
     expect(findField(wrapper, 'admin-token-customer-id-display').attributes('value')).toBe('N/A')
     expect(findField(wrapper, 'admin-token-mentor-id-display').attributes('value')).toBe('N/A')
+    expect(findField(wrapper, 'admin-token-display-name-display').attributes('value')).toBe('N/A')
     expect(wrapper.find('[aria-label="IP Address"]').attributes('value')).toBe('N/A')
     expect(wrapper.text()).toContain('No roles assigned')
   })
@@ -110,5 +122,27 @@ describe('TokenClaimsCard', () => {
       'D00000000000000000000006'
     )
     expect(findField(wrapper, 'admin-token-mentor-id-display').attributes('value')).toBe('N/A')
+  })
+
+  it('does not populate display_name from name, given_name, email, user_id, or sub', () => {
+    const wrapper = mountCard({
+      name: 'Full Name',
+      given_name: 'Given',
+      email: 'ada@example.com',
+      user_id: 'legacy-user-id',
+      sub: 'legacy-sub',
+      profile_id: 'A00000000000000000000001',
+    })
+
+    const displayName = findField(wrapper, 'admin-token-display-name-display')
+    expect(displayName.attributes('value')).toBe('N/A')
+    expect(displayName.attributes('value')).not.toBe('Full Name')
+    expect(displayName.attributes('value')).not.toBe('Given')
+    expect(displayName.attributes('value')).not.toBe('ada@example.com')
+    expect(displayName.attributes('value')).not.toBe('legacy-user-id')
+    expect(displayName.attributes('value')).not.toBe('legacy-sub')
+    expect(findField(wrapper, 'admin-token-profile-id-display').attributes('value')).toBe(
+      'A00000000000000000000001'
+    )
   })
 })

@@ -135,6 +135,15 @@ export function readProfilePicture(): string | null {
   return claimString(readAccessTokenClaims(), 'picture')
 }
 
+/**
+ * JWT `display_name` from the stored access token.
+ * Authoritative only when the claim is explicitly present and non-blank;
+ * does not synthesize a name from `name`, `given_name`, `email`, `user_id`, or `sub`.
+ */
+export function readDisplayName(): string | null {
+  return claimString(readAccessTokenClaims(), 'display_name')
+}
+
 function catalogHref(entry: UniversalNavCatalogEntry): string {
   if (entry.id === 'settings') {
     return hostingConfigHref()
