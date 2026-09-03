@@ -11,7 +11,7 @@ Reusable Vue 3 + Vuetify components, composables, and utilities for Mentor Hub j
 Install from CodeArtifact (run `mh` first for credentials):
 
 ```bash
-npm install @mentor-forge/mentorhub_spa_utils@1.0.2
+npm install @mentor-forge/mentorhub_spa_utils@1.0.3
 ```
 
 **Component styles:** Prefer the package root import so Vite consumers receive component CSS automatically (the built `dist/index.js` side-effect-imports `./index.css`; `package.json` marks `**/*.css` and `./dist/index.js` as `sideEffects` so bundlers keep that import). Optionally import the stylesheet once at app bootstrap:
@@ -221,7 +221,7 @@ See [demo/router.ts](./demo/router.ts) and [demo/bootstrap-auth.ts](./demo/boots
 
 ### Universal PageFrame (1.0.0)
 
-**1.0.0** replaces per-SPA layout chrome with shared **`PageFrame`** navigation: app bar, role-gated hamburger drawer, profile link, and logout. Journey SPAs should adopt `@mentor-forge/mentorhub_spa_utils@1.0.2` and remove local nav shells.
+**1.0.0** replaces per-SPA layout chrome with shared **`PageFrame`** navigation: app bar, role-gated hamburger drawer, profile link, and logout. Journey SPAs should adopt `@mentor-forge/mentorhub_spa_utils@1.0.3` and remove local nav shells.
 
 Journey SPAs share compiled-in layout chrome: app bar (title, hamburger, profile), a role-gated navigation drawer, and logout. Import `{ PageFrame }` from the package root and wrap page content inside the host SPA’s single `v-app`:
 

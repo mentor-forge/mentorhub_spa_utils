@@ -1,6 +1,6 @@
 # F049 – Patch version 1.0.3 for display_name
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F048  
 **Description**: Bump `@mentor-forge/mentorhub_spa_utils` from **1.0.2** to **1.0.3** after the `display_name` feature and its browser/documentation coverage are complete.
@@ -71,4 +71,33 @@ Run all commands from this repository root.
 The agent must not edit implementation, tests, demo/Cypress behavior, sibling repositories, or publishing/tagging scripts in this task.
 
 ## Execution Notes
+
+### Plan
+
+1. Confirmed F047 and F048 are `SHIPPED.*`; `package.json` and lockfile root are **1.0.2**. `npm run patch` (`npm version patch --no-git-tag-version`) should yield exactly **1.0.3**.
+2. Run `mh` if CodeArtifact auth is needed, then `npm run patch`. Abort if result ≠ `1.0.3`.
+3. Update README install/adopt pins `@mentor-forge/mentorhub_spa_utils@1.0.2` → `@1.0.3` only. Leave historical notes (“Removed in 1.0.0”, “added in 1.0.0”, “Universal PageFrame (1.0.0)”).
+4. Verify: `npm run test`, `test:coverage`, `lint`, `build`; inspect dist for `PageFrame`, `AdminPage`, and `TokenClaimsCard`.
+5. No publish/tag/push/commit/downstream SPA or implementation edits. Record Results here.
+
+### Results
+
+- **Version**: `npm run patch` from 1.0.2 produced exactly **v1.0.3**. `package.json` version, lockfile root (`""` package), and README install/adopt pins are **1.0.3**. Historical notes (“Removed in 1.0.0”, “added in 1.0.0”, “Universal PageFrame (1.0.0)”) left unchanged.
+- **Edited files**: `package.json`, `package-lock.json`, `README.md` (install/adopt pins only), plus this Execution Notes section. No implementation, tests, demo/Cypress, or release scripts.
+- **Not done** (by design): no publish, tag, push, commit, or downstream SPA dependency changes.
+
+### Commands
+
+- `mh` — CodeArtifact auth refreshed
+- `npm run patch` — `v1.0.3`
+- `npm run test` — 40 files, 443 tests passed
+- `npm run test:coverage` — 443 tests passed; **pre-existing** `src/utils/**` threshold failures only (`admin.ts` 32% stmts / 16.66% funcs, `urlAuthBootstrap.ts` 12% lines — untested modules; `idpRedirect.ts` 83.92% lines also under the 100% utils threshold). Exit code 1 from thresholds only.
+- `npm run lint` — **blocked**: `eslint: command not found` (same pre-existing tooling gap as F046; eslint is not a package.json dependency)
+- `npm run build` — succeeded (`dist/index.js` 95.81 kB, `dist/index.css` 5.56 kB)
+
+### Dist export verification
+
+- `dist/index.d.ts` re-exports `./composables`, `./components`, `./utils`.
+- `dist/components/index.d.ts` exports `PageFrame`, `AdminPage`, `TokenClaimsCard`.
+- `dist/index.js` named exports include `PageFrame`, `AdminPage`, `TokenClaimsCard`.
 
