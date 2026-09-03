@@ -3,6 +3,7 @@
  * Tests the shared AdminPage component from spa_utils.
  */
 const STUB_TOKEN = {
+  display_name: 'Ada Lovelace',
   profile_id: 'A00000000000000000000001',
   customer_id: 'D00000000000000000000006',
   mentor_id: 'B00000000000000000000002',
@@ -42,9 +43,13 @@ describe('Admin Page', () => {
     cy.get('[data-automation-id="admin-tab-token"]').should('be.visible')
   })
 
-  it('should display token profile, customer, and mentor ids', () => {
+  it('should display token display_name, profile, customer, and mentor ids', () => {
     cy.visit('/config')
     cy.get('[data-automation-id="admin-tab-token"]').click()
+    cy.get('[data-automation-id="admin-token-display-name-display"]')
+      .should('be.visible')
+      .find('input')
+      .should('have.value', STUB_TOKEN.display_name)
     cy.get('[data-automation-id="admin-token-profile-id-display"]')
       .should('be.visible')
       .find('input')

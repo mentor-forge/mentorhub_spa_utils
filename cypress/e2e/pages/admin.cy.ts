@@ -1,5 +1,6 @@
 const STUB_TOKEN = {
   remote_ip: '203.0.113.10',
+  display_name: 'Ada Lovelace',
   profile_id: 'A00000000000000000000001',
   customer_id: 'D00000000000000000000006',
   mentor_id: 'B00000000000000000000002',
@@ -79,8 +80,12 @@ describe('Admin Page', () => {
       cy.get('[data-automation-id="admin-tab-token"]').should('have.attr', 'aria-selected', 'true')
     })
 
-    it('should show profile_id, customer_id, and mentor_id on the Token tab', () => {
+    it('should show display_name, profile_id, customer_id, and mentor_id on the Token tab', () => {
       cy.get('[data-automation-id="admin-tab-token"]', { timeout: 10000 }).click()
+      cy.get('[data-automation-id="admin-token-display-name-display"]')
+        .should('be.visible')
+        .find('input')
+        .should('have.value', STUB_TOKEN.display_name)
       cy.get('[data-automation-id="admin-token-profile-id-display"]')
         .should('be.visible')
         .find('input')
@@ -93,6 +98,27 @@ describe('Admin Page', () => {
         .should('be.visible')
         .find('input')
         .should('have.value', STUB_TOKEN.mentor_id)
+    })
+
+    it('should show N/A for display_name when the intercepted token omits the claim', () => {
+      const { display_name: _omitted, ...tokenWithoutDisplayName } = STUB_TOKEN
+      cy.intercept('GET', '**/api/config', {
+        statusCode: 200,
+        body: {
+          config_items: [],
+          versions: [],
+          enumerators: [],
+          token: tokenWithoutDisplayName,
+        },
+      }).as('configNoDisplayName')
+      cy.visit('/config')
+      cy.wait('@configNoDisplayName')
+      cy.waitForAdminPage()
+      cy.get('[data-automation-id="admin-tab-token"]', { timeout: 10000 }).click()
+      cy.get('[data-automation-id="admin-token-display-name-display"]')
+        .should('be.visible')
+        .find('input')
+        .should('have.value', 'N/A')
     })
   })
   

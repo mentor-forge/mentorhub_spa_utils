@@ -1,6 +1,6 @@
 # F048 – Document and verify display_name in demo/Cypress
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: F047  
 **Description**: Update package documentation and browser coverage so the new `display_name` behavior is verified at the demo/app-shell level.
@@ -73,4 +73,17 @@ Run all commands from **this spa_utils repository root**.
 The agent must not update files outside this list.
 
 ## Execution Notes
+
+**Plan**
+- README: document PageFrame `display_name` next to the avatar (`nav-profile-name-display`, omitted when blank/missing) and Token tab fields (`display_name`, `profile_id`, `customer_id`, `mentor_id`, IP Address, Roles) with existing automation ids.
+- Cypress: extend existing specs/helpers only. Live DE / `signCypressJwt` tokens still omit `display_name`, so stub it — patch the stored JWT payload for chrome (`readDisplayName` decodes localStorage, no signature check) and include `display_name` on `/api/config` intercept token fixtures for the Token tab.
+- `commands.ts`: add `stubJwtDisplayName` to patch + reload. Navigation: assert admin chrome shows the stubbed name. Admin specs: keep id-claim assertions and add `admin-token-display-name-display`. No demo-only display_name logic.
+
+**Completion**
+- README documents PageFrame `display_name` chrome (`nav-profile-name-display`) and Token tab fields with automation ids. IP Address and Roles have no dedicated ids (label / chip group).
+- `stubJwtDisplayName` in `commands.ts` patches the Cypress JWT payload and reloads. Navigation asserts compact chrome without the claim and stubbed `Ada Lovelace` inside `nav-profile-link`. Admin `/api/config` intercepts include `display_name`; Token tab asserts the value and missing → `N/A`.
+- **Stubs required:** live DE and `signCypressJwt` still omit `display_name`. Chrome tests patch JWT localStorage; Token tab tests intercept `/api/config`.
+- `npm run test`: 40 files, 443 passed.
+- `npm run build`: succeeded (`@mentor-forge/mentorhub_spa_utils@1.0.2`).
+- `npx cypress run --spec cypress/e2e/navigation.cy.ts,cypress/e2e/pages/admin.cy.ts,cypress/e2e/pages/admin-app.cy.ts`: 31 passed (19 + 8 + 4).
 
