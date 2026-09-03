@@ -5,6 +5,7 @@ import {
   visibleUniversalNavItems,
   resolveCustomerDisplayName,
   readProfilePicture,
+  readDisplayName,
 } from '../../src/composables/universalNav'
 
 function encodeJwt(payload: unknown): string {
@@ -172,7 +173,7 @@ describe('visibleUniversalNavItems', () => {
   })
 })
 
-describe('resolveCustomerDisplayName / readProfilePicture', () => {
+describe('resolveCustomerDisplayName / readProfilePicture / readDisplayName', () => {
   beforeEach(() => {
     localStorage.clear()
   })
@@ -214,10 +215,37 @@ describe('resolveCustomerDisplayName / readProfilePicture', () => {
     expect(readProfilePicture()).toBeNull()
   })
 
+  it('returns the JWT display_name when present and trims whitespace', () => {
+    expect(readDisplayName()).toBeNull()
+
+    localStorage.setItem('access_token', encodeJwt({ display_name: '  Ada Lovelace  ' }))
+    expect(readDisplayName()).toBe('Ada Lovelace')
+  })
+
+  it('returns null display_name when the claim is blank, missing, or unrelated keys are set', () => {
+    localStorage.setItem('access_token', encodeJwt({ display_name: '   ' }))
+    expect(readDisplayName()).toBeNull()
+
+    localStorage.setItem(
+      'access_token',
+      encodeJwt({
+        name: 'Full Name',
+        given_name: 'Given',
+        email: 'ada@example.com',
+        user_id: 'legacy-user-id',
+        sub: 'legacy-sub',
+        picture: 'https://cdn.example/me.png',
+      })
+    )
+    expect(readDisplayName()).toBeNull()
+    expect(readProfilePicture()).toBe('https://cdn.example/me.png')
+  })
+
   it('ignores malformed tokens and non-object payloads', () => {
     localStorage.setItem('access_token', 'not-a-jwt')
     expect(resolveCustomerDisplayName()).toBe('Customer')
     expect(readProfilePicture()).toBeNull()
+    expect(readDisplayName()).toBeNull()
 
     localStorage.setItem('access_token', 'a.b')
     expect(resolveCustomerDisplayName()).toBe('Customer')
@@ -240,6 +268,7 @@ describe('resolveCustomerDisplayName / readProfilePicture', () => {
     localStorage.setItem('access_token', `hdr.${primitivePayload}.sig`)
     expect(resolveCustomerDisplayName()).toBe('Customer')
     expect(readProfilePicture()).toBeNull()
+    expect(readDisplayName()).toBeNull()
   })
 
   it('still accepts customerName and resolves JWT customer_name without drawer labels', () => {
@@ -257,6 +286,7 @@ describe('resolveCustomerDisplayName / readProfilePicture', () => {
     })
     expect(resolveCustomerDisplayName()).toBe('Customer')
     expect(readProfilePicture()).toBeNull()
+    expect(readDisplayName()).toBeNull()
     spy.mockRestore()
   })
 })

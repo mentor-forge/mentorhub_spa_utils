@@ -160,6 +160,33 @@ describe('Navigation & Routing', () => {
         .should('be.visible')
         .and('have.attr', 'href')
         .and('include', '/customer/profile/')
+      // Live DE / signCypressJwt tokens omit display_name — compact avatar-only chrome.
+      cy.get('[data-automation-id="nav-profile-name-display"]').should('not.exist')
+    })
+
+    it('should show JWT display_name next to the profile avatar when the claim is stubbed', () => {
+      cy.clearLocalStorage()
+      cy.login(['admin'])
+      // Intercept config so a payload-patched JWT (invalid signature) cannot 401 the demo.
+      cy.intercept('GET', '**/api/config', {
+        statusCode: 200,
+        body: {
+          config_items: [],
+          versions: [],
+          enumerators: [],
+          token: { display_name: 'Ada Lovelace' },
+        },
+      })
+      cy.stubJwtDisplayName('Ada Lovelace')
+      cy.url({ timeout: 5000 }).should('include', '/demo')
+      cy.get('[data-automation-id="nav-profile-link"]')
+        .should('be.visible')
+        .and('have.attr', 'href')
+        .and('include', '/customer/profile/')
+      cy.get('[data-automation-id="nav-profile-link"]')
+        .find('[data-automation-id="nav-profile-name-display"]')
+        .should('be.visible')
+        .and('contain', 'Ada Lovelace')
     })
 
     it('should build Home href to discovery on welcome :8080 from the Vite debug port', () => {
