@@ -47,7 +47,6 @@
           @click="handleLogout"
         />
         <v-list-item
-          v-if="profileDisplayName"
           :title="profileDisplayName"
           data-automation-id="nav-profile-name-display"
         />
@@ -63,13 +62,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useAuth } from '../composables/useAuth'
+import { resolveEditorConfig, useEditorConfig } from '../composables/useEditorConfig'
 import { redirectToIdpLogin } from '../utils/idpRedirect'
 import { JOURNEY_APP_PATHS, buildJourneyUrl } from '../utils/journeyUrls'
-import {
-  readDisplayName,
-  readProfilePicture,
-  visibleUniversalNavItems,
-} from '../composables/universalNav'
+import { readConfigDisplayName } from '../utils/tokenDisplay'
+import { readProfilePicture, visibleUniversalNavItems } from '../composables/universalNav'
 
 const props = defineProps<{
   pageTitle: string
@@ -89,7 +86,10 @@ const profileHref = computed(() => {
 })
 
 const profilePicture = computed(() => readProfilePicture())
-const profileDisplayName = computed(() => readDisplayName())
+const injectedConfig = useEditorConfig()
+const profileDisplayName = computed(() =>
+  readConfigDisplayName(resolveEditorConfig(injectedConfig))
+)
 
 function toggleDrawer() {
   drawer.value = !drawer.value

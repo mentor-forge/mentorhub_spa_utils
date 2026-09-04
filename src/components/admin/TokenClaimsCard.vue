@@ -98,6 +98,10 @@ const props = defineProps<Props>()
 const roles = computed(() => getTokenRoles(props.token))
 
 function claimDisplay(key: string): string {
-  return getTokenValueUtil(props.token, key) || 'N/A'
+  const value = getTokenValueUtil(props.token, key)
+  if (key === 'display_name') {
+    return value && value.trim() ? value.trim() : 'unknown'
+  }
+  return value || 'N/A'
 }
 </script>

@@ -101,7 +101,7 @@ describe('TokenClaimsCard', () => {
     expect(findField(wrapper, 'admin-token-profile-id-display').attributes('value')).toBe('N/A')
     expect(findField(wrapper, 'admin-token-customer-id-display').attributes('value')).toBe('N/A')
     expect(findField(wrapper, 'admin-token-mentor-id-display').attributes('value')).toBe('N/A')
-    expect(findField(wrapper, 'admin-token-display-name-display').attributes('value')).toBe('N/A')
+    expect(findField(wrapper, 'admin-token-display-name-display').attributes('value')).toBe('unknown')
     expect(wrapper.find('[aria-label="IP Address"]').attributes('value')).toBe('N/A')
     expect(wrapper.text()).toContain('No roles assigned')
   })
@@ -135,7 +135,7 @@ describe('TokenClaimsCard', () => {
     })
 
     const displayName = findField(wrapper, 'admin-token-display-name-display')
-    expect(displayName.attributes('value')).toBe('N/A')
+    expect(displayName.attributes('value')).toBe('unknown')
     expect(displayName.attributes('value')).not.toBe('Full Name')
     expect(displayName.attributes('value')).not.toBe('Given')
     expect(displayName.attributes('value')).not.toBe('ada@example.com')

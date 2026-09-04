@@ -100,7 +100,7 @@ describe('Admin Page', () => {
         .should('have.value', STUB_TOKEN.mentor_id)
     })
 
-    it('should show N/A for display_name when the intercepted token omits the claim', () => {
+    it('should show unknown for display_name when the intercepted token omits the claim', () => {
       const { display_name: _omitted, ...tokenWithoutDisplayName } = STUB_TOKEN
       cy.intercept('GET', '**/api/config', {
         statusCode: 200,
@@ -118,7 +118,7 @@ describe('Admin Page', () => {
       cy.get('[data-automation-id="admin-token-display-name-display"]')
         .should('be.visible')
         .find('input')
-        .should('have.value', 'N/A')
+        .should('have.value', 'unknown')
     })
   })
   
