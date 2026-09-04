@@ -16,11 +16,6 @@
       class="me-4 d-inline-flex align-center"
       data-automation-id="nav-profile-link"
     >
-      <span
-        v-if="profileDisplayName"
-        class="me-2"
-        data-automation-id="nav-profile-name-display"
-      >{{ profileDisplayName }}</span>
       <v-avatar>
         <v-img v-if="profilePicture" :src="profilePicture" alt="" />
         <v-icon v-else>mdi-account</v-icon>
@@ -42,15 +37,22 @@
         :data-automation-id="item.automationId"
       />
     </v-list>
-    <v-divider />
-    <v-list density="compact" nav>
-      <v-list-item
-        prepend-icon="mdi-logout"
-        title="Logout"
-        data-automation-id="nav-logout-link"
-        @click="handleLogout"
-      />
-    </v-list>
+    <template #append>
+      <v-divider />
+      <v-list density="compact" nav>
+        <v-list-item
+          prepend-icon="mdi-logout"
+          title="Logout"
+          data-automation-id="nav-logout-link"
+          @click="handleLogout"
+        />
+        <v-list-item
+          v-if="profileDisplayName"
+          :title="profileDisplayName"
+          data-automation-id="nav-profile-name-display"
+        />
+      </v-list>
+    </template>
   </v-navigation-drawer>
 
   <v-main>

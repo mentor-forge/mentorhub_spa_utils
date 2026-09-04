@@ -43,21 +43,21 @@ describe('DataCard', () => {
 
   describe('nameField live binding', () => {
     it('should render the model value at nameField next to the title', () => {
-      const model = reactive({ full_name: 'Ada Lovelace' })
+      const model = reactive({ display_name: 'Ada Lovelace' })
       const wrapper = mount(DataCard, {
-        props: { title: 'Identity', nameField: 'full_name', model, onSave: vi.fn() },
+        props: { title: 'Identity', nameField: 'display_name', model, onSave: vi.fn() },
       })
 
       expect(wrapper.text()).toContain('Ada Lovelace')
     })
 
     it('should update the displayed name reactively when the model changes', async () => {
-      const model = reactive({ full_name: 'Ada Lovelace' })
+      const model = reactive({ display_name: 'Ada Lovelace' })
       const wrapper = mount(DataCard, {
-        props: { title: 'Identity', nameField: 'full_name', model, onSave: vi.fn() },
+        props: { title: 'Identity', nameField: 'display_name', model, onSave: vi.fn() },
       })
 
-      model.full_name = 'Grace Hopper'
+      model.display_name = 'Grace Hopper'
       await wrapper.vm.$nextTick()
 
       expect(wrapper.text()).toContain('Grace Hopper')
@@ -66,7 +66,7 @@ describe('DataCard', () => {
 
     it('should omit the name display when nameField is not set', () => {
       const wrapper = mount(DataCard, {
-        props: { title: 'Identity', model: reactive({ full_name: 'Ada Lovelace' }), onSave: vi.fn() },
+        props: { title: 'Identity', model: reactive({ display_name: 'Ada Lovelace' }), onSave: vi.fn() },
       })
 
       expect(wrapper.text()).not.toContain('Ada Lovelace')
