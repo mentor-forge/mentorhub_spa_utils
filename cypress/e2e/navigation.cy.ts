@@ -160,11 +160,11 @@ describe('Navigation & Routing', () => {
         .should('be.visible')
         .and('have.attr', 'href')
         .and('include', '/customer/profile/')
-      // Live DE / signCypressJwt tokens omit display_name — compact avatar-only chrome.
+      // Live DE / signCypressJwt tokens omit display_name — no drawer name row.
       cy.get('[data-automation-id="nav-profile-name-display"]').should('not.exist')
     })
 
-    it('should show JWT display_name next to the profile avatar when the claim is stubbed', () => {
+    it('should show JWT display_name below logout in the drawer when the claim is stubbed', () => {
       cy.clearLocalStorage()
       cy.login(['admin'])
       // Intercept config so a payload-patched JWT (invalid signature) cannot 401 the demo.
@@ -185,8 +185,17 @@ describe('Navigation & Routing', () => {
         .and('include', '/customer/profile/')
       cy.get('[data-automation-id="nav-profile-link"]')
         .find('[data-automation-id="nav-profile-name-display"]')
+        .should('not.exist')
+      openDrawer()
+      cy.get('[data-automation-id="nav-logout-link"]').should('be.visible')
+      cy.get('[data-automation-id="nav-profile-name-display"]')
         .should('be.visible')
         .and('contain', 'Ada Lovelace')
+        .then(($name) => {
+          cy.get('[data-automation-id="nav-logout-link"]').then(($logout) => {
+            expect($name[0].compareDocumentPosition($logout[0]) & Node.DOCUMENT_POSITION_PRECEDING).to.not.equal(0)
+          })
+        })
     })
 
     it('should build Home href to discovery on welcome :8080 from the Vite debug port', () => {

@@ -211,7 +211,7 @@ describe('PageFrame', () => {
     expect(wrapper.find('.v-icon-stub').exists()).toBe(false)
   })
 
-  it('shows JWT display_name next to the avatar when the claim is present', () => {
+  it('shows JWT display_name below logout at the drawer bottom when the claim is present', () => {
     localStorage.setItem(
       'access_token',
       encodeJwt({
@@ -220,10 +220,15 @@ describe('PageFrame', () => {
       })
     )
     const wrapper = mountPageFrame()
+    const logout = wrapper.find('[data-automation-id="nav-logout-link"]')
     const name = wrapper.find('[data-automation-id="nav-profile-name-display"]')
+    expect(logout.exists()).toBe(true)
     expect(name.exists()).toBe(true)
     expect(name.text()).toBe('Ada Lovelace')
-    expect(wrapper.find('[data-automation-id="nav-profile-link"]').text()).toContain('Ada Lovelace')
+    expect(wrapper.find('[data-automation-id="nav-profile-link"]').text()).not.toContain('Ada Lovelace')
+    expect(wrapper.html().indexOf('nav-logout-link')).toBeLessThan(
+      wrapper.html().indexOf('nav-profile-name-display')
+    )
     expect(wrapper.find('img').attributes('src')).toBe('https://cdn.example/avatar.png')
   })
 
