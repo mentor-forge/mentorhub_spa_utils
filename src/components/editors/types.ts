@@ -67,6 +67,11 @@ export interface EnumeratorVersionPayload {
  */
 export interface RuntimeEditorConfig {
   enumerators?: EnumeratorVersionPayload[]
+  /** Verified token claims from `/api/config` (API decoded the JWT). */
+  token?: {
+    display_name?: unknown
+    [key: string]: unknown
+  }
 }
 
 /** Vuetify-ready option resolved from a runtime enumerator value. */

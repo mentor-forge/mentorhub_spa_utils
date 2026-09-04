@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 import {
   e2eDefaultCustomerId,
   e2eDefaultMentorId,
-  e2eDefaultName,
+  e2eDefaultDisplayName,
   e2eDefaultProfileId,
   e2eDefaultSubject,
 } from '../config/jwtDefaults'
@@ -11,7 +11,7 @@ export interface SignCypressJwtInput {
   roles: string[]
   secret: string
   sub?: string
-  name?: string
+  display_name?: string
   profile_id?: string
   customer_id?: string
   mentor_id?: string
@@ -27,7 +27,7 @@ export function signCypressJwt({
   roles,
   secret,
   sub,
-  name,
+  display_name,
   profile_id,
   customer_id,
   mentor_id,
@@ -36,7 +36,7 @@ export function signCypressJwt({
   const token = jwt.sign(
     {
       sub: sub ?? e2eDefaultSubject,
-      name: name ?? e2eDefaultName,
+      display_name: display_name ?? e2eDefaultDisplayName,
       iss: 'dev-idp',
       aud: 'dev-api',
       roles,

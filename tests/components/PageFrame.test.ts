@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { computed } from 'vue'
 import { shallowMount } from '@vue/test-utils'
 import PageFrame from '../../src/components/PageFrame.vue'
+import type { RuntimeEditorConfig } from '../../src/components/editors/types'
+import { editorConfigKey } from '../../src/composables/useEditorConfig'
 import { useAuth } from '../../src/composables/useAuth'
 import { redirectToIdpLogin } from '../../src/utils/idpRedirect'
 import { JOURNEY_APP_PATHS, buildJourneyUrl, hostingConfigHref } from '../../src/utils/journeyUrls'
@@ -59,13 +61,17 @@ const vuetifyStubs = {
 
 function mountPageFrame(
   props: { pageTitle?: string; customerName?: string } = {},
-  options: Record<string, unknown> = {}
+  options: Record<string, unknown> = {},
+  config?: RuntimeEditorConfig | null
 ) {
   return shallowMount(PageFrame, {
     props: { pageTitle: 'Discover', ...props },
     global: {
       renderStubDefaultSlot: true,
       stubs: vuetifyStubs,
+      provide: {
+        [editorConfigKey as symbol]: computed(() => config),
+      },
     },
     ...options,
   })
@@ -103,7 +109,7 @@ describe('PageFrame', () => {
     expect(profile.attributes('href')).toBe(buildJourneyUrl(journey, path))
     expect(profile.classes()).toContain('me-4')
     expect(wrapper.find('.v-icon-stub').exists()).toBe(true)
-    expect(wrapper.find('[data-automation-id="nav-profile-name-display"]').exists()).toBe(false)
+    expect(wrapper.find('[data-automation-id="nav-profile-name-display"]').text()).toBe('unknown')
   })
 
   it('hides hamburger, drawer, and profile when unauthenticated', () => {
@@ -211,15 +217,16 @@ describe('PageFrame', () => {
     expect(wrapper.find('.v-icon-stub').exists()).toBe(false)
   })
 
-  it('shows JWT display_name below logout at the drawer bottom when the claim is present', () => {
+  it('shows config token display_name below logout at the drawer bottom', () => {
     localStorage.setItem(
       'access_token',
-      encodeJwt({
-        display_name: '  Ada Lovelace  ',
-        picture: 'https://cdn.example/avatar.png',
-      })
+      encodeJwt({ picture: 'https://cdn.example/avatar.png' })
     )
-    const wrapper = mountPageFrame()
+    const wrapper = mountPageFrame(
+      {},
+      {},
+      { token: { display_name: '  Ada Lovelace  ' } }
+    )
     const logout = wrapper.find('[data-automation-id="nav-logout-link"]')
     const name = wrapper.find('[data-automation-id="nav-profile-name-display"]')
     expect(logout.exists()).toBe(true)
@@ -232,41 +239,38 @@ describe('PageFrame', () => {
     expect(wrapper.find('img').attributes('src')).toBe('https://cdn.example/avatar.png')
   })
 
-  it('keeps compact avatar-only chrome when display_name is blank or missing', () => {
-    localStorage.setItem('access_token', encodeJwt({ display_name: '   ' }))
-    const blankWrapper = mountPageFrame()
-    expect(blankWrapper.find('[data-automation-id="nav-profile-name-display"]').exists()).toBe(false)
-    expect(blankWrapper.find('[data-automation-id="nav-profile-link"]').exists()).toBe(true)
-    expect(blankWrapper.find('.v-icon-stub').exists()).toBe(true)
+  it('shows unknown when config token display_name is blank or missing', () => {
+    const blankWrapper = mountPageFrame({}, {}, { token: { display_name: '   ' } })
+    expect(blankWrapper.find('[data-automation-id="nav-profile-name-display"]').text()).toBe(
+      'unknown'
+    )
 
-    localStorage.setItem('access_token', encodeJwt({ picture: 'https://cdn.example/me.png' }))
-    const missingWrapper = mountPageFrame()
-    expect(missingWrapper.find('[data-automation-id="nav-profile-name-display"]').exists()).toBe(false)
-    expect(missingWrapper.find('img').attributes('src')).toBe('https://cdn.example/me.png')
-  })
+    const missingWrapper = mountPageFrame({}, {}, { token: {} })
+    expect(missingWrapper.find('[data-automation-id="nav-profile-name-display"]').text()).toBe(
+      'unknown'
+    )
 
-  it('keeps compact avatar-only chrome when the JWT is malformed', () => {
-    localStorage.setItem('access_token', 'not-a-jwt')
-    const wrapper = mountPageFrame()
-    expect(wrapper.find('[data-automation-id="nav-profile-name-display"]').exists()).toBe(false)
-    expect(wrapper.find('[data-automation-id="nav-profile-link"]').exists()).toBe(true)
-    expect(wrapper.find('.v-icon-stub').exists()).toBe(true)
+    const noConfigWrapper = mountPageFrame()
+    expect(noConfigWrapper.find('[data-automation-id="nav-profile-name-display"]').text()).toBe(
+      'unknown'
+    )
   })
 
   it('does not synthesize display_name from name, given_name, email, user_id, or sub', () => {
-    localStorage.setItem(
-      'access_token',
-      encodeJwt({
-        name: 'Full Name',
-        given_name: 'Given',
-        email: 'ada@example.com',
-        user_id: 'legacy-user-id',
-        sub: 'legacy-sub',
-      })
+    const wrapper = mountPageFrame(
+      {},
+      {},
+      {
+        token: {
+          name: 'Full Name',
+          given_name: 'Given',
+          email: 'ada@example.com',
+          user_id: 'legacy-user-id',
+          sub: 'legacy-sub',
+        },
+      }
     )
-    const wrapper = mountPageFrame()
-    expect(wrapper.find('[data-automation-id="nav-profile-name-display"]').exists()).toBe(false)
-    expect(wrapper.find('[data-automation-id="nav-profile-link"]').exists()).toBe(true)
+    expect(wrapper.find('[data-automation-id="nav-profile-name-display"]').text()).toBe('unknown')
     expect(wrapper.text()).not.toContain('Full Name')
     expect(wrapper.text()).not.toContain('Given')
     expect(wrapper.text()).not.toContain('ada@example.com')

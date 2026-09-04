@@ -11,7 +11,7 @@ Reusable Vue 3 + Vuetify components, composables, and utilities for Mentor Hub j
 Install from CodeArtifact (run `mh` first for credentials):
 
 ```bash
-npm install @mentor-forge/mentorhub_spa_utils@1.0.4
+npm install @mentor-forge/mentorhub_spa_utils@1.0.5
 ```
 
 **Component styles:** Prefer the package root import so Vite consumers receive component CSS automatically (the built `dist/index.js` side-effect-imports `./index.css`; `package.json` marks `**/*.css` and `./dist/index.js` as `sideEffects` so bundlers keep that import). Optionally import the stylesheet once at app bootstrap:
@@ -221,7 +221,7 @@ See [demo/router.ts](./demo/router.ts) and [demo/bootstrap-auth.ts](./demo/boots
 
 ### Universal PageFrame (1.0.0)
 
-**1.0.0** replaces per-SPA layout chrome with shared **`PageFrame`** navigation: app bar, role-gated hamburger drawer, profile link, and logout. Journey SPAs should adopt `@mentor-forge/mentorhub_spa_utils@1.0.4` and remove local nav shells.
+**1.0.0** replaces per-SPA layout chrome with shared **`PageFrame`** navigation: app bar, role-gated hamburger drawer, profile link, and logout. Journey SPAs should adopt `@mentor-forge/mentorhub_spa_utils@1.0.5` and remove local nav shells.
 
 Journey SPAs share compiled-in layout chrome: app bar (title, hamburger, profile), a role-gated navigation drawer, and logout. Import `{ PageFrame }` from the package root and wrap page content inside the host SPA’s single `v-app`:
 
@@ -263,11 +263,11 @@ Cross-SPA collection entry (Products, Customer, Customer Members, and other org 
 
 **Removed hamburger automation ids:** `nav-products-link`, `nav-customer-link`, `nav-customer-members-link`. **New:** `nav-events-link`. **Kept:** `nav-settings-link` (href is now hosting `/config`).
 
-The profile avatar (OIDC `picture` claim when present, else `mdi-account`) links to **`/customer/profile/`** via `buildJourneyUrl`. **Logout** is pinned to the drawer footer (`#append`): `logout()` then `redirectToIdpLogin(buildJourneyUrl('discovery'))` so IdP `return_to` is the runtime-hostname ALB `/discovery/` — never `` `${origin}/` `` and never a hardcoded `127.0.0.1` SPA URL. When the JWT **`display_name`** claim is present and non-blank, that name renders as the next row under Logout (`data-automation-id="nav-profile-name-display"`). The name node is omitted when the claim is blank or missing — spa_utils does not fall back to `name`, `given_name`, `email`, `user_id`, or `sub`.
+The profile avatar (OIDC `picture` claim when present, else `mdi-account`) links to **`/customer/profile/`** via `buildJourneyUrl`. **Logout** is pinned to the drawer footer (`#append`): `logout()` then `redirectToIdpLogin(buildJourneyUrl('discovery'))` so IdP `return_to` is the runtime-hostname ALB `/discovery/` — never `` `${origin}/` `` and never a hardcoded `127.0.0.1` SPA URL. The next row under Logout (`data-automation-id="nav-profile-name-display"`) is `/api/config` `token.display_name` from the injected editor config (the API already verified the JWT). Blank or missing values render `unknown`. PageFrame does not decode the access token for this label and does not fall back to `name`, `given_name`, `email`, `user_id`, or `sub`.
 
 #### Admin config and Token claims
 
-`AdminPage` (Config Items, Versions, Enumerators, Token) is hosted by each journey SPA at `{origin}/{journey}/config`. The Token tab (`TokenClaimsCard`) shows the following read-only claims (not a generic **ID**). Missing string claims display `N/A`.
+`AdminPage` (Config Items, Versions, Enumerators, Token) is hosted by each journey SPA at `{origin}/{journey}/config`. The Token tab (`TokenClaimsCard`) shows the following read-only claims (not a generic **ID**). Missing `display_name` displays `unknown`; other missing string claims display `N/A`.
 
 | Field | Source claim | Automation id |
 |-------|--------------|---------------|
