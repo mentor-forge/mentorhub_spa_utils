@@ -160,7 +160,24 @@ describe('Navigation & Routing', () => {
         .should('be.visible')
         .and('have.attr', 'href')
         .and('include', '/customer/profile/')
-      // Config has not provided token.display_name yet — drawer shows unknown.
+      // Config provides token.display_name from the authenticated session.
+      cy.get('[data-automation-id="nav-drawer-toggle"]').should('be.visible').click({ force: true })
+      cy.get('[data-automation-id="nav-profile-name-display"]').should('contain', 'Cypress User')
+    })
+
+    it('should show unknown in drawer when config token display_name is missing', () => {
+      cy.clearLocalStorage()
+      cy.intercept('GET', '**/api/config', {
+        statusCode: 200,
+        body: {
+          config_items: [],
+          versions: [],
+          enumerators: [],
+          token: {},
+        },
+      })
+      cy.login(['user'])
+      cy.url({ timeout: 5000 }).should('include', '/demo')
       cy.get('[data-automation-id="nav-drawer-toggle"]').should('be.visible').click({ force: true })
       cy.get('[data-automation-id="nav-profile-name-display"]').should('contain', 'unknown')
     })
