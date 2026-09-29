@@ -32,7 +32,7 @@ describe('component style packaging', () => {
     )
   })
 
-  it('links dist CSS from the package-root JS entry and keeps CardGrid layout rules', () => {
+  it('links dist CSS from the package-root JS entry and keeps DataCardGrid layout rules', () => {
     expect(existsSync(distJsPath)).toBe(true)
     expect(existsSync(distCssPath)).toBe(true)
 
@@ -40,10 +40,11 @@ describe('component style packaging', () => {
     expect(js).toMatch(/import\s+['"]\.\/index\.css['"]/)
 
     const css = readFileSync(distCssPath, 'utf8')
-    expect(css).toContain('.mh-card-grid')
+    expect(css).toContain('.data-card-grid')
+    expect(css).not.toContain('.mh-card-grid')
     expect(css).toMatch(/grid-template-columns/)
-    expect(css).toMatch(/repeat\(\s*8\s*,\s*minmax\(\s*0\s*,\s*1fr\s*\)\s*\)/)
+    expect(css).toMatch(/repeat\(\s*2\s*,\s*minmax\(\s*0\s*,\s*1fr\s*\)\s*\)/)
+    expect(css).toMatch(/repeat\(\s*4\s*,\s*minmax\(\s*0\s*,\s*1fr\s*\)\s*\)/)
     expect(css).toContain('.mh-card--collapsed')
-    expect(css).toMatch(/align-self:\s*flex-start/)
   })
 })

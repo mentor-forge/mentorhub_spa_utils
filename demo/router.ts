@@ -22,12 +22,6 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
-      path: '/demo/dashboard',
-      name: 'DemoDashboard',
-      component: () => import('./pages/DashboardPage.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
       path: '/admin',
       redirect: '/config',
     },

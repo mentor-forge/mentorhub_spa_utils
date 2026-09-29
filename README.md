@@ -11,7 +11,7 @@ Reusable Vue 3 + Vuetify components, composables, and utilities for Mentor Hub j
 Install from CodeArtifact (run `mh` first for credentials):
 
 ```bash
-npm install @mentor-forge/mentorhub_spa_utils@1.0.5
+npm install @mentor-forge/mentorhub_spa_utils@1.0.6
 ```
 
 **Component styles:** Prefer the package root import so Vite consumers receive component CSS automatically (the built `dist/index.js` side-effect-imports `./index.css`; `package.json` marks `**/*.css` and `./dist/index.js` as `sideEffects` so bundlers keep that import). Optionally import the stylesheet once at app bootstrap:
@@ -20,63 +20,56 @@ npm install @mentor-forge/mentorhub_spa_utils@1.0.5
 import '@mentor-forge/mentorhub_spa_utils/style.css'
 ```
 
-That entry maps to `dist/index.css` via `exports["./style.css"]`. In published `0.5.3`, a JS-only root import was insufficient: layout CSS existed only as an unlinked `dist/index.css`, so `CardGrid` rendered as a single column without equal-height rows.
+That entry maps to `dist/index.css` via `exports["./style.css"]`. In published `0.5.3`, a JS-only root import was insufficient: layout CSS existed only as an unlinked `dist/index.css`, so multi-card layouts rendered incorrectly without equal-height / multi-column rules.
 
-Working examples live in the [demo app](./demo/): IdP auth, **PageFrame** (catalog hamburger), **type editor gallery** (`/demo/editors`), **cards dashboard** (`/demo/dashboard`), legacy component demos (`/demo`), and admin config (`/config`).
+Working examples live in the [demo app](./demo/): IdP auth, **PageFrame** (catalog hamburger), **type editor gallery** (`/demo/editors`), legacy component demos (`/demo`), and admin config (`/config`).
 
 ### Preferred UI: Cards + type-aligned field editors
 
-New list and view/edit pages should compose **`CardGrid` / `MhCard` / `DataCard`** with **configurator-type editors** under `src/components/editors/`. Prefer these over ad-hoc Vuetify fields.
+New **multi-card view/edit** pages should compose **`DataCardGrid` / `DataCard` / `MhCard`** with **configurator-type editors** under `src/components/editors/`. Prefer these over ad-hoc Vuetify fields. **List card dashboards** belong to Discovery (not this package). Shared list **`CardGrid`** left this package in **1.0.6**.
 
-#### MhCard / CardGrid / DataCard
+#### MhCard / DataCard / DataCardGrid
 
-Adaptive card chrome for list dashboards and declarative edit forms. Defaults use stock Vuetify/Material Design (`density="comfortable"`, `variant="outlined"` on form controls).
+Adaptive card chrome for declarative edit forms. Defaults use stock Vuetify/Material Design (`density="comfortable"`, `variant="outlined"` on form controls).
 
-**Demo:** [DashboardPage.vue](./demo/pages/DashboardPage.vue) (`/demo/dashboard`), [EditorsPage.vue](./demo/pages/EditorsPage.vue) (`/demo/editors`)
+**Demo:** [EditorsPage.vue](./demo/pages/EditorsPage.vue) (`/demo/editors`)
 
 | Component | Role |
 |-----------|------|
-| `MhCard` | Solid-color title bar (title + optional `name`), white body, `#actions` slot, optional collapse (`collapsible`; uncontrolled or `v-model:collapsed`; **no persistence**). A standalone `MhCard` keeps its intrinsic height. |
-| `CardGrid` | Fixed responsive CSS Grid with equal-width tracks and a 16px gap. Expanded `MhCard` siblings stretch to equal height within each visual row; this override is scoped to cards inside `CardGrid`. |
+| `MhCard` | Solid-color title bar (title + optional `name`), white body, `#actions` slot, optional collapse (`collapsible`; uncontrolled or `v-model:collapsed`; **no persistence**). A standalone `MhCard` keeps its intrinsic height. Collapsed chrome uses `.mh-card--collapsed`. |
 | `DataCard` | Form section: composes `MhCard`, takes `model` + optional `nameField` + `onSave`, and `provide`s context so child editors bind by `field` |
+| `DataCardGrid` | Multi-card view/edit layout: CSS Grid slot wrapper (class `data-card-grid`, hardcoded `data-automation-id="data-card-grid"`). No props. Children render as authored (not a Fragment flattener). |
 
-`CardGrid` layout rules live in the package stylesheet (not Vuetify). Importing `{ CardGrid }` from `@mentor-forge/mentorhub_spa_utils` pulls that CSS for Vite consumers; see [Component styles](#usage) above. Omitting the stylesheet (as with the unlinked `0.5.3` artifact) yields single-column / non-equal-height markup.
+Layout CSS for `DataCardGrid` and `MhCard` lives in the package stylesheet (not Vuetify). Importing from `@mentor-forge/mentorhub_spa_utils` pulls that CSS for Vite consumers; see [Component styles](#usage) above. Omitting the stylesheet (as with the unlinked `0.5.3` artifact) yields incorrect layout markup.
 
-`CardGrid` has a fixed, container-width-based column contract:
+##### DataCardGrid (multi-card view/edit) — added in 1.0.6
 
-- 1 column from 0px
-- 2 columns from 600px (`sm`)
-- 3 columns from 960px (`md`)
-- 4 columns from 1280px (`lg`)
-- 5 columns from 1600px
-- 6 columns from 1920px (`xl`)
-- 7 columns from 2240px
-- 8 columns from 2560px (`xxl`), permanently capped at eight
+Use `DataCardGrid` for pages that lay out several `DataCard` sections. Do not pass breakpoint props or expect Fragment/`v-for` flattening.
 
-Consumers control the width available to the grid through their page or container. For example, use a fluid/wide container when 5–8 columns should be visible; `CardGrid` does not make the page wider.
+Fixed column contract (not prop-driven):
 
-Height behavior is deliberate:
+- 1 column below 641px
+- 2 columns from 641px
+- 4 columns from 1920px (permanent maximum; no three-column step)
+- 16px gap
 
-- Expanded `MhCard` instances in a `CardGrid` stretch to the tallest expanded card in their visual row.
-- Stretching is scoped to `CardGrid`; an `MhCard` rendered elsewhere remains intrinsic height.
-- A collapsed `.mh-card--collapsed` inside a grid remains at its intrinsic title-bar height and does not stretch to expanded row siblings.
+Root markup is always `class="data-card-grid"` with hardcoded `data-automation-id="data-card-grid"`. Layout CSS ships with the package stylesheet.
 
-The default slot is structural: `CardGrid` recursively flattens Fragment content (including `v-for` templates), creates one grid item per meaningful VNode, preserves each VNode key (falling back to its flattened index), and skips null, comment, and text nodes. The optional `automationId` prop is applied as `data-automation-id` on the `.mh-card-grid` root.
+**Demo:** [`/demo/editors`](./demo/pages/EditorsPage.vue)
 
 ```vue
-<CardGrid automation-id="profile-grid">
+<DataCardGrid>
   <DataCard title="Identity" name-field="word" :model="doc" :on-save="saveField">
     <WordEditor field="word" label="Name" automation-id="profile-name" />
     <MarkdownEditor field="description" label="Description" automation-id="profile-description" />
   </DataCard>
-</CardGrid>
+  <DataCard title="Notes" :model="doc" :on-save="saveField">
+    <MarkdownEditor field="notes" label="Notes" automation-id="profile-notes" />
+  </DataCard>
+</DataCardGrid>
 ```
 
-**Migration in `0.5.3`:** The fixed CSS Grid behavior was released as a patch by an explicit early-development maintainer decision. Existing `CardGrid` consumers automatically receive the new layout and equal-height expanded cards. The former `cols`, `sm`, `md`, `lg`, and `xl` props are removed; consumers now control available page/container width instead of column counts. Consumers that require intrinsic-height expanded cards must adjust their design or render those cards without `CardGrid`. In-repo consumers such as `/demo/editors` inherit the fixed layout after removing the old breakpoint props.
-
-To verify wide layouts, run the demo and open [`/demo/dashboard`](./demo/pages/DashboardPage.vue). Give the browser viewport approximately 1600, 1920, 2240, and 2560px of width and confirm 5, 6, 7, and 8 columns; widen beyond 2560px and confirm the grid remains capped at 8. The dashboard also demonstrates equal-height expanded siblings and a collapsed card that stays at title-bar height.
-
-**Sources:** [MhCard.vue](./src/components/MhCard.vue), [CardGrid.vue](./src/components/CardGrid.vue), [DataCard.vue](./src/components/DataCard.vue)  
+**Sources:** [MhCard.vue](./src/components/MhCard.vue), [DataCard.vue](./src/components/DataCard.vue), [DataCardGrid.vue](./src/components/DataCardGrid.vue)  
 **Context helpers:** [useDataCardContext.ts](./src/composables/useDataCardContext.ts)
 
 #### Type-aligned editors (field components)
@@ -91,7 +84,7 @@ Configurator-type view/edit controls. Prefer these for new forms.
 |------|-----------|-------|
 | `word` | `WordEditor` | 1–40 chars, no whitespace |
 | `sentence` | `SentenceEditor` | 0–255, no tabs/newlines |
-| `markdown` | `MarkdownEditor` | textarea, max 4096 |
+| `markdown` | `MarkdownEditor` | **1.0.6** resting view is sanitized GFM HTML (`marked` + `dompurify`, bundled — consumers do not import them). Editable fields click or Enter into a textarea (max 4096 via `markdownPattern`); read-only fields render markdown with no edit affordance. Props unchanged: `field`, `modelValue`, `onSave`, `editable`, `visible`, `automationId`, `label`, `hint`, `rules`, `rows`. Automation ids: root `automationId`, input `${automationId}-input`, display `${automationId}-display` (no double `-display` suffix), value `markdown-field-display`. |
 | `email` | `EmailEditor` | email pattern |
 | `url` | `UrlEditor` | URI; link in view mode |
 | `us_phone` | `UsPhoneEditor` | US phone patterns |
@@ -146,7 +139,7 @@ Import from the package root (preferred — includes component CSS for Vite) or 
 
 ```typescript
 import {
-  CardGrid,
+  DataCardGrid,
   DataCard,
   WordEditor,
   MarkdownEditor,
@@ -174,7 +167,7 @@ import {
 4. **Unit-test** the local control (Vitest / Vue Test Utils) with the same coverage targets as spa_utils components.
 5. **When a second SPA needs it (or it is clearly shared), harvest:**
    - First, move the shared implementation into `mentorhub_spa_utils` under `src/components/editors/` (or `src/components/` for layout), export it from `src/components/index.ts` / package `./components`, and add shared unit tests.
-   - Next, add demo coverage on `/demo/editors` (or `/demo/dashboard`) and Cypress where interactive, then document the shared contract in this README.
+   - Next, add demo coverage on `/demo/editors` and Cypress where interactive, then document the shared contract in this README.
    - Then bump the appropriate spa_utils version and publish the release.
    - Finally, update downstream consumers to the released package and delete each local prototype only after adoption is verified.
 
@@ -184,7 +177,7 @@ Until harvest ships, keep the local control as a thin, contract-compatible dupli
 
 The following public API was **removed** from this package: `useInfiniteScroll`, `InfiniteScrollResponse`, `InfiniteScrollParams`, and `UseInfiniteScrollOptions`. Cursor fields **`after_id`**, **`limit`**, **`has_more`**, and **`next_cursor`** must not appear in SPA ↔ API contracts.
 
-**Replacements:** List UIs use **`CardGrid` + `MhCard`** (or tables) driven by **offset/size request headers** and a **plain JSON array body** (see `api_utils` Get List pattern). `useResourceList` remains only for simple non-cursor lists.
+**Replacements:** List UIs use **tables** or journey-owned list layouts driven by **offset/size request headers** and a **plain JSON array body** (see `api_utils` Get List pattern). List card dashboards belong to Discovery, not this package. `useResourceList` remains only for simple non-cursor lists.
 
 ### Authentication integration
 
@@ -221,7 +214,7 @@ See [demo/router.ts](./demo/router.ts) and [demo/bootstrap-auth.ts](./demo/boots
 
 ### Universal PageFrame (1.0.0)
 
-**1.0.0** replaces per-SPA layout chrome with shared **`PageFrame`** navigation: app bar, role-gated hamburger drawer, profile link, and logout. Journey SPAs should adopt `@mentor-forge/mentorhub_spa_utils@1.0.5` and remove local nav shells.
+**1.0.0** replaces per-SPA layout chrome with shared **`PageFrame`** navigation: app bar, role-gated hamburger drawer, profile link, and logout. Journey SPAs should adopt `@mentor-forge/mentorhub_spa_utils@1.0.6` and remove local nav shells.
 
 Journey SPAs share compiled-in layout chrome: app bar (title, hamburger, profile), a role-gated navigation drawer, and logout. Import `{ PageFrame }` from the package root and wrap page content inside the host SPA’s single `v-app`:
 
@@ -308,7 +301,7 @@ const eventsHref = buildJourneyUrl(journey, path)
 const settingsHref = hostingConfigHref()
 ```
 
-**List cards:** **Discovery** is the only journey SPA that hosts CardGrid list dashboards (home, events, members, resources, paths, plans, products, notifications). Other journey SPAs keep detail, edit, and create pages that Discovery cards and universal nav target; downstream adoption is tracked in spa_utils F039 ISSUE seeds.
+**List cards:** **Discovery** is the only journey SPA that hosts list card dashboards (home, events, members, resources, paths, plans, products, notifications). This package does not export a list card grid. Other journey SPAs keep detail, edit, and create pages that Discovery cards and universal nav target; downstream adoption is tracked in spa_utils F039 ISSUE seeds.
 
 #### URL bootstrap (`urlAuthBootstrap`)
 
@@ -336,7 +329,7 @@ Handle errors from queries/mutations with reactive error state. Returns `showErr
 
 #### useResourceList
 
-Generic list page pattern with search support, data fetching, error handling, and navigation. Still useful for simple lists; for card dashboards prefer **`CardGrid` + `MhCard`**. It is not a cursor or infinite-scroll helper and is not a substitute for offset/size card dashboards.
+Generic list page pattern with search support, data fetching, error handling, and navigation. Still useful for simple lists. It is not a cursor or infinite-scroll helper and is not a substitute for Discovery's offset/size list card dashboards.
 
 **Source:** [src/composables/useResourceList.ts](./src/composables/useResourceList.ts)  
 **Tests:** [tests/composables/useResourceList.test.ts](./tests/composables/useResourceList.test.ts)  
@@ -433,7 +426,7 @@ ISO-8601 duration parse/format used by `DurationEditor`.
 
 ## Demo App
 
-For complete working examples, see the [demo app](./demo/) — standard IdP auth redirect, **PageFrame** (catalog hamburger + logout), **component demo** (`/demo`), **type editor gallery** (`/demo/editors`), **cards dashboard** (`/demo/dashboard`), and **admin config** at `/config`. In-package demo links live on DemoPage; the hamburger mirrors journey SPAs. See [Authentication integration](#authentication-integration) and [Universal PageFrame](#universal-pageframe) above.
+For complete working examples, see the [demo app](./demo/) — standard IdP auth redirect, **PageFrame** (catalog hamburger + logout), **component demo** (`/demo`), **type editor gallery** (`/demo/editors`), and **admin config** at `/config`. In-package demo links live on DemoPage; the hamburger mirrors journey SPAs. See [Authentication integration](#authentication-integration) and [Universal PageFrame](#universal-pageframe) above.
 
 ## Contributing
 

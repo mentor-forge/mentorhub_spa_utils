@@ -18,12 +18,6 @@
             data-automation-id="demo-page-editors-link"
           />
           <v-list-item
-            to="/demo/dashboard"
-            title="Dashboard"
-            prepend-icon="mdi-view-dashboard-outline"
-            data-automation-id="demo-page-dashboard-link"
-          />
-          <v-list-item
             to="/config"
             title="Admin (Config)"
             prepend-icon="mdi-cog"

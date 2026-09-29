@@ -5,8 +5,9 @@
         <h1 class="text-h4 mb-2">Type Editor Gallery</h1>
         <p class="mb-4">
           Every configurator-type-aligned editor, bound to a single in-memory reactive model via
-          <code>DataCard</code>. Edits AutoSave (watch for the spinner / check mark next to each field) — nothing
-          is persisted to a server; this page is entirely client-side.
+          <code>DataCard</code>, laid out in a <code>DataCardGrid</code>. The markdown field renders
+          sanitized GFM and uses click-to-edit. Edits AutoSave (watch for the spinner / check mark next to
+          each field) — nothing is persisted to a server; this page is entirely client-side.
         </p>
         <v-switch
           v-model="contactEditable"
@@ -33,7 +34,7 @@
       </v-col>
     </v-row>
 
-    <CardGrid automation-id="editors-demo-grid">
+    <DataCardGrid>
       <DataCard
         title="Identity"
         color="primary"
@@ -176,7 +177,7 @@
       >
         <BreadcrumbDisplay field="breadcrumb" label="Last Change" automation-id="editors-breadcrumb" />
       </DataCard>
-    </CardGrid>
+    </DataCardGrid>
 
     <v-row v-if="saveLog.length">
       <v-col cols="12">
@@ -193,12 +194,13 @@
 
 <script setup lang="ts">
 // Demo: places every configurator-type-aligned editor (F018/F019/F026) into several
-// DataCards (F020) inside a CardGrid (F016), against one shared reactive model with
-// in-memory AutoSave stubs. Enum options come from App.vue's startup /api/config via
-// provideEditorConfig — no hard-coded option lists on the editors themselves.
+// DataCards (F020) inside a DataCardGrid (F050), against one shared reactive model with
+// in-memory AutoSave stubs. MarkdownEditor (F051) renders sanitized GFM with click-to-edit.
+// Enum options come from App.vue's startup /api/config via provideEditorConfig —
+// no hard-coded option lists on the editors themselves.
 import { reactive, ref } from 'vue'
 import {
-  CardGrid,
+  DataCardGrid,
   DataCard,
   WordEditor,
   SentenceEditor,

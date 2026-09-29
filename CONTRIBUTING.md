@@ -53,7 +53,7 @@ npm run cypress:run
 mentorhub_spa_utils/
 ├── src/
 │   ├── composables/     # Reusable composables (useAuth, useDataCardContext, universalNav, …)
-│   ├── components/      # Vue components (PageFrame, MhCard, CardGrid, DataCard, AutoSave*, …)
+│   ├── components/      # Vue components (PageFrame, MhCard, DataCard, DataCardGrid, AutoSave*, …)
 │   │   ├── editors/     # Configurator-type editors (WordEditor, DurationEditor, …)
 │   │   └── admin/       # Admin/config display components
 │   ├── utils/           # Utility functions (journeyUrls, validation, duration, urlAuthBootstrap, …)
@@ -62,12 +62,11 @@ mentorhub_spa_utils/
 │   ├── App.vue          # Layout: v-app + PageFrame (product hamburger) + router-view; provideEditorConfig(startup config)
 │   ├── main.ts          # Entry point
 │   ├── bootstrap-auth.ts    # bootstrapAuthFromUrl + syncAuthFromStorage before app
-│   ├── router.ts        # Routes: /demo, /demo/editors, /demo/dashboard, /config (/admin redirects here)
+│   ├── router.ts        # Routes: /demo, /demo/editors, /config (/admin redirects here)
 │   ├── composables/     # useConfig (typed RuntimeEditorConfig; demo-only); useAuth from src/composables
 │   ├── pages/
 │   │   ├── DemoPage.vue       # Legacy AutoSave / utility demos
-│   │   ├── EditorsPage.vue    # Type-aligned editor gallery (DataCards), incl. Enum/EnumArray
-│   │   ├── DashboardPage.vue  # CardGrid + MhCard list dashboard
+│   │   ├── EditorsPage.vue    # Type-aligned editor gallery (DataCardGrid + DataCards), incl. Enum/EnumArray
 │   │   └── AdminPage.vue      # Config (api_utils /api/config)
 │   ├── components/      # Admin UI (config tables; TokenClaimsCard is packaged)
 │   └── utils/           # Admin helpers
@@ -96,7 +95,7 @@ When adding new utilities, components, or composables:
    - Follow existing test patterns
 
 4. **Add examples to the demo app:**
-   - Typed editors / cards → [demo/pages/EditorsPage.vue](./demo/pages/EditorsPage.vue) or [DashboardPage.vue](./demo/pages/DashboardPage.vue)
+   - Typed editors / cards → [demo/pages/EditorsPage.vue](./demo/pages/EditorsPage.vue)
    - Legacy / misc components → [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) (or AdminPage as appropriate)
    - Register routes in [demo/router.ts](./demo/router.ts) and in-package demo links on [demo/pages/DemoPage.vue](./demo/pages/DemoPage.vue) when adding pages
    - This helps users understand how to use your utility

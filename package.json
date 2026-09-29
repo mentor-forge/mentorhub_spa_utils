@@ -1,6 +1,6 @@
 {
   "name": "@mentor-forge/mentorhub_spa_utils",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "type": "module",
   "engines": {
     "node": ">=24.0.0"
@@ -68,7 +68,9 @@
   },
   "dependencies": {
     "@tanstack/vue-query": "^5.0.0",
+    "dompurify": "^3.4.16",
     "jsonwebtoken": "^9.0.3",
+    "marked": "^18.0.14",
     "vue": "^3.5.0",
     "vue-router": "^4.0.0",
     "vuetify": "^3.11.0"
