@@ -20,6 +20,11 @@ describe('Type Editors Demo Page', () => {
   })
 
   it('should render every configurator-type card', () => {
+    cy.get('[data-automation-id="data-card-grid"]').should('be.visible')
+    cy.get('[data-automation-id="data-card-grid"]').within(() => {
+      cy.get('[data-automation-id="editors-identity-card"]').should('be.visible')
+      cy.get('[data-automation-id="editors-content-card"]').should('be.visible')
+    })
     cy.get('[data-automation-id="editors-identity-card"]').should('be.visible')
     cy.get('[data-automation-id="editors-contact-card"]').should('be.visible')
     cy.get('[data-automation-id="editors-content-card"]').should('be.visible')
@@ -48,6 +53,48 @@ describe('Type Editors Demo Page', () => {
     cy.get('[data-automation-id="editors-tags"]').should('exist')
     // Audit card starts collapsed (controlled v-model:collapsed demo) so assert existence only.
     cy.get('[data-automation-id="editors-breadcrumb"]').should('exist')
+  })
+
+  it('should render markdown as a heading and keep the textarea hidden until edit', () => {
+    cy.get('[data-automation-id="editors-markdown"]').scrollIntoView().should('be.visible')
+    cy.get('[data-automation-id="editors-markdown"] [data-automation-id="markdown-field-display"]')
+      .should('be.visible')
+      .find('h1')
+      .should('contain', 'Demo notes')
+    cy.get('[data-automation-id="editors-markdown"] [data-automation-id="markdown-field-display"]')
+      .find('strong')
+      .should('contain', 'markdown')
+    cy.get('[data-automation-id="editors-markdown-input"]').should('not.be.visible')
+  })
+
+  it('should click-to-edit markdown, blur to save, and return to rendered markdown', () => {
+    cy.get('[data-automation-id="editors-content-card"]').scrollIntoView()
+    cy.get('[data-automation-id="editors-markdown-display"]').should('be.visible').click()
+
+    cy.get('[data-automation-id="editors-markdown-input"]')
+      .should('be.visible')
+      .scrollIntoView()
+    cy.get('[data-automation-id="editors-markdown-input"] textarea')
+      .filter(':visible')
+      .should('have.length.at.least', 1)
+      .first()
+      .clear()
+      .type('# Updated notes{enter}{enter}Now **saved**.')
+      .blur()
+
+    cy.get('[data-automation-id="editors-save-log"]', { timeout: 3000 })
+      .should('be.visible')
+      .and('contain', 'Saved "markdown"')
+      .and('contain', 'Updated notes')
+
+    cy.get('[data-automation-id="editors-markdown-input"]').should('not.be.visible')
+    cy.get('[data-automation-id="editors-markdown"] [data-automation-id="markdown-field-display"]')
+      .should('be.visible')
+      .find('h1')
+      .should('contain', 'Updated notes')
+    cy.get('[data-automation-id="editors-markdown"] [data-automation-id="markdown-field-display"]')
+      .find('strong')
+      .should('contain', 'saved')
   })
 
   it('should AutoSave a word field edit and show the save affordance', () => {
