@@ -190,9 +190,9 @@ describe('DataCard', () => {
     })
   })
 
-  it('should work inside a CardGrid alongside other cards', async () => {
-    const { default: CardGrid } = await import('../../src/components/CardGrid.vue')
-    const wrapper = mount(CardGrid, {
+  it('should work inside a DataCardGrid alongside other cards', async () => {
+    const { default: DataCardGrid } = await import('../../src/components/DataCardGrid.vue')
+    const wrapper = mount(DataCardGrid, {
       slots: {
         default: () => [
           h(DataCard, { title: 'Identity', model: reactive({ name: 'Ada' }), onSave: vi.fn() }),

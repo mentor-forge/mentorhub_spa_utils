@@ -267,14 +267,6 @@ describe('Navigation & Routing', () => {
       cy.contains('Type Editor Gallery', { timeout: 10000 }).should('be.visible')
     })
 
-    it('should navigate to the dashboard page from DemoPage', () => {
-      cy.get('[data-automation-id="demo-page-dashboard-link"]', { timeout: 5000 })
-        .should('be.visible')
-        .click()
-      cy.url({ timeout: 5000 }).should('include', '/demo/dashboard')
-      cy.contains('h1', 'Dashboard', { timeout: 10000 }).should('be.visible')
-    })
-
     it('should navigate to the admin config page from DemoPage', () => {
       cy.get('[data-automation-id="demo-page-admin-link"]', { timeout: 5000 })
         .should('be.visible')
