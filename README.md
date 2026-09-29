@@ -11,7 +11,7 @@ Reusable Vue 3 + Vuetify components, composables, and utilities for Mentor Hub j
 Install from CodeArtifact (run `mh` first for credentials):
 
 ```bash
-npm install @mentor-forge/mentorhub_spa_utils@1.0.5
+npm install @mentor-forge/mentorhub_spa_utils@1.0.6
 ```
 
 **Component styles:** Prefer the package root import so Vite consumers receive component CSS automatically (the built `dist/index.js` side-effect-imports `./index.css`; `package.json` marks `**/*.css` and `./dist/index.js` as `sideEffects` so bundlers keep that import). Optionally import the stylesheet once at app bootstrap:
@@ -26,7 +26,7 @@ Working examples live in the [demo app](./demo/): IdP auth, **PageFrame** (catal
 
 ### Preferred UI: Cards + type-aligned field editors
 
-New **multi-card view/edit** pages should compose **`DataCardGrid` / `DataCard` / `MhCard`** with **configurator-type editors** under `src/components/editors/`. Prefer these over ad-hoc Vuetify fields. **List card dashboards** belong to Discovery (not this package).
+New **multi-card view/edit** pages should compose **`DataCardGrid` / `DataCard` / `MhCard`** with **configurator-type editors** under `src/components/editors/`. Prefer these over ad-hoc Vuetify fields. **List card dashboards** belong to Discovery (not this package). Shared list **`CardGrid`** left this package in **1.0.6**.
 
 #### MhCard / DataCard / DataCardGrid
 
@@ -42,7 +42,7 @@ Adaptive card chrome for declarative edit forms. Defaults use stock Vuetify/Mate
 
 Layout CSS for `DataCardGrid` and `MhCard` lives in the package stylesheet (not Vuetify). Importing from `@mentor-forge/mentorhub_spa_utils` pulls that CSS for Vite consumers; see [Component styles](#usage) above. Omitting the stylesheet (as with the unlinked `0.5.3` artifact) yields incorrect layout markup.
 
-##### DataCardGrid (multi-card view/edit)
+##### DataCardGrid (multi-card view/edit) — added in 1.0.6
 
 Use `DataCardGrid` for pages that lay out several `DataCard` sections. Do not pass breakpoint props or expect Fragment/`v-for` flattening.
 
@@ -84,7 +84,7 @@ Configurator-type view/edit controls. Prefer these for new forms.
 |------|-----------|-------|
 | `word` | `WordEditor` | 1–40 chars, no whitespace |
 | `sentence` | `SentenceEditor` | 0–255, no tabs/newlines |
-| `markdown` | `MarkdownEditor` | Resting view is sanitized GFM HTML (`marked` + `dompurify`, bundled — consumers do not import them). Editable fields click or Enter into a textarea (max 4096 via `markdownPattern`); read-only fields render markdown with no edit affordance. Props unchanged: `field`, `modelValue`, `onSave`, `editable`, `visible`, `automationId`, `label`, `hint`, `rules`, `rows`. Automation ids: root `automationId`, input `${automationId}-input`, display `${automationId}-display` (no double `-display` suffix), value `markdown-field-display`. |
+| `markdown` | `MarkdownEditor` | **1.0.6** resting view is sanitized GFM HTML (`marked` + `dompurify`, bundled — consumers do not import them). Editable fields click or Enter into a textarea (max 4096 via `markdownPattern`); read-only fields render markdown with no edit affordance. Props unchanged: `field`, `modelValue`, `onSave`, `editable`, `visible`, `automationId`, `label`, `hint`, `rules`, `rows`. Automation ids: root `automationId`, input `${automationId}-input`, display `${automationId}-display` (no double `-display` suffix), value `markdown-field-display`. |
 | `email` | `EmailEditor` | email pattern |
 | `url` | `UrlEditor` | URI; link in view mode |
 | `us_phone` | `UsPhoneEditor` | US phone patterns |
@@ -214,7 +214,7 @@ See [demo/router.ts](./demo/router.ts) and [demo/bootstrap-auth.ts](./demo/boots
 
 ### Universal PageFrame (1.0.0)
 
-**1.0.0** replaces per-SPA layout chrome with shared **`PageFrame`** navigation: app bar, role-gated hamburger drawer, profile link, and logout. Journey SPAs should adopt `@mentor-forge/mentorhub_spa_utils@1.0.5` and remove local nav shells.
+**1.0.0** replaces per-SPA layout chrome with shared **`PageFrame`** navigation: app bar, role-gated hamburger drawer, profile link, and logout. Journey SPAs should adopt `@mentor-forge/mentorhub_spa_utils@1.0.6` and remove local nav shells.
 
 Journey SPAs share compiled-in layout chrome: app bar (title, hamburger, profile), a role-gated navigation drawer, and logout. Import `{ PageFrame }` from the package root and wrap page content inside the host SPA’s single `v-app`:
 
