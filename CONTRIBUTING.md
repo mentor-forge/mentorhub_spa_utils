@@ -53,7 +53,7 @@ npm run cypress:run
 mentorhub_spa_utils/
 ├── src/
 │   ├── composables/     # Reusable composables (useAuth, useDataCardContext, universalNav, …)
-│   ├── components/      # Vue components (PageFrame, MhCard, CardGrid, DataCard, AutoSave*, …)
+│   ├── components/      # Vue components (PageFrame, MhCard, CardGrid, DataCard, DataCardGrid, AutoSave*, …)
 │   │   ├── editors/     # Configurator-type editors (WordEditor, DurationEditor, …)
 │   │   └── admin/       # Admin/config display components
 │   ├── utils/           # Utility functions (journeyUrls, validation, duration, urlAuthBootstrap, …)

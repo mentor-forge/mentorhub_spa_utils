@@ -26,9 +26,9 @@ Working examples live in the [demo app](./demo/): IdP auth, **PageFrame** (catal
 
 ### Preferred UI: Cards + type-aligned field editors
 
-New list and view/edit pages should compose **`CardGrid` / `MhCard` / `DataCard`** with **configurator-type editors** under `src/components/editors/`. Prefer these over ad-hoc Vuetify fields.
+New **list dashboards** should compose **`CardGrid` / `MhCard`**. New **multi-card view/edit** pages should compose **`DataCardGrid` / `DataCard` / `MhCard`** with **configurator-type editors** under `src/components/editors/`. Prefer these over ad-hoc Vuetify fields.
 
-#### MhCard / CardGrid / DataCard
+#### MhCard / CardGrid / DataCardGrid / DataCard
 
 Adaptive card chrome for list dashboards and declarative edit forms. Defaults use stock Vuetify/Material Design (`density="comfortable"`, `variant="outlined"` on form controls).
 
@@ -38,6 +38,7 @@ Adaptive card chrome for list dashboards and declarative edit forms. Defaults us
 |-----------|------|
 | `MhCard` | Solid-color title bar (title + optional `name`), white body, `#actions` slot, optional collapse (`collapsible`; uncontrolled or `v-model:collapsed`; **no persistence**). A standalone `MhCard` keeps its intrinsic height. |
 | `CardGrid` | Fixed responsive CSS Grid with equal-width tracks and a 16px gap. Expanded `MhCard` siblings stretch to equal height within each visual row; this override is scoped to cards inside `CardGrid`. |
+| `DataCardGrid` | Multi-card view/edit layout: CSS Grid slot wrapper (class `data-card-grid`, hardcoded `data-automation-id="data-card-grid"`). No props. Children render as authored (not a Fragment flattener). |
 | `DataCard` | Form section: composes `MhCard`, takes `model` + optional `nameField` + `onSave`, and `provide`s context so child editors bind by `field` |
 
 `CardGrid` layout rules live in the package stylesheet (not Vuetify). Importing `{ CardGrid }` from `@mentor-forge/mentorhub_spa_utils` pulls that CSS for Vite consumers; see [Component styles](#usage) above. Omitting the stylesheet (as with the unlinked `0.5.3` artifact) yields single-column / non-equal-height markup.
@@ -76,7 +77,30 @@ The default slot is structural: `CardGrid` recursively flattens Fragment content
 
 To verify wide layouts, run the demo and open [`/demo/dashboard`](./demo/pages/DashboardPage.vue). Give the browser viewport approximately 1600, 1920, 2240, and 2560px of width and confirm 5, 6, 7, and 8 columns; widen beyond 2560px and confirm the grid remains capped at 8. The dashboard also demonstrates equal-height expanded siblings and a collapsed card that stays at title-bar height.
 
-**Sources:** [MhCard.vue](./src/components/MhCard.vue), [CardGrid.vue](./src/components/CardGrid.vue), [DataCard.vue](./src/components/DataCard.vue)  
+##### DataCardGrid (multi-card view/edit)
+
+Use `DataCardGrid` for pages that lay out several `DataCard` sections. It is a separate export from `CardGrid` (list dashboards); do not pass breakpoint props or expect Fragment/`v-for` flattening.
+
+Fixed column contract (not prop-driven):
+
+- 1 column below 641px
+- 2 columns from 641px
+- 4 columns from 1920px (permanent maximum; no three-column step)
+- 16px gap
+
+Root markup is always `class="data-card-grid"` with hardcoded `data-automation-id="data-card-grid"`. Layout CSS ships with the package stylesheet (same import path as `CardGrid`).
+
+**Demo:** [`/demo/editors`](./demo/pages/EditorsPage.vue)
+
+```vue
+<DataCardGrid>
+  <DataCard title="Notes" :model="doc" :on-save="saveField">
+    <MarkdownEditor field="description" label="Description" automation-id="profile-description" />
+  </DataCard>
+</DataCardGrid>
+```
+
+**Sources:** [MhCard.vue](./src/components/MhCard.vue), [CardGrid.vue](./src/components/CardGrid.vue), [DataCardGrid.vue](./src/components/DataCardGrid.vue), [DataCard.vue](./src/components/DataCard.vue)  
 **Context helpers:** [useDataCardContext.ts](./src/composables/useDataCardContext.ts)
 
 #### Type-aligned editors (field components)
@@ -91,7 +115,7 @@ Configurator-type view/edit controls. Prefer these for new forms.
 |------|-----------|-------|
 | `word` | `WordEditor` | 1–40 chars, no whitespace |
 | `sentence` | `SentenceEditor` | 0–255, no tabs/newlines |
-| `markdown` | `MarkdownEditor` | textarea, max 4096 |
+| `markdown` | `MarkdownEditor` | Resting view is sanitized GFM HTML (`marked` + `dompurify`, bundled — consumers do not import them). Editable fields click or Enter into a textarea (max 4096 via `markdownPattern`); read-only fields render markdown with no edit affordance. Props unchanged: `field`, `modelValue`, `onSave`, `editable`, `visible`, `automationId`, `label`, `hint`, `rules`, `rows`. Automation ids: root `automationId`, input `${automationId}-input`, display `${automationId}-display` (no double `-display` suffix), value `markdown-field-display`. |
 | `email` | `EmailEditor` | email pattern |
 | `url` | `UrlEditor` | URI; link in view mode |
 | `us_phone` | `UsPhoneEditor` | US phone patterns |
@@ -147,6 +171,7 @@ Import from the package root (preferred — includes component CSS for Vite) or 
 ```typescript
 import {
   CardGrid,
+  DataCardGrid,
   DataCard,
   WordEditor,
   MarkdownEditor,
