@@ -1,6 +1,6 @@
 # F058 – Move npm registry configuration and release scripts to GitHub Packages
 
-**Status**: Pending
+**Status**: Shipped
 
 **Type**: Feature
 
@@ -81,4 +81,6 @@ AWS inventory, secure backup/restore evidence and separately approved decommissi
 
 ## Execution Notes
 
-Reserved for the execution agent. No implementation, tests, service changes or publication have been performed.
+Configured the Mentor Forge npm scope and package publication for GitHub Packages. The local publish helper uses a temporary token-placeholder npm configuration, checks for an existing version, and uploads a single prepared tarball. The tag helper requires matching package and lockfile versions, a clean local main at the origin tip, and a new local and remote tag. The three formerly CodeArtifact-resolved lock entries now use public npm with their versions and integrity values intact.
+
+On Node 24, `npm install --include=dev`, `npm ci`, the production build, and all 452 Vitest cases passed. Cypress's separate binary download was disabled for these unit and packaging checks. The release tests used mocked npm calls to cover credential, duplicate, registry-error and tarball publication paths, and rejected a tag/version mismatch before Git was invoked. Shell syntax and `git diff --check` passed. Dry-run pack inspection confirmed declarations, CSS, and Cypress exports. The three pre-existing missing JavaScript subpath files identified by F057 remain for F059. No real tag or package was created.
