@@ -12,9 +12,6 @@ Thank you for contributing to mentorhub_spa_utils! This guide will help you get 
 ### Getting Started
 
 ```bash
-# CodeArtifact auth (needed once per shell for @mentor-forge packages)
-mh
-
 # Install dependencies (use the lockfile — pin Cypress to the exact version in package.json)
 npm install --include=dev
 
@@ -117,22 +114,19 @@ When adding new utilities, components, or composables:
 
 ## Versioning and release
 
-Consuming SPAs pin this library with an exact semver from CodeArtifact (for example `"@mentor-forge/mentorhub_spa_utils": "0.2.0"`). Bump **`package.json`** version on the release branch before opening the PR.
+SPA Utils has its own SemVer. Use a patch for compatible fixes, a minor for compatible new features, and a major for breaking changes. Run the version command on the release branch to update both package metadata and the lockfile before opening the PR.
 
 ```bash
-npm run patch   # 0.1.0 → 0.1.1 (no git tag)
-npm run minor   # 0.1.0 → 0.2.0
-npm run major   # 0.1.0 → 1.0.0
+npm run patch
+npm run minor
+npm run major
 ```
 
-**Release flow:**
+1. Review and merge the release PR, then switch to `main` and sync it with GitHub.
+2. Run `npm run tag-release` from the clean, synced branch. The helper creates and pushes the matching permanent version tag. GitHub Actions tests, builds, checks the package exports, and publishes the verified tarball to GitHub Packages.
+3. Verify package visibility and consumer Actions access, then verify a clean consumer install before updating downstream pins.
 
-1. Merge the version bump to `main`.
-2. Run `npm run tag-release` on `main` — creates and pushes `v{version}`; GitHub Actions publishes to CodeArtifact.
-
-**Local publish** (SRE / debugging, skips CI): `aws sso login --profile mentorhub-shared` then `npm run publish-package`.
-
-**npm / CodeArtifact auth:** `.npmrc` is gitignored (tokens must not be committed). Use `.npmrc.example` as the template; CI and `publish-package.sh` copy its comments and inject a short-lived `_authToken`. For local installs of `@mentor-forge/*` packages, run `mh` or copy `.npmrc.example` to `.npmrc` and add your token.
+Consumer projects pin an exact version and commit its lockfile. Follow the [README](./README.md#usage) for scoped registry and environment token setup. Local development in this publisher repository installs third-party dependencies from public npm without GitHub Packages credentials. For rollback, restore the matching dependency and lockfile from a verified GitHub-hosted release. The first GitHub-hosted release is the rollback floor.
 
 **`npm run build-package`** installs dev dependencies and builds **`dist/`** (Launch / automation). **`delete-package`** remains a no-op so Stage0 Launch npm steps always find that script.
 

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
@@ -9,19 +9,23 @@ function preserveImportMetaEnv(): Plugin {
   return {
     name: 'preserve-import-meta-env',
     closeBundle() {
-      const file = resolve(__dirname, 'dist/index.js')
-      const code = readFileSync(file, 'utf8')
-      const replaced = code.replace(
-        /const (\w+) = \{ BASE_URL: [^}]+\};/g,
-        (match, name, offset) => {
-          const next = code.slice(offset + match.length, offset + match.length + 120)
-          if (next.includes(`${name}?.VITE_IDP_LOGIN_URI`)) {
-            return `const ${name} = import.meta.env;`
+      const dist = resolve(__dirname, 'dist')
+      for (const entry of readdirSync(dist, { recursive: true })) {
+        if (!entry.endsWith('.js')) continue
+        const file = resolve(dist, entry)
+        const code = readFileSync(file, 'utf8')
+        const replaced = code.replace(
+          /const (\w+) = \{ BASE_URL: [^}]+\}(?=[;,])/g,
+          (match, name, offset) => {
+            const next = code.slice(offset + match.length, offset + match.length + 500)
+            if (next.includes(`${name}?.VITE_IDP_LOGIN_URI`)) {
+              return `const ${name} = import.meta.env`
+            }
+            return match
           }
-          return match
-        }
-      )
-      if (replaced !== code) writeFileSync(file, replaced)
+        )
+        if (replaced !== code) writeFileSync(file, replaced)
+      }
     },
   }
 }
@@ -48,10 +52,14 @@ export default defineConfig({
   plugins: [vue(), preserveImportMetaEnv(), injectLibCssImport()],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
-      name: 'SpaUtils',
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+        'composables/index': resolve(__dirname, 'src/composables/index.ts'),
+        'components/index': resolve(__dirname, 'src/components/index.ts'),
+        'utils/index': resolve(__dirname, 'src/utils/index.ts')
+      },
       formats: ['es'],
-      fileName: 'index'
+      cssFileName: 'index'
     },
     rollupOptions: {
       external: ['vue', 'vue-router', '@tanstack/vue-query', 'vuetify'],

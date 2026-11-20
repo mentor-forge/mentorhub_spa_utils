@@ -63,7 +63,7 @@ Each task file must contain the following sections under H1 and H2 headings.
   - Should always include a description of the tests that should be used to verify completion.
   - In this repo, that typically means some combination of:
     - `cd ../mentorhub_api_utils && pipenv run db && pipenv run dev` to setup backing services
-    - `npm install` — refresh dependencies after changes (CodeArtifact auth; run `mh` first if needed)
+    - `npm install` — refresh dependencies after changes using public npm
     = `npm run test` — unit tests (pytest, excludes `@pytest.mark.e2e`)
     - `npm run dev` — run SPA demo server locally (for manual or E2E verification)
     - `npm run cypress:run` — end-to-end tests against a running dev server
@@ -112,11 +112,10 @@ Do **not** reference paths under CloudFormation repos in task **Context** or **G
 
 ## Dependency management
 
-Domain APIs resolve `api-utils` and other packages from **AWS CodeArtifact**. When a task bumps or adds dependencies in `package.json` / `package-lock.json`, the execution agent must install them with:
+SPA Utils installs third-party dependencies from public npm. When a task changes `package.json` or `package-lock.json`, refresh the dependencies with:
 
 ```bash
 npm install --include=dev
 ```
 
-Run `mh` once per shell session before `npm install` if CodeArtifact credentials are not already available (see `README.md` and `../mentorhub/DeveloperEdition/standards/spa_standards.md`).
-
+For consumer installations of the published package, use an exact version from GitHub Packages with `NODE_AUTH_TOKEN` and the scoped registry configuration from the [README](../README.md#usage).

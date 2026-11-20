@@ -1,41 +1,44 @@
 #!/usr/bin/env sh
-# Build and publish to CodeArtifact (mentorhub-npm).
-# Targets: Specifications/aws-platform.yaml — override via env if needed.
-set -e
+# Prepare and publish to GitHub Packages using an operator's npm credentials.
+set -eu
 
 root=$(cd "$(dirname "$0")/.." && pwd)
 cd "$root"
 
-domain="${CODEARTIFACT_DOMAIN:-mentor-forge}"
-owner="${AWS_SHARED_SERVICES_ACCOUNT_ID:-560167829275}"
-repo="${CODEARTIFACT_NPM_REPO:-mentorhub-npm}"
-region="${AWS_REGION:-us-east-1}"
+NODE_AUTH_TOKEN="${NODE_AUTH_TOKEN:-${GITHUB_TOKEN:-}}"
+if [ -z "$NODE_AUTH_TOKEN" ]; then
+  echo 'Set NODE_AUTH_TOKEN or GITHUB_TOKEN with GitHub Packages publish access.' >&2
+  exit 1
+fi
+export NODE_AUTH_TOKEN
 
-export AWS_PROFILE="${MH_AWS_PROFILE_SHARED:-mentorhub-shared}"
+package=$(node -p "const { name, version } = require('./package.json'); name + '@' + version")
+scratch=$(mktemp -d)
+trap 'rm -rf "$scratch"' EXIT
+trap 'exit 1' HUP INT TERM
 
-# Auth must land before npm ci so CodeArtifact-resolved lockfile URLs succeed.
-TOKEN=$(aws codeartifact get-authorization-token \
-  --domain "${domain}" \
-  --domain-owner "${owner}" \
-  --region "${region}" \
-  --query authorizationToken --output text)
+cp .npmrc.example "$scratch/npmrc"
+export NPM_CONFIG_USERCONFIG="$scratch/npmrc"
 
-END=$(aws codeartifact get-repository-endpoint \
-  --domain "${domain}" \
-  --domain-owner "${owner}" \
-  --repository "${repo}" \
-  --format npm \
-  --region "${region}" \
-  --query repositoryEndpoint --output text)
+# Run registry commands outside the checkout so an old local .npmrc cannot
+# redirect publishing or supply stale credentials.
+if (cd "$scratch" && npm view "$package" version --json) >"$scratch/view.json" 2>"$scratch/view.err"; then
+  if [ -s "$scratch/view.json" ]; then
+    echo "$package already exists in GitHub Packages." >&2
+    exit 1
+  fi
+elif ! grep -Eq '"code"[[:space:]]*:[[:space:]]*"E404"' "$scratch/view.json"; then
+  echo "Could not check whether $package exists. Verify GitHub Packages access and retry." >&2
+  exit 1
+fi
 
-HOST="${END#https://}"
-
-{
-  grep '^#' .npmrc.example 2>/dev/null || true
-  echo "@mentor-forge:registry=${END}"
-  echo "//${HOST}:_authToken=${TOKEN}"
-} > .npmrc
-
-npm ci
-npm run build
-npm publish
+# npm ci invokes prepare and builds dist. Publish the resulting tarball without
+# rerunning lifecycle scripts.
+npm ci --include=dev
+npm pack --ignore-scripts --pack-destination "$scratch"
+set -- "$scratch"/*.tgz
+if [ "$#" -ne 1 ] || [ ! -f "$1" ]; then
+  echo 'Expected exactly one package tarball.' >&2
+  exit 1
+fi
+(cd "$scratch" && npm publish "$1" --ignore-scripts)

@@ -1,0 +1,29 @@
+name: Validate Package
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: npm ci
+        env:
+          CYPRESS_INSTALL_BINARY: "0"
+      - run: npm test
+      - run: npm run build
+      - run: npm pack --ignore-scripts --json | node scripts/verify-package-exports.mjs

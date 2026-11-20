@@ -8,11 +8,13 @@ Reusable Vue 3 + Vuetify components, composables, and utilities for Mentor Hub j
 
 ## Usage
 
-Install from CodeArtifact (run `mh` first for credentials):
+After the maintainer publishes 1.0.7 to GitHub Packages, configure the consuming project's npm registry using the token-free [`.npmrc.example`](./.npmrc.example). Set `NODE_AUTH_TOKEN` in the environment with a GitHub credential that has `read:packages` and access to the package. In GitHub Actions, grant the consuming repository read access to the package and set `NODE_AUTH_TOKEN` from the workflow token. Third-party dependencies still come from public npm.
 
 ```bash
-npm install @mentor-forge/mentorhub_spa_utils@1.0.6
+npm install --save-exact @mentor-forge/mentorhub_spa_utils@1.0.7
 ```
+
+Commit the exact dependency and matching lockfile. The first GitHub-hosted release is the earliest supported rollback version. See the [distribution guide](./docs/github-package-distribution.md) for release and package access checks.
 
 **Component styles:** Prefer the package root import so Vite consumers receive component CSS automatically (the built `dist/index.js` side-effect-imports `./index.css`; `package.json` marks `**/*.css` and `./dist/index.js` as `sideEffects` so bundlers keep that import). Optionally import the stylesheet once at app bootstrap:
 
