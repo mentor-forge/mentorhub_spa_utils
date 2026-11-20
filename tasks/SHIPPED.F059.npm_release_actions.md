@@ -1,6 +1,6 @@
 # F059 – Replace AWS release Actions and add package validation CI
 
-**Status**: Pending
+**Status**: Shipped
 
 **Type**: Feature
 
@@ -46,6 +46,8 @@ These checks are for future execution; none were run while creating this plan.
 
 - `.github/workflows/publish-package.yml`
 - `.github/workflows/ci.yml`
+- `scripts/verify-package-exports.mjs`
+- `vite.config.ts`
 - `docs/github-package-distribution.md`
 
 Only these implementation files may change. The orchestrator may also update/rename this task record under the established lifecycle.
@@ -72,4 +74,8 @@ AWS inventory, secure backup/restore evidence and separately approved decommissi
 
 ## Execution Notes
 
-Reserved for the execution agent. No implementation, tests, service changes or publication have been performed.
+- Added separate read-only PR validation and tag validation. They test, rebuild without test-specific Vite settings, and check the actual packed export targets. The tag must match the package version and point to a commit on main.
+- Publish uses the verified tarball from the validation job with lifecycle scripts disabled. Only the publish job receives package write permission and only its publish step uses the registry token.
+- Configured Vite to emit the three existing JavaScript subpath exports. Preserved the root stylesheet import and build-time login configuration in the emitted chunks.
+- Verified on Node 24 with a locked install, 452 passing tests, a clean build, packed file inspection, rejection of a manifest missing an export, and YAML trigger and permission checks.
+- Did not create a tag or publish. Package visibility and downstream Actions access remain first-publication checks.

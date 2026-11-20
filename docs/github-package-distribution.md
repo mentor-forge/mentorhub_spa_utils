@@ -6,7 +6,7 @@ SPA Utils 1.0.6 publishes as `@mentor-forge/mentorhub_spa_utils` and requires No
 
 `npm run build` uses Vite for JavaScript and CSS and TypeScript for declarations. The `prepare` lifecycle runs the build during installs and packing from the repository. The release workflow must verify the finished tarball and publish that same file, so another lifecycle build cannot change the published contents.
 
-The 1.0.6 dry-run pack contained the root JavaScript and declarations, stylesheet, all Cypress export targets, and declarations for the composables, components and utilities. The three corresponding JavaScript subpath targets were absent because Vite builds a single entry. Emit those files before release and have CI check every declared target in the packed artifact.
+The 1.0.6 dry-run pack contained the root JavaScript and declarations, stylesheet, all Cypress export targets, and declarations for the composables, components and utilities. The three corresponding JavaScript subpath targets were absent because Vite builds a single entry. The multi-entry Vite build emits all three JavaScript subpaths. CI verifies every declared export target in the tarball, including declarations, CSS and the Cypress helpers.
 
 The old workflow and publish helper authenticate to CodeArtifact. The old `.npmrc.example` routes the Mentor Forge scope there. The lock resolves 425 third-party tarballs from public npm and three from CodeArtifact: `@types/trusted-types`, `dompurify`, and `marked`. An isolated install using public npm for those three exact versions succeeded with their existing integrity checks.
 
@@ -24,5 +24,9 @@ Use a classic GitHub token with `read:packages` for local installs, supplied thr
 The browser code has no executable AWS API calls, SDK imports, or AWS credential requirements in its login utilities. Login URI precedence is explicit override, runtime `IDP_LOGIN_URI`, build-time `VITE_IDP_LOGIN_URI`, then the Developer Edition welcome login. The redirect keeps the configured provider URL and sets `return_to` to the SPA destination. URL bootstrap consumes the existing token, expiry and role fields or clears seeded auth on request. `useAuth` reads and clears the same local browser storage. The README and tests use provider examples to exercise this configurable contract. Keep the interfaces and behavior intact.
 
 ## Release sequence and rollback
+
+Pull requests to main run the locked install, unit tests and package checks with read-only repository permissions. The tag workflow verifies the version and main ancestry, runs the same checks, and passes the packed tarball to a separate publishing job. Only the publishing job has package write permission. Publishing uses that exact tarball with lifecycle scripts disabled.
+
+For the initial release, open the organization's package page after publication, select **Package settings**, verify or set Public visibility, and confirm the publishing repository is linked. Use **Manage Actions access** to add each in-scope consumer repository with Read access. Verify that each consumer workflow can resolve the exact version using its own token with package read permission before migrating its lockfile.
 
 Merge the reviewed changes before tagging and publishing the matching version. Verify the package contents, visibility and access through a clean exact-version install. Consumers can then pin the verified GitHub-hosted version and commit the corresponding lockfile. To roll back, restore a verified GitHub-hosted version and its matching lockfile. The earliest supported rollback is the first GitHub-hosted release.
