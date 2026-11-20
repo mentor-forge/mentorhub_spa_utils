@@ -73,4 +73,7 @@ AWS inventory, secure backup/restore evidence and separately approved decommissi
 
 ## Execution Notes
 
-Reserved for the execution agent. No implementation, tests, service changes or publication have been performed.
+- Locked `npm ci`, all 452 unit tests, a fresh build and the packed export manifest check passed on Node 24.
+- A temporary consumer installed the local 1.0.7 tarball. Its lock version and integrity matched npm pack metadata, and all third-party resolutions used public npm. Vite built the installed JavaScript and stylesheet imports, TypeScript resolved the library declarations, and all four Cypress helper entrypoints resolved.
+- The coverage run executed the tests but failed the existing 100% threshold for `src/utils/**` (72.98% lines and statements, 71.42% functions, 96.11% branches). The utility code, its tests and threshold configuration are unchanged from main.
+- Cypress demo execution and the authenticated and unauthenticated installs of the actual GitHub package remain open. Record the published version, integrity, visibility and consumer workflow access after maintainer publication. Local tarball evidence does not verify the live registry.
