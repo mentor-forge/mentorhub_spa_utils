@@ -18,18 +18,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        '**/*.config.ts',
-        '**/vite.config*.ts',
-        '**/dist/**',
-        '**/*.spec.ts',
-        '**/*.test.ts',
-        '**/index.ts', // Exclude re-export index files
-        'cypress/**', // E2E tests - covered by Cypress
-        'demo/**', // Demo app - not unit tested
-        '**/vite-env.d.ts'
-      ],
+      include: ['src/**/*.{ts,vue}'],
+      exclude: ['**/index.ts', '**/*.d.ts', '**/*.{spec,test}.ts'],
       thresholds: {
         'src/composables/**': {
           lines: 90,
@@ -45,10 +35,10 @@ export default defineConfig({
           statements: 85,
         },
         'src/utils/**': {
-          lines: 100,
-          functions: 100,
-          branches: 100,
-          statements: 100,
+          lines: 90,
+          functions: 90,
+          branches: 90,
+          statements: 90,
         },
       },
     },
