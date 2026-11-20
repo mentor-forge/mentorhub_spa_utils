@@ -1,6 +1,6 @@
 # F060 – Prepare npm patch release and contributor documentation
 
-**Status**: Pending
+**Status**: Shipped
 
 **Type**: Feature
 
@@ -77,4 +77,6 @@ AWS inventory, secure backup/restore evidence and separately approved decommissi
 
 ## Execution Notes
 
-Reserved for the execution agent. No implementation, tests, service changes or publication have been performed.
+Ran the existing patch command to prepare 1.0.7. Live Git tags ended at v1.0.6. Authenticated GitHub Packages lookup reported the package/version unavailable (404), which does not distinguish absence from restricted visibility. The publish workflow retains duplicate-version protection. No tag or publication was created.
+
+Updated the contributor and consumer instructions for GitHub Packages, exact pins, public npm dependencies, the maintainer release sequence, and the rollback floor. Verified the metadata and both lockfile version fields, dev install, all 452 unit tests, fresh build, and all declared exports in the npm pack inspection. Lint could not run because ESLint is absent from the existing dependencies. Live package access and installation remain F061 checks after publication.
