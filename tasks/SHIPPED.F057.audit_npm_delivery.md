@@ -1,6 +1,6 @@
 # F057 – Audit npm distribution, exports and provider-neutral auth contract
 
-**Status**: Pending
+**Status**: Shipped
 
 **Type**: Feature
 
@@ -69,4 +69,4 @@ AWS inventory, secure backup/restore evidence and separately approved decommissi
 
 ## Execution Notes
 
-Reserved for the execution agent. No implementation, tests, service changes or publication have been performed.
+Audited package metadata, build lifecycle, registry configuration, lock sources, and login code and tests. Built 1.0.6 in a temporary checkout with 447 Vitest tests passing and three lockfile URLs redirected to public npm while preserving versions and integrity. A dry-run pack verified JS, declarations, CSS and Cypress targets and exposed three missing JavaScript subpath files. The distribution guide records this as a release gate. No release or consumer changes were made.
