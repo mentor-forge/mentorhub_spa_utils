@@ -23,7 +23,7 @@
             <v-window v-model="tab">
               <!-- Config Items Tab -->
               <v-window-item value="config">
-                <ConfigItemsTable :items="(config.config_items || []) as Array<Record<string, unknown>>" />
+                <ConfigItemsTable :items="configItems" />
               </v-window-item>
 
               <!-- Versions Tab -->
@@ -74,6 +74,14 @@ const props = withDefaults(defineProps<AdminPageProps>(), {
 })
 
 const tab = ref('config')
+const spaBuild = typeof document === 'undefined'
+  ? undefined
+  : document.querySelector<HTMLMetaElement>('meta[name="spa-built-at"]')?.content.trim()
+
+const configItems = computed(() => {
+  const items = props.config?.config_items ?? []
+  return spaBuild ? [{ name: 'SPA_BUILT_AT', value: spaBuild, from: 'SPA' }, ...items] : items
+})
 
 const errorMessage = computed(() => {
   if (!props.error) return ''
